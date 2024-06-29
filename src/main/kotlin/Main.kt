@@ -18,7 +18,8 @@ import androidx.compose.ui.window.application
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = appName
+        title = appName,
+        icon = painterResource("app.png"),
     ) {
         val settings = loadSettings()
         MaterialTheme {
