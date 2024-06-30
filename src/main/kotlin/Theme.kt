@@ -1,104 +1,47 @@
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.Surface
+import androidx.compose.material.darkColors
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-@Preview
-fun Settings(
-    onCloseRequest: () -> Unit,
-    settings: Settings
-) {
-    val darkTheme = remember { mutableStateOf(settings.darkTheme) }
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(modifier = Modifier.height(30.dp)) {
-            Button(onClick = onCloseRequest) {
-                Text("Close")
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Text("Settings")
-        }
-        Spacer(modifier = Modifier.height(1.dp))
-        SettingBoolean("Dark theme", darkTheme)
-        Setting("Editor") {
-            optionsMenu()
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun optionsMenu() {
-    val options = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
-    var expanded by remember { mutableStateOf(false) }
-    var selectedOptionText by remember { mutableStateOf(options[0]) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-
-        TextField(
-            readOnly = true,
-            value = selectedOptionText,
-            onValueChange = { },
-            singleLine = true,
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+fun Theme(function: @Composable () -> Unit) {
+     MaterialTheme(
+        colors = darkColors().copy(
+            primary = Color(	0xFF0366d6),
+            primaryVariant = Color(0xFF0331f4),
+            secondary = Color(0xFF2f363d),
+            secondaryVariant = Color(0xFF9fadaf),
+            background = Color(0xFF121212),
+            surface = Color(0xFF1e1f22),
+            error = Color(0xFFf44f03),
+            onPrimary = Color(0xFF323232),
+            onSecondary = Color.Black,
+            onBackground = Color.White,
+            onSurface = Color.White,
+            onError = Color.Red
+        ),
+        typography = typography.copy(
+            h1 = typography.h1.copy(fontSize = 20.sp),
+            h2 = typography.h2.copy(fontSize = 18.sp),
+            h3 = typography.h3.copy(fontSize = 16.sp),
+            h4 = typography.h4.copy(fontSize = 14.sp),
+            h5 = typography.h5.copy(fontSize = 12.sp),
+            h6 = typography.h6.copy(fontSize = 10.sp),
+            subtitle1 = typography.subtitle1.copy(fontSize = 16.sp),
+            subtitle2 = typography.subtitle2.copy(fontSize = 14.sp),
+            body1 = typography.body1.copy(fontSize = 12.sp),
+            body2 = typography.body2.copy(fontSize = 10.sp),
+            button = typography.button.copy(fontSize = 12.sp),
+            caption = typography.caption.copy(fontSize = 12.sp),
+            overline = typography.overline.copy(fontSize = 10.sp),
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { selectionOption ->
-                DropdownMenuItem(
-                    onClick = {
-                        selectedOptionText = selectionOption
-                        expanded = false
-                    }
-                ) {
-                    Text(text = selectionOption)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SettingBoolean(
-    text: String,
-    checked: MutableState<Boolean>
-) {
-    Setting(text = text) {
-        Switch(checked = checked.value,
-            onCheckedChange = { checked.value = it })
-    }
-}
-
-@Composable
-fun Setting(text: String, function: @Composable () -> Unit) {
-    Row(
-        modifier = Modifier
-            .width(400.dp)
-            .height(50.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.wrapContentHeight(),
-            textAlign = TextAlign.Left,
-        )
-        Spacer(modifier = Modifier.weight(1f))
+    ){
+         Surface(Modifier.fillMaxSize()) {
         function()
-    }
+     }}
 }
-
-
