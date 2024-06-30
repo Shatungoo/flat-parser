@@ -1,12 +1,22 @@
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
 
 @Serializable
 class Settings(
-    var darkTheme: Boolean = false
+    @Serializable(with = MutableStateSerializer::class)
+    var darkTheme: MutableState<Boolean> = mutableStateOf(false),
+
+    @Serializable(with = MutableStateSerializer::class)
+    var theme: MutableState<String> = mutableStateOf("Default"),
 ) {
 
 }
@@ -38,4 +48,10 @@ fun loadSettings(): Settings {
 
 fun Settings.saveSettings() {
     settingsFile().writeText(Json.encodeToString(this))
+}
+
+class MutableStateSerializer<T>(private val dataSerializer: KSerializer<T>) : KSerializer<MutableState<T>> {
+    override val descriptor: SerialDescriptor = dataSerializer.descriptor
+    override fun serialize(encoder: Encoder, value: MutableState<T>) = dataSerializer.serialize(encoder, value.value)
+    override fun deserialize(decoder: Decoder) = mutableStateOf(dataSerializer.deserialize(decoder))
 }

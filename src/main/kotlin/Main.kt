@@ -17,19 +17,18 @@ fun main() = application {
         icon = painterResource("app.png"),
     ) {
         val settings = loadSettings()
-//        Column {
-//            AppWindowTitleBar()
-            Theme {
-                val view = remember { mutableStateOf(Views.Main) }
-                when (view.value) {
-                    Views.Settings -> Settings(
-                        onCloseRequest = { view.value = Views.Main },
-                        settings = settings
-                    )
+        Theme {
+            val view = remember { mutableStateOf(Views.Main) }
+            when (view.value) {
+                Views.Settings -> Settings(
+                    onCloseRequest = {
+                        settings.saveSettings()
+                        view.value = Views.Main },
+                    settings = settings
+                )
 
-                    Views.Main -> MainView(view = view)
-                }
-//            }
+                Views.Main -> MainView(view = view)
+            }
         }
 
 

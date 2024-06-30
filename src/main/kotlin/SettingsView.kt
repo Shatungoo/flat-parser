@@ -1,15 +1,11 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 @Preview
@@ -17,7 +13,6 @@ fun Settings(
     onCloseRequest: () -> Unit,
     settings: Settings
 ) {
-    val darkTheme = remember { mutableStateOf(settings.darkTheme) }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(modifier = Modifier.height(30.dp)) {
             Button(onClick = onCloseRequest) {
@@ -27,28 +22,29 @@ fun Settings(
             Text("Settings")
         }
         Spacer(modifier = Modifier.height(1.dp))
-        SettingBoolean("Dark theme", darkTheme)
-        Setting("Editor") {
-            optionsMenu()
+        SettingBoolean("Dark theme", settings.darkTheme)
+        Setting("Theme") {
+            optionsMenu(listOf("Dark", "Light", "System"),
+                settings.theme)
         }
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun optionsMenu() {
-    val options = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
+fun optionsMenu(options: List<String>,
+                selectedOption: MutableState<String>) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedOptionText by remember { mutableStateOf(options[0]) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.width(200.dp)
     ) {
 
         TextField(
             readOnly = true,
-            value = selectedOptionText,
+            value = selectedOption.value,
             onValueChange = { },
             singleLine = true,
             colors = ExposedDropdownMenuDefaults.textFieldColors(),
@@ -58,14 +54,14 @@ fun optionsMenu() {
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            options.forEach { selectionOption ->
+            options.forEach {
                 DropdownMenuItem(
                     onClick = {
-                        selectedOptionText = selectionOption
+                        selectedOption.value = it
                         expanded = false
                     }
                 ) {
-                    Text(text = selectionOption)
+                    Text(text = it)
                 }
             }
         }
