@@ -1,17 +1,12 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.window.WindowDraggableArea
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.window.WindowScope
-import androidx.compose.ui.window.application
 
 
 @Composable
@@ -30,6 +25,45 @@ fun WindowScope.AppWindowTitleBar() = WindowDraggableArea {
         Button(onClick = { println("Minimize") }) {
             Text("X")
 //            Icon(Icons.Default.Add, contentDescription = "Minimize")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun optionsMenu(options: List<String>,
+                selectedOption: MutableState<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.width(200.dp)
+    ) {
+
+        TextField(
+            readOnly = true,
+            value = selectedOption.value,
+            onValueChange = { },
+            singleLine = true,
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach {
+                DropdownMenuItem(
+                    onClick = {
+                        selectedOption.value = it
+                        expanded = false
+                    }
+                ) {
+                    Text(text = it)
+                }
+            }
         }
     }
 }

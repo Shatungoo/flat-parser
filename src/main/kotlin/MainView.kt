@@ -26,9 +26,7 @@ fun controlPanelButton(
     onClick: () -> Unit,
     image: String
 ) {
-    Button(
-        onClick = onClick,
-    ) {
+    Button(onClick = onClick,) {
         Image(painterResource(image), "image")
     }
 }

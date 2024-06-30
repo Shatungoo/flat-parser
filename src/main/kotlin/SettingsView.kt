@@ -30,44 +30,6 @@ fun Settings(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun optionsMenu(options: List<String>,
-                selectedOption: MutableState<String>) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.width(200.dp)
-    ) {
-
-        TextField(
-            readOnly = true,
-            value = selectedOption.value,
-            onValueChange = { },
-            singleLine = true,
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach {
-                DropdownMenuItem(
-                    onClick = {
-                        selectedOption.value = it
-                        expanded = false
-                    }
-                ) {
-                    Text(text = it)
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun SettingBoolean(
     text: String,

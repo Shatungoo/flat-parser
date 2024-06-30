@@ -11,16 +11,13 @@ import java.io.File
 import java.nio.file.Paths
 
 @Serializable
-class Settings(
+data class Settings(
     @Serializable(with = MutableStateSerializer::class)
-    var darkTheme: MutableState<Boolean> = mutableStateOf(false),
+    val darkTheme: MutableState<Boolean> = mutableStateOf(false),
 
     @Serializable(with = MutableStateSerializer::class)
-    var theme: MutableState<String> = mutableStateOf("Default"),
-) {
-
-}
-
+    val theme: MutableState<String> = mutableStateOf("Default"),
+)
 
 private val settingsFile: () -> File
     get() = {
