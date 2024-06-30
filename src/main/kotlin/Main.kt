@@ -1,16 +1,10 @@
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.Surface
+import androidx.compose.material.darkColors
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
@@ -22,20 +16,24 @@ fun main() = application {
         icon = painterResource("app.png"),
     ) {
         val settings = loadSettings()
-        MaterialTheme {
-            var isDialogOpen by remember { mutableStateOf(false) }
-            Row(modifier = Modifier.height(50.dp)) {
-                Button(onClick = { isDialogOpen = true }) {
-                    Image(painterResource("settings.png"), "image")
-                }
-            }
+        MaterialTheme(
+            colors = darkColors()
+        ) {
+            Surface(Modifier.fillMaxSize()) {
+                val view = remember { mutableStateOf(Views.Main) }
+                when (view.value) {
+                    Views.Settings -> Settings(
+                        onCloseRequest = { view.value = Views.Main },
+                        settings = settings
+                    )
 
-            if (isDialogOpen) {
-                Settings(
-                    onCloseRequest = { isDialogOpen = false },
-                    settings = settings
-                )
+                    Views.Main -> MainView(view = view)
+                }
             }
         }
     }
+}
+
+enum class Views {
+    Main, Settings
 }

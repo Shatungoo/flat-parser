@@ -5,6 +5,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,36 +37,26 @@ fun Settings(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun optionsMenu() {
-
     val options = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
     ExposedDropdownMenuBox(
-        modifier = Modifier.fillMaxHeight(0.9f),
         expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        }
+        onExpandedChange = { expanded = !expanded }
     ) {
+
         TextField(
             readOnly = true,
             value = selectedOptionText,
             onValueChange = { },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
-                )
-            },
-            modifier = Modifier.fillMaxHeight(),
-            textStyle = TextStyle.Default.copy(fontSize = 14.sp),
-            colors = ExposedDropdownMenuDefaults.textFieldColors()
+            singleLine = true,
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
+            onDismissRequest = { expanded = false }
         ) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
@@ -97,15 +88,13 @@ fun Setting(text: String, function: @Composable () -> Unit) {
     Row(
         modifier = Modifier
             .width(400.dp)
-            .height(50.dp)
-            .background(color = MaterialTheme.colors.primary),
+            .height(50.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = text,
             modifier = Modifier.wrapContentHeight(),
             textAlign = TextAlign.Left,
-            color = MaterialTheme.colors.onPrimary
         )
         Spacer(modifier = Modifier.weight(1f))
         function()
