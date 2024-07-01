@@ -9,7 +9,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Theme(function: @Composable () -> Unit) {
+fun Theme(
+    isSystemInDarkTheme: Boolean,
+    function: @Composable () -> Unit) {
      MaterialTheme(
         colors = darkColors().copy(
             primary = Color(	0xFF0366d6),

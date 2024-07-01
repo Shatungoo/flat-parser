@@ -1,3 +1,4 @@
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
@@ -17,7 +18,7 @@ fun main() = application {
         icon = painterResource("app.png"),
     ) {
         val settings = loadSettings()
-        Theme {
+        Theme(isSystemInDarkTheme()) {
             val view = remember { mutableStateOf(Views.Main) }
             when (view.value) {
                 Views.Settings -> Settings(

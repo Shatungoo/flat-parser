@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.ir.backend.js.compile
 
 val kotlinVersion = "1.9.22"
 
@@ -18,9 +19,19 @@ repositories {
     google()
 }
 
+val ktor_version = "2.3.12"
+
 dependencies {
     implementation(compose.desktop.currentOs)
+    implementation("it.skrape:skrapeit:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-encoding:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+//    implementation ("androidx.sqlite:sqlite-ktx:2.4.0")
+    implementation ("com.h2database:h2:2.2.224")
+//    compile ("org.xerial:sqlite-jdbc:3.46.0.0")
+
 }
 
 compose.desktop {
@@ -29,7 +40,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "settings"
+            packageName = "flat-parser`"
             packageVersion = "1.0.0"
         }
     }
