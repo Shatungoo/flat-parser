@@ -18,7 +18,8 @@ fun main() {
     getFile(id, url)
 }
 
-fun getFile(id: String, url: String): File? {
+fun getFile(id: String?, url: String?): File? {
+    if (id == null || url == null) return null
     try {
         val dir = getTemporalDirectory(id)
         val fileName = getFileNameFromUrl(url)
