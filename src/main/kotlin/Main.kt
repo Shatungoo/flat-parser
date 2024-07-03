@@ -1,20 +1,18 @@
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.singleWindowApplication
+import androidx.compose.ui.window.rememberWindowState
 
 
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = appName,
-//        undecorated = true,
+        state = rememberWindowState(placement = WindowPlacement.Maximized),
         icon = painterResource("app.png"),
     ) {
         val settings = loadSettings()
@@ -37,5 +35,5 @@ fun main() = application {
 }
 
 enum class Views {
-    Main, Settings
+    Main, Settings//ImageGallery
 }

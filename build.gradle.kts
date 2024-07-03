@@ -30,7 +30,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktor_version")
 //    implementation ("androidx.sqlite:sqlite-ktx:2.4.0")
     implementation ("com.h2database:h2:2.2.224")
-//    compile ("org.xerial:sqlite-jdbc:3.46.0.0")
+    implementation ("com.google.cloud:google-cloud-translate:2.46.0")
 
 }
 

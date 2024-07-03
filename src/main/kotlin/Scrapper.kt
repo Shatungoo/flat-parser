@@ -20,7 +20,7 @@ fun main() {
     val db = Db()
     for (i in 0..10) {
         println("page $i")
-        val response = runBlocking { getFlatsWithKtor(i) }
+        val response = runBlocking { getFlats(i) }
         json.decodeFromString<Response>(response).data.data.forEach {
             db.insertFlat(it)
         }
@@ -34,7 +34,7 @@ val json = Json {
     coerceInputValues = true
 }
 
-suspend fun getFlatsWithKtor(page: Int = 0): String {
+suspend fun getFlats(page: Int = 0): String {
     val client = HttpClient(CIO) {
         install(ContentEncoding) {
             deflate(1.0F)
