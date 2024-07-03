@@ -4,20 +4,8 @@ import java.sql.SQLException
 
 fun main() {
     val db = Db()
-    val flat = db.getFlat(16487402)
-//    db.insertFlat(flat!!)
-    println(flat)
-//    db.getFlats().forEach {
-//        try {
-//            db.insertFlat(it)
-//
-//        } catch (e: Exception) {
-//            println(e.message)
-//
-//        }
-//    }
+    db.migrateData()
 }
-
 
 class Db {
     val connection: Connection = DriverManager.getConnection("jdbc:h2:./flats")
@@ -35,6 +23,7 @@ class Db {
                 "ALTER TABLE PUBLIC.FLATS ADD LAT REAL;",
                 "ALTER TABLE PUBLIC.FLATS ADD LNG REAL;",
                 "ALTER TABLE PUBLIC.FLATS ADD AREA REAL;",
+                "ALTER TABLE PUBLIC.FLATS ADD LAST_UPDATED TIMESTAMP;",
             )
             val statement = connection.createStatement()
             createTableQuery.forEach { statement.execute(it) }
@@ -44,12 +33,18 @@ class Db {
         }
     }
 
+    fun migrateData(){
+        val flats = getFlats()
+        flats.forEach {
+            insertFlat(it)
+        }
+    }
 
     fun insertFlat(flat: Response.Flat) {
         try {
             val insertQuery =
-                "MERGE INTO flats (id, flat, PRICE_TOTAL, PRICE_SQUARE, STREET_ID, TOTAL_FLOORS,FLOOR,ROOM,LAT,LNG,AREA) " +
-                        "VALUES (?, ? FORMAT JSON , ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+                "MERGE INTO flats (id, flat, PRICE_TOTAL, PRICE_SQUARE, STREET_ID, TOTAL_FLOORS,FLOOR,ROOM,LAT,LNG,AREA, LAST_UPDATED) " +
+                        "VALUES (?, ? FORMAT JSON , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
             val statement = connection.prepareStatement(insertQuery)
                 .apply {
                     setInt(1, flat.id)
@@ -63,6 +58,8 @@ class Db {
                     setObject(9, flat.lat, java.sql.Types.REAL)
                     setObject(10, flat.lng, java.sql.Types.REAL)
                     setObject(11, flat.area, java.sql.Types.REAL)
+                    setObject(12, flat.last_updated?.toDate(), java.sql.Types.TIMESTAMP)
+
                 }
             statement.execute()
             statement.close()
@@ -75,7 +72,7 @@ class Db {
     fun getFlats(): List<Response.Flat> {
         val flats = mutableListOf<Response.Flat>()
         try {
-            val selectQuery = "SELECT flat FROM flats;"
+            val selectQuery = "SELECT * from FLATS order by LAST_UPDATED DESC limit 100"
             val statement = connection.createStatement()
             val resultSet = statement.executeQuery(selectQuery)
             while (resultSet.next()) {

@@ -3,27 +3,29 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+
 
 fun main() {
-//    val a =getFlatsWithKtor(0)
-//    print (a)
-//   print(getFlats(0))
-//    val flats = File("response.json").readText().let {
-//        json.decodeFromString<Response>(it).data.data
-//    }
+
     val db = Db()
-    for (i in 0..10){
+    for (i in 0..10) {
         println("page $i")
-        val response = runBlocking {  getFlatsWithKtor(i) }
-         json.decodeFromString<Response>(response).data.data.forEach {
+        val response = runBlocking { getFlatsWithKtor(i) }
+        json.decodeFromString<Response>(response).data.data.forEach {
             db.insertFlat(it)
-         }
         }
     }
+}
 
 fun Response.Flat.toFlatString(): String = json.encodeToString(Response.Flat.serializer(), this)
 
@@ -32,40 +34,55 @@ val json = Json {
     coerceInputValues = true
 }
 
-suspend fun getFlatsWithKtor(page:Int= 0): String {
-    val client = HttpClient(CIO){
+suspend fun getFlatsWithKtor(page: Int = 0): String {
+    val client = HttpClient(CIO) {
         install(ContentEncoding) {
             deflate(1.0F)
             gzip(0.9F)
         }
     }
-    val response = client.get("https://api-statements.tnet.ge/v1/statements?" +
-            "deal_types=1&real_estate_types=1&cities=1&currency_id=1&urbans=NaN,23,27,43,47,62,64&districts=3.4,3,4,6" +
-            "&statuses=2&price_from=50000&price_to=300000&area_from=40&area_to=90&area_types=1&page=$page"){
+    val response = client.get(
+        "https://api-statements.tnet.ge/v1/statements?" +
+                "deal_types=1&real_estate_types=1&cities=1&currency_id=1&urbans=NaN,23,27,43,47,62,64&districts=3.4,3,4,6" +
+                "&statuses=2&price_from=50000&price_to=300000&area_from=40&area_to=90&area_types=1&page=$page"
+    ) {
         headers {
-                append("User-Agent", " Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
-                append("Accept", " application/json, text/plain, */*")
-                append("Accept-Language", " en,en-US;q=0.7,ru;q=0.3")
-                append("Accept-Encoding", " gzip, deflate")
-                append("Global-Authorization", "qq ")
-                append("locale", "ru")
-                append("X-Website-Key", "myhome")
-                append("Origin", "https://www.myhome.ge")
-                append("Referer", "https://www.myhome.ge/")
-                append("Sec-Fetch-Dest", "empty")
-                append("Sec-Fetch-Mode", "cors")
-                append("Sec-Fetch-Site", "cross-site")
+            append("User-Agent", " Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
+            append("Accept", " application/json, text/plain, */*")
+            append("Accept-Language", " en,en-US;q=0.7,ru;q=0.3")
+            append("Accept-Encoding", " gzip, deflate")
+            append("Global-Authorization", "qq ")
+            append("locale", "ru")
+            append("X-Website-Key", "myhome")
+            append("Origin", "https://www.myhome.ge")
+            append("Referer", "https://www.myhome.ge/")
+            append("Sec-Fetch-Dest", "empty")
+            append("Sec-Fetch-Mode", "cors")
+            append("Sec-Fetch-Site", "cross-site")
         }
     }
     return response.body()
 }
 
+suspend fun downloadImage(url: String, file: File): File {
+    val client = HttpClient(CIO) {}
+    println("Downloading image from $url")
+    val response = client.get(url)
+    response.bodyAsChannel().copyAndClose(file.writeChannel())
+
+    return file
+}
+
 @Serializable
-data class Response(val data: Data,
-                    val result: Boolean,){
-    @Serializable data class Data(
+data class Response(
+    val data: Data,
+    val result: Boolean,
+) {
+    @Serializable
+    data class Data(
         val data: List<Flat>,
     )
+
     @Serializable
     data class Flat(
         val id: Int,
@@ -132,4 +149,9 @@ data class Response(val data: Data,
         val large_webp: String?,
         val thumb_webp: String?
     )
+}
+
+fun String.toDate(): LocalDateTime{
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    return LocalDateTime.parse(this, formatter)
 }
