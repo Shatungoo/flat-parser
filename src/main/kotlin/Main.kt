@@ -29,8 +29,6 @@ fun main() = application {
                 Views.Main -> MainView(view = view)
             }
         }
-
-
     }
 }
 

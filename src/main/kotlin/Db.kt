@@ -40,6 +40,16 @@ class Db {
         }
     }
 
+    fun insertFlats(flats: List<Response.Flat>) {
+        connection.autoCommit = false
+        flats.forEach {
+            insertFlat(it)
+        }
+        connection.commit()
+        connection.autoCommit = true
+
+    }
+
     fun insertFlat(flat: Response.Flat) {
         try {
             val insertQuery =
@@ -62,8 +72,6 @@ class Db {
 
                 }
             statement.execute()
-            statement.close()
-            println("Flat inserted.")
         } catch (e: SQLException) {
             System.err.println(e.message)
         }
@@ -75,6 +83,22 @@ class Db {
             val selectQuery = "SELECT * from FLATS order by LAST_UPDATED DESC limit 100"
             val statement = connection.createStatement()
             val resultSet = statement.executeQuery(selectQuery)
+            while (resultSet.next()) {
+                val flat = resultSet.getString("flat")
+                flats.add(json.decodeFromString(Response.Flat.serializer(), flat))
+            }
+            statement.close()
+        } catch (e: SQLException) {
+            System.err.println(e.message)
+        }
+        return flats
+    }
+
+    fun getFlats(query:String): List<Response.Flat> {
+        val flats = mutableListOf<Response.Flat>()
+        try {
+            val statement = connection.createStatement()
+            val resultSet = statement.executeQuery(query)
             while (resultSet.next()) {
                 val flat = resultSet.getString("flat")
                 flats.add(json.decodeFromString(Response.Flat.serializer(), flat))

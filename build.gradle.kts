@@ -23,7 +23,6 @@ val ktor_version = "2.3.12"
 
 dependencies {
     implementation(compose.desktop.currentOs)
-    implementation("it.skrape:skrapeit:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-encoding:$ktor_version")
@@ -31,6 +30,7 @@ dependencies {
 //    implementation ("androidx.sqlite:sqlite-ktx:2.4.0")
     implementation ("com.h2database:h2:2.2.224")
     implementation ("com.google.cloud:google-cloud-translate:2.46.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
 }
 

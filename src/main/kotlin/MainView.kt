@@ -15,11 +15,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import jdk.jfr.Enabled
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.skia.Image
+import java.awt.Desktop
+import java.net.URI
+import java.net.URLEncoder
 
 
 data class SelectedImage(
@@ -31,7 +38,8 @@ data class SelectedImage(
 val selectedImage = mutableStateOf<SelectedImage?>(null)
 val selectedFlat = mutableStateOf<Response.Flat?>(null)
 val db = Db()
-val flats = mutableStateOf(db.getFlats())
+val query = mutableStateOf("SELECT * from FLATS order by LAST_UPDATED DESC limit 100")
+val flats = mutableStateOf(db.getFlats(query = query.value))
 
 @Composable
 fun MainView(view: MutableState<Views>) {
@@ -56,11 +64,12 @@ fun MainView(view: MutableState<Views>) {
         }
     }
     if (selectedImage.value != null) {
-        Box(modifier = Modifier.fillMaxSize()
-            .background(Color.Black)
-            .clickable(onClick = {
-                selectedImage.value = null
-            })
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .background(Color.Black)
+                .clickable(onClick = {
+                    selectedImage.value = null
+                })
         ) {
             ImageGallery(selectedImage.value!!)
         }
@@ -93,12 +102,12 @@ fun FlatCard(
                     textField("Район", flat.urban_name.toString())
                     textField("Район", flat.district_name.toString())
                     textField("Адрес ", flat.address.toString())
-                    textField("Улица", flat.street_id.toString())
+//                    textField("Улица", flat.street_id.toString())
                     textField("Цена", flat.price["2"]?.price_total.toString() + " $")
                     textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")
                     textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
                     textField("Комнат", flat.room.toString())
-                    textField("Координат", "${flat.lat.toString()}, ${flat.lng.toString()}")
+                    textField("Координаты", "${flat.lat.toString()}, ${flat.lng.toString()}")
                     textField("Площадь ", flat.area.toString())
                 }
                 Spacer(modifier = Modifier.width(10.dp))
@@ -109,11 +118,32 @@ fun FlatCard(
                             onValueChange = { },
                             readOnly = true,
                         )
+                    Spacer(modifier = Modifier.weight(0.1f))
+                    Row {
+                        Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
+                            Text("Open")
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Button(onClick = {
+                            val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
+                            val text = flat.dynamic_title.toString()
+                            val encodedUrl = URI.create(url).toASCIIString()
+                            val encodedText = URLEncoder.encode(text, "UTF-8")
+                            val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
+                            Desktop.getDesktop().browse(URI.create(telegramUrl))
+                        }) {
+                            Text("Share in Telegram")
+                        }
+                    }
                 }
 
             }
         }
     }
+}
+
+fun openInBrowser(url: String) {
+    Desktop.getDesktop().browse(URI.create(url))
 }
 
 @Composable
@@ -176,35 +206,51 @@ fun ImageGallery(image: SelectedImage) {
     val id = image.id
     val images = image.images
     val selectedImage = image.selectedImage
+    val image = mutableStateOf<BitmapPainter?>(null)
+
     BoxWithConstraints {
+
         val big = maxWidth > 500.dp
+        if (images.isNotEmpty()) {
+            val imageUrl = when {
+                big && images[selectedImage.value].large != null -> images[selectedImage.value].large
+                images[selectedImage.value].thumb != null -> images[selectedImage.value].thumb
+                else -> null
+            }
+            CoroutineScope(Dispatchers.Default).launch {
+                getFile(id, imageUrl)?.let { file ->
+                    val imageBitmap = runBlocking {
+                        file.readBytes().toImageBitmap()
+                    }
+                    image.value = BitmapPainter(imageBitmap)
+                }
+            }
+        }
+        val width = if (big) 100.dp else 30.dp
+        val boxWidth = maxWidth - width * 2
         Row {
             galleryButton(
                 onClick = { selectedImage.value-- },
                 enabled = selectedImage.value > 0,
                 text = "<",
-                wide = big
+                width = width
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Box(modifier = Modifier.fillMaxHeight().align(Alignment.CenterVertically)) {
-                if (images.isNotEmpty()) {
-                    val imageUrl = when {
-                        big && images[selectedImage.value].large != null -> images[selectedImage.value].large
-                        images[selectedImage.value].thumb != null -> images[selectedImage.value].thumb
-                        else -> null
-                    }
-                    getFile(id, imageUrl)?.let { file ->
-                        val image = runBlocking {
-                            file.readBytes().toImageBitmap()
-                        }
-                        image.let {
-                            val painter = BitmapPainter(it)
-                            Image(painter, contentDescription = file.absolutePath)
-                        }
-                    }
+            Box(
+                modifier = Modifier.fillMaxHeight()
+                    .width(boxWidth)
+                    .align(Alignment.CenterVertically)
+            ) {
+                image.value?.let {
+                    Image(
+                        it, contentDescription = "",
+                        modifier = Modifier.fillMaxHeight()
+                            .align(Alignment.Center),
+                        contentScale = ContentScale.Fit
+                    )
+                } ?: run{
+                    Text("Loading...")
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
             galleryButton(
                 onClick = {
                     if (selectedImage.value < images.size - 1)
@@ -212,7 +258,7 @@ fun ImageGallery(image: SelectedImage) {
                 },
                 enabled = selectedImage.value < images.size - 1,
                 text = ">",
-                wide = big
+                width = width
             )
         }
     }
@@ -223,11 +269,12 @@ fun galleryButton(
     onClick: () -> Unit,
     enabled: Boolean = true,
     text: String = "",
-    wide: Boolean = false
+    width: Dp = 30.dp
+
 ) {
-    val width = if (wide) 100.dp else 30.dp
     Button(
-        modifier = Modifier.width(width).fillMaxHeight(),
+        modifier = Modifier.width(width)
+            .fillMaxHeight(),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent,
             disabledBackgroundColor = Color.Transparent
@@ -247,16 +294,30 @@ fun ControlPanel(
     flats: MutableState<List<Response.Flat>>
 ) {
     Row(modifier = Modifier.height(50.dp)) {
+        val btnName = mutableStateOf("Update DB")
         controlPanelButton(onClick = {
-            for (i in 0..10) {
-                println("page $i")
-                val response = runBlocking { getFlats(i) }
-                json.decodeFromString<Response>(response).data.data.forEach {
-                    db.insertFlat(it)
+            btnName.value = "In progress..."
+            CoroutineScope(Dispatchers.Default).launch {
+                for (i in 0..10) {
+                    println("page $i")
+
+                    val response = runBlocking { getFlats(i) }
+                    db.insertFlats(json.decodeFromString<Response>(response).data.data)
+                    flats.value = db.getFlats(query = query.value)
+                    btnName.value = "Update DB"
                 }
             }
-            flats.value = db.getFlats()
-        }, text = "Update DB")
+        }, text = btnName.value)
+
+
+        TextField(
+            value = query.value,
+            onValueChange = { query.value = it },
+//            label = { Text("Query") }
+        )
+        controlPanelButton(onClick = {
+            flats.value = db.getFlats(query = query.value)
+        }, text = "Search")
     }
 }
 
