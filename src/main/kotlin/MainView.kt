@@ -71,7 +71,7 @@ fun MainView(view: MutableState<Views>) {
                     selectedImage.value = null
                 })
         ) {
-            ImageGallery(selectedImage.value!!)
+            ImageGallery(selectedImage.value!!,)
         }
     }
 
@@ -89,7 +89,7 @@ fun FlatCard(
         Box(modifier = Modifier.size(300.dp).clickable(onClick = {
             selectImage(image)
         })) {
-            ImageGallery(image)
+            ImageGallery(image,)
         }
         Spacer(modifier = Modifier.width(50.dp))
         Column {
@@ -157,7 +157,7 @@ fun FlatView(
         Box(modifier = Modifier.size(300.dp).clickable(onClick = {
             selectImage(image)
         })) {
-            ImageGallery(image)
+            ImageGallery(image,)
         }
         Spacer(modifier = Modifier.width(50.dp))
         Column {
@@ -203,35 +203,20 @@ fun textField(label: String, value: String) {
 
 @Composable
 fun ImageGallery(image: SelectedImage) {
-    val id = image.id
-    val images = image.images
-    val selectedImage = image.selectedImage
-    val image = mutableStateOf<BitmapPainter?>(null)
+    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
 
     BoxWithConstraints {
 
         val big = maxWidth > 500.dp
-        if (images.isNotEmpty()) {
-            val imageUrl = when {
-                big && images[selectedImage.value].large != null -> images[selectedImage.value].large
-                images[selectedImage.value].thumb != null -> images[selectedImage.value].thumb
-                else -> null
-            }
-            CoroutineScope(Dispatchers.Default).launch {
-                getFile(id, imageUrl)?.let { file ->
-                    val imageBitmap = runBlocking {
-                        file.readBytes().toImageBitmap()
-                    }
-                    image.value = BitmapPainter(imageBitmap)
-                }
-            }
+        CoroutineScope(Dispatchers.Default).launch {
+            bitmapImage.value = getImage(big = big, image=image)
         }
         val width = if (big) 100.dp else 30.dp
         val boxWidth = maxWidth - width * 2
         Row {
             galleryButton(
-                onClick = { selectedImage.value-- },
-                enabled = selectedImage.value > 0,
+                onClick = { image.selectedImage.value-- },
+                enabled = image.selectedImage.value > 0,
                 text = "<",
                 width = width
             )
@@ -240,28 +225,49 @@ fun ImageGallery(image: SelectedImage) {
                     .width(boxWidth)
                     .align(Alignment.CenterVertically)
             ) {
-                image.value?.let {
+                bitmapImage.value?.let {
                     Image(
                         it, contentDescription = "",
                         modifier = Modifier.fillMaxHeight()
                             .align(Alignment.Center),
                         contentScale = ContentScale.Fit
                     )
-                } ?: run{
+                } ?: run {
                     Text("Loading...")
                 }
             }
             galleryButton(
                 onClick = {
-                    if (selectedImage.value < images.size - 1)
-                        selectedImage.value += 1
+                    if (image.selectedImage.value < image.images.size - 1)
+                        image.selectedImage.value += 1
                 },
-                enabled = selectedImage.value < images.size - 1,
+                enabled = image.selectedImage.value < image.images.size - 1,
                 text = ">",
                 width = width
             )
         }
     }
+}
+
+private fun getImage(
+    big: Boolean,
+    image: SelectedImage
+): BitmapPainter? {
+    val selectedImage = image.selectedImage.value
+    if (image.images.isNotEmpty()) {
+        val imageUrl = when {
+            big && image.images[selectedImage].large != null -> image.images[selectedImage].large
+            image.images[selectedImage].thumb != null -> image.images[selectedImage].thumb
+            else -> null
+        }
+        getFile(image.id, imageUrl)?.let { file ->
+            val imageBitmap = runBlocking {
+                file.readBytes().toImageBitmap()
+            }
+            return BitmapPainter(imageBitmap)
+        }
+    }
+    return null
 }
 
 @Composable
