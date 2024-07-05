@@ -33,7 +33,7 @@ class Db {
         }
     }
 
-    fun migrateData(){
+    fun migrateData() {
         val flats = getFlats()
         flats.forEach {
             insertFlat(it)
@@ -78,23 +78,11 @@ class Db {
     }
 
     fun getFlats(): List<Response.Flat> {
-        val flats = mutableListOf<Response.Flat>()
-        try {
-            val selectQuery = "SELECT * from FLATS order by LAST_UPDATED DESC limit 100"
-            val statement = connection.createStatement()
-            val resultSet = statement.executeQuery(selectQuery)
-            while (resultSet.next()) {
-                val flat = resultSet.getString("flat")
-                flats.add(json.decodeFromString(Response.Flat.serializer(), flat))
-            }
-            statement.close()
-        } catch (e: SQLException) {
-            System.err.println(e.message)
-        }
-        return flats
+        val selectQuery = "SELECT * from FLATS order by LAST_UPDATED DESC limit 100"
+        return getFlats(selectQuery)
     }
 
-    fun getFlats(query:String): List<Response.Flat> {
+    fun getFlats(query: String): List<Response.Flat> {
         val flats = mutableListOf<Response.Flat>()
         try {
             val statement = connection.createStatement()

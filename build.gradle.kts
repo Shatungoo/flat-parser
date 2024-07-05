@@ -4,10 +4,10 @@ import org.jetbrains.kotlin.ir.backend.js.compile
 val kotlinVersion = "1.9.22"
 
 plugins {
-    kotlin("jvm") version "1.9.22"//"2.0.0"
-    id("org.jetbrains.compose") version "1.6.0"//"1.7.0-dev1703"
-    kotlin("plugin.serialization") version "1.9.22"
-//    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    kotlin("jvm") version "2.0.0"
+    id("org.jetbrains.compose") version "1.7.0-dev1698"
+    kotlin("plugin.serialization") version "2.0.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.20-Beta1"
 }
 
 group = "com.helldaisy"

@@ -2,10 +2,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -130,7 +127,7 @@ fun FlatCard(
                             val encodedUrl = URI.create(url).toASCIIString()
                             val encodedText = URLEncoder.encode(text, "UTF-8")
                             val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
-                            Desktop.getDesktop().browse(URI.create(telegramUrl))
+                            openInBrowser(telegramUrl)
                         }) {
                             Text("Share in Telegram")
                         }
@@ -233,7 +230,7 @@ fun ImageGallery(image: SelectedImage) {
                         contentScale = ContentScale.Fit
                     )
                 } ?: run {
-                    Text("Loading...")
+                    CircularProgressIndicator()
                 }
             }
             galleryButton(
