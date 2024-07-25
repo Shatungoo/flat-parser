@@ -1,3 +1,5 @@
+package com.helldasy
+
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.KSerializer

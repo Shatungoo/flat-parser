@@ -1,16 +1,8 @@
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+package com.helldasy
+
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
-import kotlin.io.path.exists
 
 fun main() {
     val id = "123"

@@ -1,3 +1,5 @@
+package com.helldasy
+
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
