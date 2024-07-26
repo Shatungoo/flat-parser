@@ -11,6 +11,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.Theme
 import com.helldasy.ui.Settings
 
+val settings = loadSettings()
 
 fun main() = application {
     Window(
@@ -19,14 +20,13 @@ fun main() = application {
         state = rememberWindowState(placement = WindowPlacement.Maximized),
         icon = painterResource("app.png"),
     ) {
-        val settings = loadSettings()
+
         Theme {
-            val view = remember { mutableStateOf(Views.Main) }
-            when (view.value) {
+            when (settings.view.value) {
                 Views.Settings -> Settings(
                     onCloseRequest = {
                         settings.saveSettings()
-                        view.value = Views.Main
+                        settings.view.value = Views.Main
                     },
                     settings = settings
                 )

@@ -71,9 +71,23 @@ fun MainView(settings: Settings) {
     if (filterView.value) {
         Box(
             modifier = Modifier.fillMaxSize()
-                .background(Color.Black)
         ) {
-            Filters(settings.filters)
+            Row {
+                Box(
+                    modifier = Modifier.fillMaxHeight()
+                        .background(Color.Black)
+                        .width(700.dp)
+                ) {
+                    Filters(settings.filters) {
+                        flats.value = settings.db.getFlats(query = settings.filters.value.buildQuery())
+                    }
+                }
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = {
+                    filterView.value = false
+                }))
+            }
         }
     }
 }
@@ -219,13 +233,6 @@ fun ControlPanel(
             }
         }, text = btnName.value)
 
-//        TextField(
-//            value = settings.filters.value.buildQuery(),
-//            readOnly = true,
-//            onValueChange = {
-//                println("textfield "+settings.filters.value.buildQuery()+" " + it)
-//                it =settings.filters.value.buildQuery()},
-//        )
         controlPanelButton(onClick = {
             flats.value = db.getFlats(query = settings.filters.value.buildQuery())
         }, text = "Search")

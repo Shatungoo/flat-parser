@@ -53,10 +53,15 @@ fun Filter.buildQuery() = run {
 
 
 @Composable
-fun Filters(filter1: MutableState<Filter>) {
+fun Filters(filter1: MutableState<Filter>, apply: () -> Unit) {
     val filter= filter1.value
 
     Column {
+        TextField(
+            value = filter.buildQuery(),
+            readOnly = true,
+            onValueChange = {},
+        )
         filterTextInt("Rooms", filter.roomsFrom, filter.roomsTo)
         filterTextInt("Price", filter.priceFrom, filter.priceTo)
         filterTextInt("Area", filter.areaFrom, filter.areaTo)
@@ -65,6 +70,7 @@ fun Filters(filter1: MutableState<Filter>) {
 
         Button(onClick = {
             println(filter.buildQuery())
+            apply()
             filterView.value = false
         }) {
             Text("Search")
