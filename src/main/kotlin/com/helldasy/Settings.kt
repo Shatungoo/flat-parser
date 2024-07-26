@@ -4,8 +4,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.helldasy.ui.Filter
+import com.helldasy.ui.buildQuery
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encodeToString
@@ -17,11 +20,29 @@ import java.nio.file.Paths
 
 @Serializable
 data class Settings(
+
+    @Transient
+    val view: MutableState<Views> = mutableStateOf(Views.Main),
+
+    @Transient
+    val filters: MutableState<Filter> = mutableStateOf(Filter()),
+
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),
 
     @Serializable(with = MutableStateSerializer::class)
     val theme: MutableState<String> = mutableStateOf("Default"),
+
+    @Serializable(with = MutableStateSerializer::class)
+    val link: MutableState<String> = mutableStateOf(""),
+
+    @Transient val db: Db = Db(),
+
+//    @Transient
+//    val query: MutableState<String> = mutableStateOf("SELECT * from FLATS order by LAST_UPDATED DESC limit 100"),
+
+    @Transient
+    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filters.value.buildQuery()))
 )
 
 private val settingsFile: () -> File
@@ -40,7 +61,7 @@ private val settingsFile: () -> File
     }
 
 fun loadSettings(): Settings {
-    println(settingsFile().absolutePath)
+    println("loadSettings" +settingsFile().absolutePath)
     return if (settingsFile().exists()) {
         Json.decodeFromString(settingsFile().readText())
     } else {
@@ -49,6 +70,7 @@ fun loadSettings(): Settings {
 }
 
 fun Settings.saveSettings() {
+    println("SaveSettings")
     settingsFile().writeText(Json { prettyPrint = true }.encodeToString(this))
 }
 

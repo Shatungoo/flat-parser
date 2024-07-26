@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowScope
+import java.awt.Desktop
+import java.net.URI
 
 
 @Composable
@@ -68,4 +70,8 @@ fun optionsMenu(options: List<String>,
             }
         }
     }
+}
+
+fun openInBrowser(url: String) {
+    Desktop.getDesktop().browse(URI.create(url))
 }

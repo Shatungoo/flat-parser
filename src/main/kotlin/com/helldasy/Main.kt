@@ -1,7 +1,6 @@
 package com.helldasy
 
 import com.helldasy.ui.MainView
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.painterResource
@@ -32,12 +31,12 @@ fun main() = application {
                     settings = settings
                 )
 
-                Views.Main -> MainView(view = view)
+                Views.Main -> MainView(settings = settings)
             }
         }
     }
 }
 
 enum class Views {
-    Main, Settings//ImageGallery
+    Main, Settings
 }
