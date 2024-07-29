@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_EXPRESSION")
+
 package com.helldasy.ui
 
 import androidx.compose.foundation.layout.*
@@ -49,6 +51,45 @@ fun FilterDb.buildQuery() = run {
     "SELECT * from FLATS $where order by LAST_UPDATED DESC limit 100"
 }
 
+fun String.convertGerogianAlphabetToLatin(): String {
+    val georgian = mapOf(
+        "ი" to "i",
+        "ე" to "e",
+        "ა" to "a",
+        "ბ" to "b",
+        "გ" to "g",
+        "დ" to "d",
+        "ვ" to "v",
+        "ზ" to "z",
+        "თ" to "t",
+        "კ" to "k",
+        "ლ" to "l",
+        "მ" to "m",
+        "ნ" to "n",
+        "ო" to "o",
+        "პ" to "p",
+        "ჟ" to "zh",
+        "რ" to "r",
+        "ს" to "s",
+        "ტ" to "t",
+        "უ" to "u",
+        "ფ" to "ph",
+        "ქ" to "q",
+        "ღ" to "gh",
+        "ყ" to "k",
+        "შ" to "sh",
+        "ჩ" to "ch",
+        "ც" to "ts",
+        "ძ" to "dz",
+        "წ" to "ts",
+        "ჭ" to "ch",
+        "ხ" to "kh",
+        "ჯ" to "j",
+        "ჰ" to "h"
+    )
+    val result = this.map { georgian[it.toString()] ?: it }.joinToString("")
+    return result
+}
 
 @Composable
 fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {

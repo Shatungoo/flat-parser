@@ -134,7 +134,7 @@ fun FlatCard(
                     textField("Город", flat.city_name.toString())
                     textField("Район", flat.urban_name.toString())
                     textField("Район", flat.district_name.toString())
-                    textField("Адрес ", flat.address.toString())
+                    textField("Адрес ", flat.address.toString().convertGerogianAlphabetToLatin())
 //                    textField("Улица", flat.street_id.toString())
                     textField("Цена", flat.price["2"]?.price_total.toString() + " $")
                     textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")
