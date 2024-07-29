@@ -16,12 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
 import com.helldasy.Settings
-import com.helldasy.getFlats
-import com.helldasy.json
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.helldasy.updateDb
 import java.net.URI
 import java.net.URLEncoder
 
@@ -34,6 +29,7 @@ data class SelectedImage(
 
 val selectedImage = mutableStateOf<SelectedImage?>(null)
 val filterView = mutableStateOf<Boolean>(false)
+val filterParserView = mutableStateOf<Boolean>(false)
 
 @Composable
 fun MainView(settings: Settings) {
@@ -68,7 +64,7 @@ fun MainView(settings: Settings) {
             ImageGallery(selectedImage.value!!)
         }
     }
-    if (filterView.value) {
+    else if (filterView.value) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -76,10 +72,10 @@ fun MainView(settings: Settings) {
                 Box(
                     modifier = Modifier.fillMaxHeight()
                         .background(Color.Black)
-                        .width(700.dp)
+                        .width(400.dp)
                 ) {
-                    Filters(settings.filters) {
-                        flats.value = settings.db.getFlats(query = settings.filters.value.buildQuery())
+                    FilterDb(settings.filterDb) {
+                        flats.value = settings.db.getFlats(query = settings.filterDb.value.buildQuery())
                     }
                 }
                 Box(modifier = Modifier
@@ -87,6 +83,29 @@ fun MainView(settings: Settings) {
                     .clickable(onClick = {
                     filterView.value = false
                 }))
+            }
+        }
+    }
+    else if (filterParserView.value) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Row {
+                Box(
+                    modifier = Modifier.fillMaxHeight()
+                        .background(Color.Black)
+                        .width(400.dp)
+                ) {
+                    FilterParser(
+                        settings.baseUrl,
+                        settings.urlParamMap,
+                    ){}
+                }
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = {
+                        filterParserView.value = false
+                    }))
             }
         }
     }
@@ -217,28 +236,31 @@ fun ControlPanel(
 ) {
     val db = settings.db
     val flats = settings.flats
-    Row(modifier = Modifier.height(50.dp)) {
+    Row(modifier = Modifier.height(40.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         val btnName = mutableStateOf("Update DB")
-        controlPanelButton(onClick = {
-            btnName.value = "In progress..."
-            CoroutineScope(Dispatchers.Default).launch {
-                for (i in 0..10) {
-                    println("page $i")
-
-                    val response = runBlocking { getFlats(i) }
-                    db.insertFlats(json.decodeFromString<Response>(response).data.data)
-                    flats.value = db.getFlats(query = settings.filters.value.buildQuery())
+        BtnWithSettings(
+            name = btnName,
+            action = {
+                btnName.value = "In progress..."
+                updateDb(settings) {
+                    settings.flats.value = db.getFlats(query = settings.filterDb.value.buildQuery())
                     btnName.value = "Update DB"
                 }
+            },
+            settings = {
+                filterParserView.value = true
             }
-        }, text = btnName.value)
-
-        controlPanelButton(onClick = {
-            flats.value = db.getFlats(query = settings.filters.value.buildQuery())
-        }, text = "Search")
+        )
         controlPanelButton(onClick = {
             filterView.value = true
         }, text = "Filter")
+
+        controlPanelButton(onClick = {
+            flats.value = db.getFlats(query = settings.filterDb.value.buildQuery())
+        }, text = "Search")
+
+
     }
 }
 
@@ -248,7 +270,9 @@ fun controlPanelButton(
     image: String? = null,
     text: String? = null,
 ) {
-    Button(onClick = onClick) {
+    Button(
+        modifier = Modifier.fillMaxHeight(),
+        onClick = onClick) {
         if (image != null) Image(painterResource(image), "image")
         if (text != null) Text(text)
     }

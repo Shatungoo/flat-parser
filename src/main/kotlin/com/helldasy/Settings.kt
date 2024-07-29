@@ -2,9 +2,12 @@ package com.helldasy
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.helldasy.ui.Filter
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import com.helldasy.ui.FilterDb
+import com.helldasy.ui.FilterParser
 import com.helldasy.ui.buildQuery
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -25,7 +28,10 @@ data class Settings(
     val view: MutableState<Views> = mutableStateOf(Views.Main),
 
     @Transient
-    val filters: MutableState<Filter> = mutableStateOf(Filter()),
+    val filterDb: MutableState<FilterDb> = mutableStateOf(FilterDb()),
+
+//    @Transient
+//    val filterParser: MutableState<FilterParser> = mutableStateOf(FilterParser()),
 
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),
@@ -38,11 +44,30 @@ data class Settings(
 
     @Transient val db: Db = Db(),
 
+    @Transient
+    val baseUrl:String = "https://api-statements.tnet.ge/v1/statements",
+
+    @Transient
+    val urlParamMap: SnapshotStateMap<String, String> = mutableStateMapOf(
+        "deal_types" to "1",
+        "real_estate_types" to "1",
+        "cities" to "1",
+        "currency_id" to "1",
+        "urbans" to "NaN,23,27,43,47,62,64",
+        "districts" to "3.4,3,4,6",
+        "statuses" to "2",
+        "price_from" to "50000",
+        "price_to" to "300000",
+        "area_from" to "40",
+        "area_to" to "90",
+        "area_types" to "1",
+    ),
+
 //    @Transient
 //    val query: MutableState<String> = mutableStateOf("SELECT * from FLATS order by LAST_UPDATED DESC limit 100"),
 
     @Transient
-    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filters.value.buildQuery()))
+    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filterDb.value.buildQuery()))
 )
 
 private val settingsFile: () -> File

@@ -2,6 +2,7 @@ package com.helldasy
 
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 import java.sql.SQLException
 
 fun main() {
@@ -61,22 +62,34 @@ class Db {
                 .apply {
                     setInt(1, flat.id)
                     setString(2, flat.toFlatString())
-                    setObject(3, flat.price["2"]?.price_total, java.sql.Types.INTEGER)
-                    setObject(4, flat.price["2"]?.price_square, java.sql.Types.INTEGER)
-                    setObject(5, flat.street_id, java.sql.Types.INTEGER)
-                    setObject(6, flat.total_floors, java.sql.Types.INTEGER)
-                    setObject(7, flat.floor, java.sql.Types.INTEGER)
-                    setObject(8, flat.room, java.sql.Types.INTEGER)
-                    setObject(9, flat.lat, java.sql.Types.REAL)
-                    setObject(10, flat.lng, java.sql.Types.REAL)
-                    setObject(11, flat.area, java.sql.Types.REAL)
+                    set(3, flat.price["2"]?.price_total)
+                    set(4, flat.price["2"]?.price_square)
+                    set(5, flat.street_id)
+                    set(6, flat.total_floors)
+                    set(7, flat.floor)
+                    set(8, flat.room)
+                    set(9, flat.lat)
+                    set(10, flat.lng)
+                    set(11, flat.area)
                     setObject(12, flat.last_updated?.toDate(), java.sql.Types.TIMESTAMP)
-
                 }
             statement.execute()
         } catch (e: SQLException) {
             System.err.println(e.message)
         }
+    }
+
+    fun PreparedStatement.set(position: Int, value: Double?) {
+        this.setObject(position, value, java.sql.Types.REAL)
+    }
+
+    fun PreparedStatement.set(position: Int, value: Int?) {
+        this.setObject(position, value, java.sql.Types.INTEGER)
+    }
+
+    fun PreparedStatement.set(position: Int, value: String?) {
+        if (value?.all { it.isDigit() } == true)
+            this.setObject(position, value, java.sql.Types.INTEGER)
     }
 
     fun getFlats(): List<Response.Flat> {

@@ -1,13 +1,18 @@
 package com.helldasy
 
+import com.helldasy.ui.buildQuery
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -18,14 +23,49 @@ import java.time.format.DateTimeFormatter
 
 
 fun main() {
-
+//
     val db = Db()
     for (i in 0..10) {
         println("page $i")
-        val response = runBlocking { getFlats(i) }
-        json.decodeFromString<Response>(response).data.data.forEach {
-            db.insertFlat(it)
+        val response = runBlocking { getFlats(
+            "https://api-statements.tnet.ge/v1/statements",
+            mapOf(
+                "deal_types" to "1",
+                "real_estate_types" to "1",
+                "cities" to "1",
+                "currency_id" to "1",
+                "urbans" to "NaN,23,27,43,47,62,64",
+                "districts" to "3.4,3,4,6",
+                "statuses" to "2",
+                "price_from" to "50000",
+                "price_to" to "300000",
+                "area_from" to "40",
+                "area_to" to "90",
+                "area_types" to "1",
+            ),
+            i) }
+
+        try {
+
+            json.decodeFromString<Response>(response).data.data.forEach {
+                db.insertFlat(it)
+            }
+        } catch (e: Exception) {
+            println(e)
         }
+    }
+}
+
+fun updateDb(settings: Settings, cb: () -> Unit = {}) {
+    val db = settings.db
+    CoroutineScope(Dispatchers.Default).launch {
+        for (i in 0..10) {
+            println("page $i")
+
+            val response = runBlocking { getFlats(settings.baseUrl, settings.urlParamMap, i) }
+            db.insertFlats(json.decodeFromString<Response>(response).data.data)
+        }
+        cb()
     }
 }
 
@@ -36,7 +76,9 @@ val json = Json {
     coerceInputValues = true
 }
 
-suspend fun getFlats(page: Int = 0): String {
+suspend fun getFlats(baseUrl: String,
+                        urlParamMap: Map<String, String>,
+                     page: Int = 0): String {
     val client = HttpClient(CIO) {
         install(ContentEncoding) {
             deflate(1.0F)
@@ -44,10 +86,14 @@ suspend fun getFlats(page: Int = 0): String {
         }
     }
     val response = client.get(
-        "https://api-statements.tnet.ge/v1/statements?" +
-                "deal_types=1&real_estate_types=1&cities=1&currency_id=1&urbans=NaN,23,27,43,47,62,64&districts=3.4,3,4,6" +
-                "&statuses=2&price_from=50000&price_to=300000&area_from=40&area_to=90&area_types=1&page=$page"
+        baseUrl
     ) {
+        parameters {
+            urlParamMap.forEach { (key, value) ->
+                append(key, value)
+            }
+            append("page", page.toString())
+       }
         headers {
             append("User-Agent", " Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
             append("Accept", " application/json, text/plain, */*")
@@ -100,7 +146,7 @@ data class Response(
         val images: List<Image>,
         val address: String?,
         val area: Double?,
-        val yard_area: String?,
+        val yard_area: Int?,
         val area_type_id: Int?,
         val bedroom: String?,
         val room: String?,
