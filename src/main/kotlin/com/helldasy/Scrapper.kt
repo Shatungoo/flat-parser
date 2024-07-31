@@ -84,17 +84,17 @@ suspend fun getFlats(baseUrl: String,
             gzip(0.9F)
         }
     }
-    val response = client.get(
+    val req = client.get(
         baseUrl
     ) {
-        parameters {
+        url{
             urlParamMap.forEach { (key, value) ->
-                append(key, value)
+                parameters.append(key, value)
             }
-            append("page", page.toString())
+            parameters.append("page", page.toString())
        }
         headers {
-            append("User-Agent", " Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
+            append("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
             append("Accept", " application/json, text/plain, */*")
             append("Accept-Language", " en,en-US;q=0.7,ru;q=0.3")
             append("Accept-Encoding", " gzip, deflate")
@@ -107,7 +107,8 @@ suspend fun getFlats(baseUrl: String,
             append("Sec-Fetch-Mode", "cors")
             append("Sec-Fetch-Site", "cross-site")
         }
-    }
+    }.request
+    val response =req.call
     return response.body()
 }
 

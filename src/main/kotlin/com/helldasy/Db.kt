@@ -12,9 +12,7 @@ fun main() {
 }
 
 class Db(path: String = "./flats") {
-    private val connection: Connection =
-//        if (path.c)
-        DriverManager.getConnection("jdbc:h2:$path")
+    private val connection: Connection = DriverManager.getConnection("jdbc:h2:$path")
 
     fun reset() {
         try {
@@ -62,6 +60,10 @@ class Db(path: String = "./flats") {
         }
     }
 
+    init {
+        this.create()
+    }
+
     fun insertFlats(flats: List<Response.Flat>) {
         connection.autoCommit = false
         flats.forEach {
@@ -101,7 +103,8 @@ class Db(path: String = "./flats") {
                     set(5, flat.street_id)
                     set(6, flat.total_floors)
                     set(7, flat.floor)
-                    if (flat.room != null) set(8, flat.room) else set(8)
+                    if (flat.room is Int) set(8, flat.room as Int)
+                    else set(8)
                     set(9, flat.lat)
                     set(10, flat.lng)
                     set(11, flat.area)
