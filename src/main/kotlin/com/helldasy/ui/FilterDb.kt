@@ -30,6 +30,8 @@ data class FilterDb(
     val district: MutableState<String?> = mutableStateOf(null),
     val urban: MutableState<String?> = mutableStateOf(null),
     val street: MutableState<String?> = mutableStateOf(null),
+
+    val limit: MutableState<Int> = mutableStateOf(100),
 )
 
 fun FilterDb.buildQuery() = run {
@@ -48,7 +50,7 @@ fun FilterDb.buildQuery() = run {
     if (district.value != null) where += " AND district_name in (${district.value}) "
     if (urban.value != null) where += " AND urban_name in (${urban.value}) "
     if (city.value != null) where += " AND street_id in (${street.value}) "
-    "SELECT * from FLATS $where order by LAST_UPDATED DESC limit 100"
+    "SELECT * from FLATS $where order by LAST_UPDATED DESC limit ${limit.value}"
 }
 
 fun String.toLatin(): String {
@@ -102,11 +104,17 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
             onValueChange = {},
             modifier = Modifier.fillMaxWidth()
         )
-        filterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
-        filterBetween("Price", filter.priceFrom, filter.priceTo)
-        filterBetween("Area", filter.areaFrom, filter.areaTo)
-        filterBetween("Floor", filter.floorFrom, filter.floorTo)
-        filterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
+        FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
+        FilterBetween("Price", filter.priceFrom, filter.priceTo)
+        FilterBetween("Area", filter.areaFrom, filter.areaTo)
+        FilterBetween("Floor", filter.floorFrom, filter.floorTo)
+        FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text("Limit", style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
+
+            Spacer(modifier = Modifier.width(10.dp))
+            FilterValueInt(filter.limit as MutableState<Int?>)
+        }
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
             println(filter.buildQuery())
@@ -119,7 +127,7 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
 }
 
 @Composable
-fun filterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
+fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
     Row(verticalAlignment = Alignment.Bottom) {
         Text(name, style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
 

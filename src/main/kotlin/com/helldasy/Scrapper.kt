@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter
 fun main() {
 //
     val db = Db()
-    for (i in 0..10) {
+    for (i in 0..2) {
         println("page $i")
         val response = runBlocking { getFlats(
             "https://api-statements.tnet.ge/v1/statements",
@@ -46,7 +46,6 @@ fun main() {
             i) }
 
         try {
-
             json.decodeFromString<Response>(response).data.data.forEach {
                 db.insertFlat(it)
             }

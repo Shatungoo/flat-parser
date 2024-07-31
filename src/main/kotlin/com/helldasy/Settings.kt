@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.helldasy.ui.FilterDb
-import com.helldasy.ui.FilterParser
 import com.helldasy.ui.buildQuery
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -42,9 +41,11 @@ data class Settings(
     @Serializable(with = MutableStateSerializer::class)
     val link: MutableState<String> = mutableStateOf(""),
 
-    val dbPath: String = settingsPath + " ",
+    val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString(),
 
-    @Transient val db: Db = Db(),
+    @Transient val db: Db = Db(dbPath),
+
+//    @Transient val database: Database = Database(path = dbPath),
 
     @Transient
     val baseUrl:String = "https://api-statements.tnet.ge/v1/statements",
@@ -72,19 +73,18 @@ data class Settings(
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filterDb.value.buildQuery()))
 )
 
-private val settingsPath: String
-    get() = {
-        val userHome = System.getProperty("user.home")
-        val osName = System.getProperty("os.name").lowercase()
-        val settingsPath = when {
-            "windows" in osName -> Paths.get(userHome, "AppData", "Local", appName)
-            "mac" in osName -> Paths.get(userHome, "Library", "Application Support", appName)
-            else -> Paths.get(userHome, ".config", appName, settingsFileName)
-        }
-        if (!settingsPath.toFile().exists())
-            settingsPath.toFile().mkdirs()
-        settingsPath.toString()
-    }.toString()
+private val settingsPath = run {
+    val userHome = System.getProperty("user.home")
+    val osName = System.getProperty("os.name").lowercase()
+    val settingsPath1 = when {
+        "windows" in osName -> Paths.get(userHome, "AppData", "Local", appName)
+        "mac" in osName -> Paths.get(userHome, "Library", "Application Support", appName)
+        else -> Paths.get(userHome, ".config", appName, settingsFileName)
+    }
+    if (!settingsPath1.toFile().exists())
+        settingsPath1.toFile().mkdirs()
+    settingsPath1.toString()
+}
 
 private val settingsFile: () -> File
     get() = {
@@ -92,7 +92,7 @@ private val settingsFile: () -> File
     }
 
 fun loadSettings(): Settings {
-    println("loadSettings" +settingsFile().absolutePath)
+    println("loadSettings: " + settingsFile().absolutePath)
     return if (settingsFile().exists()) {
         Json.decodeFromString(settingsFile().readText())
     } else {

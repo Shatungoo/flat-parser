@@ -7,29 +7,48 @@ import java.sql.SQLException
 
 fun main() {
     val db = Db()
-    db.migrateData()
+//    db.create()
+//    db.migrateData()
 }
 
 class Db(path: String = "./flats") {
-    private val connection: Connection = DriverManager.getConnection("jdbc:h2:$path")
+    private val connection: Connection =
+//        if (path.c)
+        DriverManager.getConnection("jdbc:h2:$path")
 
-    fun init() {
+    fun reset() {
         try {
-            val createTableQuery = listOf(
-                "CREATE TABLE IF NOT EXISTS flats (id integer PRIMARY KEY, flat json not null);",
-                "ALTER TABLE PUBLIC.FLATS ADD PRICE_TOTAL INTEGER;",
-                "ALTER TABLE PUBLIC.FLATS ADD PRICE_SQUARE INTEGER;",
-                "ALTER TABLE PUBLIC.FLATS ADD STREET_ID INTEGER;",
-                "ALTER TABLE PUBLIC.FLATS ADD TOTAL_FLOORS INTEGER;",
-                "ALTER TABLE PUBLIC.FLATS ADD FLOOR INTEGER;",
-                "ALTER TABLE PUBLIC.FLATS ADD ROOM INTEGER;",
-                "ALTER TABLE PUBLIC.FLATS ADD LAT REAL;",
-                "ALTER TABLE PUBLIC.FLATS ADD LNG REAL;",
-                "ALTER TABLE PUBLIC.FLATS ADD AREA REAL;",
-                "ALTER TABLE PUBLIC.FLATS ADD LAST_UPDATED TIMESTAMP;",
-            )
             val statement = connection.createStatement()
-            createTableQuery.forEach { statement.execute(it) }
+            statement.execute("DROP TABLE IF EXISTS flats;")
+            statement.close()
+            create()
+        } catch (e: SQLException) {
+            System.err.println(e.message)
+        }
+    }
+
+    fun create() {
+        try {
+            val createTableQuery =
+                """
+                    CREATE TABLE IF NOT EXISTS flats (
+                        id integer PRIMARY KEY, 
+                        flat json not null,
+                        PRICE_TOTAL INTEGER,
+                        PRICE_SQUARE INTEGER,
+                        STREET_ID INTEGER,
+                        TOTAL_FLOORS INTEGER,
+                        FLOOR INTEGER,
+                        ROOM INTEGER,
+                        LAT REAL,
+                        LNG REAL,
+                        AREA REAL,
+                        LAST_UPDATED TIMESTAMP,
+                        IS_OLD BOOLEAN
+                    )
+                """.trimIndent()
+            val statement = connection.createStatement()
+            statement.execute(createTableQuery)
             statement.close()
         } catch (e: SQLException) {
             System.err.println(e.message)
@@ -53,11 +72,26 @@ class Db(path: String = "./flats") {
 
     }
 
+    data class params(
+        val name: String,
+        val value: String = "?",
+        val type: java.sql.Types,
+    ){
+    }
+
+
+//    fun query(params: List<params>): List<Response.Flat> {
+//        val query = "MERGE INTO (${params.map { it.name }}) " +
+//                "VALUES (${params.map {
+//                        if (it.type == java.sql.Types.JAVA_OBJECT) "? FORMAT JSON" else "?"
+//                    }});"
+//    }
+
     fun insertFlat(flat: Response.Flat) {
         try {
             val insertQuery =
-                "MERGE INTO flats (id, flat, PRICE_TOTAL, PRICE_SQUARE, STREET_ID, TOTAL_FLOORS,FLOOR,ROOM,LAT,LNG,AREA, LAST_UPDATED) " +
-                        "VALUES (?, ? FORMAT JSON , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+                "MERGE INTO flats (id, flat, PRICE_TOTAL, PRICE_SQUARE, STREET_ID, TOTAL_FLOORS,FLOOR,ROOM,LAT,LNG,AREA, LAST_UPDATED, IS_OLD) " +
+                        "VALUES (?, ? FORMAT JSON , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
             val statement = connection.prepareStatement(insertQuery)
                 .apply {
                     setInt(1, flat.id)
@@ -67,16 +101,25 @@ class Db(path: String = "./flats") {
                     set(5, flat.street_id)
                     set(6, flat.total_floors)
                     set(7, flat.floor)
-                    set(8, flat.room)
+                    if (flat.room != null) set(8, flat.room) else set(8)
                     set(9, flat.lat)
                     set(10, flat.lng)
                     set(11, flat.area)
                     setObject(12, flat.last_updated?.toDate(), java.sql.Types.TIMESTAMP)
+                    set(13, flat.is_old)
                 }
             statement.execute()
         } catch (e: SQLException) {
             System.err.println(e.message)
         }
+    }
+
+    private fun PreparedStatement.set(position: Int) {
+        this.setObject(position, null, java.sql.Types.NULL)
+    }
+
+    private fun PreparedStatement.set(position: Int, value: Boolean?) {
+        this.setObject(position, value, java.sql.Types.BOOLEAN)
     }
 
     private fun PreparedStatement.set(position: Int, value: Double?) {
