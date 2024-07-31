@@ -17,6 +17,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -24,7 +25,8 @@ import java.time.format.DateTimeFormatter
 
 fun main() {
 //
-    val db = Db()
+    val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
+    val db = Db(path)
     for (i in 0..2) {
         println("page $i")
         val response = runBlocking { getFlats(

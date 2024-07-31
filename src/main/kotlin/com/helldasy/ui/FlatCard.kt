@@ -75,7 +75,7 @@ fun FlatCard(
 
                 if (flat.lat != null && flat.lng != null) {
                     Spacer(modifier = Modifier.width(10.dp))
-                    Box(modifier = Modifier.size(300.dp).padding(5.dp), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
                         MapView(flat.lat, flat.lng)
                     }
                 }

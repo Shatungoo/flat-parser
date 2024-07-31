@@ -1,14 +1,15 @@
 package com.helldasy
 
+import java.nio.file.Paths
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.SQLException
 
 fun main() {
-    val db = Db()
-//    db.create()
-//    db.migrateData()
+    val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
+    val db = Db(path)
+    db.reset()
 }
 
 class Db(path: String = "./flats") {

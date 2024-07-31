@@ -73,7 +73,7 @@ data class Settings(
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filterDb.value.buildQuery()))
 )
 
-private val settingsPath = run {
+val settingsPath = run {
     val userHome = System.getProperty("user.home")
     val osName = System.getProperty("os.name").lowercase()
     val settingsPath1 = when {
