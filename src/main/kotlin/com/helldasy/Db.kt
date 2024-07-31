@@ -10,8 +10,8 @@ fun main() {
     db.migrateData()
 }
 
-class Db {
-    val connection: Connection = DriverManager.getConnection("jdbc:h2:./flats")
+class Db(path: String = "./flats") {
+    private val connection: Connection = DriverManager.getConnection("jdbc:h2:$path")
 
     fun init() {
         try {
@@ -79,15 +79,15 @@ class Db {
         }
     }
 
-    fun PreparedStatement.set(position: Int, value: Double?) {
+    private fun PreparedStatement.set(position: Int, value: Double?) {
         this.setObject(position, value, java.sql.Types.REAL)
     }
 
-    fun PreparedStatement.set(position: Int, value: Int?) {
+    private fun PreparedStatement.set(position: Int, value: Int?) {
         this.setObject(position, value, java.sql.Types.INTEGER)
     }
 
-    fun PreparedStatement.set(position: Int, value: String?) {
+    private fun PreparedStatement.set(position: Int, value: String?) {
         if (value?.all { it.isDigit() } == true)
             this.setObject(position, value, java.sql.Types.INTEGER)
     }

@@ -42,6 +42,8 @@ data class Settings(
     @Serializable(with = MutableStateSerializer::class)
     val link: MutableState<String> = mutableStateOf(""),
 
+    val dbPath: String = settingsPath + " ",
+
     @Transient val db: Db = Db(),
 
     @Transient
@@ -70,7 +72,7 @@ data class Settings(
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filterDb.value.buildQuery()))
 )
 
-private val settingsFile: () -> File
+private val settingsPath: String
     get() = {
         val userHome = System.getProperty("user.home")
         val osName = System.getProperty("os.name").lowercase()
@@ -81,8 +83,12 @@ private val settingsFile: () -> File
         }
         if (!settingsPath.toFile().exists())
             settingsPath.toFile().mkdirs()
+        settingsPath.toString()
+    }.toString()
 
-        Paths.get(settingsPath.toString(), settingsFileName).toFile()
+private val settingsFile: () -> File
+    get() = {
+        Paths.get(settingsPath, settingsFileName).toFile()
     }
 
 fun loadSettings(): Settings {

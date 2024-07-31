@@ -51,7 +51,7 @@ fun FilterDb.buildQuery() = run {
     "SELECT * from FLATS $where order by LAST_UPDATED DESC limit 100"
 }
 
-fun String.convertGerogianAlphabetToLatin(): String {
+fun String.toLatin(): String {
     val georgian = mapOf(
         "ი" to "i",
         "ე" to "e",
@@ -102,11 +102,11 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
             onValueChange = {},
             modifier = Modifier.fillMaxWidth()
         )
-        filterTextInt("Rooms", filter.roomsFrom, filter.roomsTo)
-        filterTextInt("Price", filter.priceFrom, filter.priceTo)
-        filterTextInt("Area", filter.areaFrom, filter.areaTo)
-        filterTextInt("Floor", filter.floorFrom, filter.floorTo)
-        filterTextInt("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
+        filterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
+        filterBetween("Price", filter.priceFrom, filter.priceTo)
+        filterBetween("Area", filter.areaFrom, filter.areaTo)
+        filterBetween("Floor", filter.floorFrom, filter.floorTo)
+        filterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
             println(filter.buildQuery())
@@ -119,7 +119,7 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
 }
 
 @Composable
-fun filterTextInt(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
+fun filterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
     Row(verticalAlignment = Alignment.Bottom) {
         Text(name, style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
 

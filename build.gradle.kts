@@ -29,6 +29,7 @@ dependencies {
 //    implementation ("androidx.sqlite:sqlite-ktx:2.4.0")
     implementation ("com.h2database:h2:2.2.224")
     implementation ("com.google.cloud:google-cloud-translate:2.46.0")
+    implementation("org.jxmapviewer:jxmapviewer2:2.8")
 
 }
 

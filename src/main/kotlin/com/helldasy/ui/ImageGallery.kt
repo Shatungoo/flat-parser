@@ -7,6 +7,7 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,10 +27,11 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun ImageGallery(image: SelectedImage) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-
     BoxWithConstraints {
-
         val big = maxWidth > 500.dp
+        val crop =
+            if (big) ContentScale.Fit else ContentScale.Crop
+
         CoroutineScope(Dispatchers.Default).launch {
             bitmapImage.value = getImage(big = big, image = image)
         }
@@ -52,12 +54,13 @@ fun ImageGallery(image: SelectedImage) {
                         it, contentDescription = "",
                         modifier = Modifier.fillMaxHeight()
                             .align(Alignment.Center),
-                        contentScale = ContentScale.Fit
+                        contentScale = crop
                     )
                 } ?: run {
                     CircularProgressIndicator()
                 }
             }
+
             galleryButton(
                 onClick = {
                     if (image.selectedImage.value < image.images.size - 1)
