@@ -25,6 +25,7 @@ fun FlatCard(
 ) {
     val image = SelectedImage(flat.id.toString(), flat.images, mutableStateOf(0))
     Row {
+        Spacer(modifier = Modifier.weight(1f))
         Box(modifier = Modifier.size(300.dp).clickable(onClick = {
             selectImage(image)
         })) {
@@ -74,14 +75,15 @@ fun FlatCard(
                     }
                 }
 
-                if (flat.lat != null && flat.lng != null && selectedImage.value == null) {
+                if (flat.lat != null && flat.lng != null) {
                     Spacer(modifier = Modifier.width(10.dp))
                     Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                        MapView(flat.lat, flat.lng, )
+                        MapView(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null) )
                     }
                 }
             }
         }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
