@@ -10,6 +10,7 @@ import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.helldasy.Response
 import com.helldasy.Settings
 import com.helldasy.updateDb
+import java.awt.event.ItemEvent
 
 
 data class SelectedImage(
@@ -67,7 +69,7 @@ fun MainView(settings: Settings) {
                     modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
                 ) {
                     FilterDb(settings.filterDb) {
-                        flats.value = settings.db.getFlats(query = settings.filterDb.value.buildQuery())
+                        settings.flats.value = settings.db.getFlats(settings.filterDb.value)
                     }
                 }
                 Box(
@@ -160,7 +162,7 @@ fun ControlPanel(
         BtnWithSettings(name = btnName, action = {
             btnName.value = "In progress..."
             updateDb(settings) {
-                settings.flats.value = db.getFlats(query = settings.filterDb.value.buildQuery())
+                settings.flats.value = db.getFlats(settings.filterDb.value)
                 btnName.value = "Update DB"
             }
         }, settings = {
@@ -171,7 +173,7 @@ fun ControlPanel(
         }, text = "Filter")
 
         controlPanelButton(onClick = {
-            flats.value = db.getFlats(query = settings.filterDb.value.buildQuery())
+            settings.flats.value = db.getFlats(settings.filterDb.value)
         }, text = "Search")
 
 

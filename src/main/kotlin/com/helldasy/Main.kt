@@ -8,7 +8,6 @@ import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.Theme
 import com.helldasy.ui.MainView
 import com.helldasy.ui.Settings
-import com.helldasy.ui.buildQuery
 
 val settings = loadSettings()
 

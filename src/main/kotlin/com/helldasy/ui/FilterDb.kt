@@ -30,7 +30,6 @@ data class FilterDb(
     val district: MutableState<String?> = mutableStateOf(null),
     val urban: MutableState<String?> = mutableStateOf(null),
     val street: MutableState<String?> = mutableStateOf(null),
-
     val limit: MutableState<Int> = mutableStateOf(100),
 )
 

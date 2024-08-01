@@ -1,58 +1,78 @@
 package com.helldasy
 
+
+import com.helldasy.Db.FlatTable
+import com.helldasy.ui.FilterDb
+import org.ktorm.database.Database
+import org.ktorm.dsl.*
+import org.ktorm.jackson.json
+import org.ktorm.schema.*
+import org.ktorm.support.sqlite.insertOrUpdate
+import org.ktorm.support.sqlite.jsonExtract
 import java.nio.file.Paths
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.PreparedStatement
 import java.sql.SQLException
+
 
 fun main() {
     val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
+//    val h2 = Database.connect("jdbc:h2:./flats;DB_CLOSE_DELAY=-1")
+//    val db = Database.connect("jdbc:sqlite:${path}.db")
     val db = Db(path)
-    db.reset()
+
+    val query = db.connection.from(FlatTable).select(FlatTable.flat)
+        .where(FlatTable.area.eq(3))
+            .whereWithConditions {
+                it += FlatTable.rooms.greaterEq(2)
+//                it += FlatTable.price.lt(200000)
+            }
+        .limit(2)
+
+        println(query.sql)
+        query.forEach {
+            println(it[FlatTable.flat]!!.room)
+        }
+
 }
 
+fun String.toFlat(): Response.Flat = json.decodeFromString(Response.Flat.serializer(), this)
+
 class Db(path: String = "./flats") {
-    private val connection: Connection = DriverManager.getConnection("jdbc:h2:$path")
+    val connection = Database.connect("jdbc:sqlite:$path.db")
 
-    fun reset() {
-        try {
-            val statement = connection.createStatement()
-            statement.execute("DROP TABLE IF EXISTS flats;")
-            statement.close()
-            create()
-        } catch (e: SQLException) {
-            System.err.println(e.message)
-        }
+    object FlatTable : Table<Nothing>("flats") {
+        val id = int("id").primaryKey()
+        val flat = json<Response.Flat>("flat")
+
+        val lastUpdated get() = this.flat.jsonExtract("$.last_updated", LocalDateTimeSqlType)
+
+        val price get() = this.flat.jsonExtract("$.price.2.price_total", IntSqlType)
+        val priceSquare get() = this.flat.jsonExtract("$.price.2.price_square", IntSqlType)
+
+        val area get() = this.flat.jsonExtract("$.area", IntSqlType)
+        val city get() = this.flat.jsonExtract("$.city_name", VarcharSqlType)
+        val urban get() = this.flat.jsonExtract("$.urban_name", VarcharSqlType)
+        val district get() = this.flat.jsonExtract("$.district_name", VarcharSqlType)
+        val street get() = this.flat.jsonExtract("$.street_id", VarcharSqlType)
+        val floor get() = this.flat.jsonExtract("$.floor", IntSqlType)
+        val totalFloors get() = this.flat.jsonExtract("$.total_floors", IntSqlType)
+        val rooms get() = this.flat.jsonExtract("$.room", VarcharSqlType).cast(IntSqlType)
+
+
     }
 
-    fun create() {
-        try {
-            val createTableQuery =
-                """
-                    CREATE TABLE IF NOT EXISTS flats (
-                        id integer PRIMARY KEY, 
-                        flat json not null,
-                        PRICE_TOTAL INTEGER,
-                        PRICE_SQUARE INTEGER,
-                        STREET_ID INTEGER,
-                        TOTAL_FLOORS INTEGER,
-                        FLOOR INTEGER,
-                        ROOM INTEGER,
-                        LAT REAL,
-                        LNG REAL,
-                        AREA REAL,
-                        LAST_UPDATED TIMESTAMP,
-                        IS_OLD BOOLEAN
-                    )
-                """.trimIndent()
-            val statement = connection.createStatement()
-            statement.execute(createTableQuery)
-            statement.close()
-        } catch (e: SQLException) {
-            System.err.println(e.message)
+    private fun createTableIfNotExistQuery(table: BaseTable<*>): String {
+        val columns = table.columns.map {
+            "${it.name} ${it.sqlType.typeName} ${if (it in table.primaryKeys) "PRIMARY KEY" else ""}"
         }
+            .joinToString(", ")
+        return "CREATE TABLE IF NOT EXISTS ${table.tableName} ($columns);"
     }
+
+    private fun createTableIfNotExist(table: BaseTable<*>) = connection.useConnection { conn ->
+        val sql = createTableIfNotExistQuery(table)
+        conn.prepareStatement(sql).use { it.executeUpdate() }
+    }
+
 
     fun migrateData() {
         val flats = getFlats()
@@ -62,117 +82,75 @@ class Db(path: String = "./flats") {
     }
 
     init {
-        this.create()
+        this.createTableIfNotExist(FlatTable)
     }
 
     fun insertFlats(flats: List<Response.Flat>) {
-        connection.autoCommit = false
-        flats.forEach {
-            insertFlat(it)
+        connection.useTransaction { flats.forEach {
+                insertFlat(it)
+            }
         }
-        connection.commit()
-        connection.autoCommit = true
-
     }
-
-    data class params(
-        val name: String,
-        val value: String = "?",
-        val type: java.sql.Types,
-    ){
-    }
-
-
-//    fun query(params: List<params>): List<Response.Flat> {
-//        val query = "MERGE INTO (${params.map { it.name }}) " +
-//                "VALUES (${params.map {
-//                        if (it.type == java.sql.Types.JAVA_OBJECT) "? FORMAT JSON" else "?"
-//                    }});"
-//    }
 
     fun insertFlat(flat: Response.Flat) {
         try {
-            val insertQuery =
-                "MERGE INTO flats (id, flat, PRICE_TOTAL, PRICE_SQUARE, STREET_ID, TOTAL_FLOORS,FLOOR,ROOM,LAT,LNG,AREA, LAST_UPDATED, IS_OLD) " +
-                        "VALUES (?, ? FORMAT JSON , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
-            val statement = connection.prepareStatement(insertQuery)
-                .apply {
-                    setInt(1, flat.id)
-                    setString(2, flat.toFlatString())
-                    set(3, flat.price["2"]?.price_total)
-                    set(4, flat.price["2"]?.price_square)
-                    set(5, flat.street_id)
-                    set(6, flat.total_floors)
-                    set(7, flat.floor)
-                    if (flat.room is Int) set(8, flat.room as Int)
-                    else set(8)
-                    set(9, flat.lat)
-                    set(10, flat.lng)
-                    set(11, flat.area)
-                    setObject(12, flat.last_updated?.toDate(), java.sql.Types.TIMESTAMP)
-                    set(13, flat.is_old)
+            connection.insertOrUpdate(FlatTable) {
+                set(it.id, flat.id)
+                set(it.flat, flat)
+                onConflict{
+                    set(it.flat, flat)
                 }
-            statement.execute()
+            }
         } catch (e: SQLException) {
             System.err.println(e.message)
         }
     }
 
-    private fun PreparedStatement.set(position: Int) {
-        this.setObject(position, null, java.sql.Types.NULL)
-    }
-
-    private fun PreparedStatement.set(position: Int, value: Boolean?) {
-        this.setObject(position, value, java.sql.Types.BOOLEAN)
-    }
-
-    private fun PreparedStatement.set(position: Int, value: Double?) {
-        this.setObject(position, value, java.sql.Types.REAL)
-    }
-
-    private fun PreparedStatement.set(position: Int, value: Int?) {
-        this.setObject(position, value, java.sql.Types.INTEGER)
-    }
-
-    private fun PreparedStatement.set(position: Int, value: String?) {
-        if (value?.all { it.isDigit() } == true)
-            this.setObject(position, value, java.sql.Types.INTEGER)
-    }
 
     fun getFlats(): List<Response.Flat> {
-        val selectQuery = "SELECT * from FLATS order by LAST_UPDATED DESC limit 100"
-        return getFlats(selectQuery)
+        return connection.from(FlatTable)
+            .select(FlatTable.flat)
+            .limit(100)
+            .orderBy(FlatTable.lastUpdated.desc())
+            .map {
+                it[FlatTable.flat]!!
+            }.toList()
     }
 
-    fun getFlats(query: String): List<Response.Flat> {
-        val flats = mutableListOf<Response.Flat>()
-        try {
-            val statement = connection.createStatement()
-            val resultSet = statement.executeQuery(query)
-            while (resultSet.next()) {
-                val flat = resultSet.getString("flat")
-                flats.add(json.decodeFromString(Response.Flat.serializer(), flat))
+    fun getFlats(filter: FilterDb): List<Response.Flat> {
+        val flats:MutableList<Response.Flat> = mutableListOf()
+        val query =connection.from(FlatTable).select(FlatTable.flat)
+            .whereWithConditions {expr ->
+                filter.areaFrom.value?.let {expr += FlatTable.area.greaterEq(it)}
+                filter.areaTo.value?.let {expr += FlatTable.area.lt(it)}
+                filter.floorFrom.value?.let {expr += FlatTable.floor.gt(it)}
+                filter.floorTo.value?.let {expr += FlatTable.floor.lt(it)}
+                filter.totalFloorsFrom.value?.let {expr += FlatTable.totalFloors.greaterEq(it)}
+                filter.totalFloorsTo.value?.let {expr += FlatTable.totalFloors.gt(it)}
+                filter.priceFrom.value?.let {expr += FlatTable.price.greaterEq(it)}
+                filter.priceTo.value?.let {expr += FlatTable.price.lt(it)}
+                filter.roomsFrom.value?.let {expr += FlatTable.rooms.greaterEq(it)}
+                filter.roomsTo.value?.let {expr += FlatTable.rooms.lt(it)}
+                filter.city.value?.let {expr += FlatTable.city.eq(it)}
+                filter.district.value?.let {expr += FlatTable.district.eq(it)}
+                filter.urban.value?.let {expr += FlatTable.urban.eq(it)}
+                filter.street.value?.let {expr += FlatTable.street.eq(it)}
             }
-            statement.close()
-        } catch (e: SQLException) {
-            System.err.println(e.message)
-        }
+            .limit(filter.limit.value)
+            .orderBy(FlatTable.lastUpdated.desc())
+
+            query.forEach {
+                flats +=it[FlatTable.flat]!!
+            }
         return flats
     }
 
     fun getFlat(id: Int): Response.Flat? {
-        try {
-            val selectQuery = "SELECT flat FROM flats WHERE id = $id;"
-            val statement = connection.createStatement()
-            val resultSet = statement.executeQuery(selectQuery)
-            if (resultSet.next()) {
-                val flat = resultSet.getString("flat")
-                return json.decodeFromString(Response.Flat.serializer(), flat)
+        connection.from(FlatTable).select(FlatTable.flat)
+            .where(FlatTable.id eq id)
+            .forEach {
+                return it[FlatTable.flat]
             }
-            statement.close()
-        } catch (e: SQLException) {
-            System.err.println(e.message)
-        }
         return null
     }
 }

@@ -1,0 +1,135 @@
+{
+    "id": 15147497,
+    "deal_type_id": 1,
+    "real_estate_type_id": 1,
+    "status_id": 2,
+    "uuid": "cec3de4f-7190-4443-b1e5-726e43681ad0",
+    "price": {
+        "1": {
+            "price_total": 176456,
+            "price_square": 2485
+        },
+        "2": {
+            "price_total": 65000,
+            "price_square": 915
+        },
+        "3": {
+            "price_total": 60007,
+            "price_square": 845
+        }
+    },
+    "price_negotiable": false,
+    "price_from": false,
+    "lat": 41.697537,
+    "lng": 44.820813,
+    "images": [
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_1.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_1.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_2.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_2.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_3.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_3.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_4.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_4.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_8.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_8.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_9.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_9.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/large/15147497_11.jpg",
+            "thumb": "https://static.my.ge/myhome/photos/hdd/7/9/4/7/4/thumbs/15147497_11.jpg",
+            "large_webp": null,
+            "thumb_webp": null
+        },
+        {
+            "large": "https://api-statements.tnet.ge/uploads/statements/XxuCeN9666d553f94c14.jpg",
+            "thumb": "https://api-statements.tnet.ge/uploads/statements/XxuCeN9666d553f94c14_thumb.jpg",
+            "large_webp": "https://api-statements.tnet.ge/uploads/statements/XxuCeN9666d553f94c14.webp",
+            "thumb_webp": "https://api-statements.tnet.ge/uploads/statements/XxuCeN9666d553f94c14_thumb.webp"
+        },
+        {
+            "large": "https://api-statements.tnet.ge/uploads/statements/n2QBSV8666d553f9e2a5.jpg",
+            "thumb": "https://api-statements.tnet.ge/uploads/statements/n2QBSV8666d553f9e2a5_thumb.jpg",
+            "large_webp": "https://api-statements.tnet.ge/uploads/statements/n2QBSV8666d553f9e2a5.webp",
+            "thumb_webp": "https://api-statements.tnet.ge/uploads/statements/n2QBSV8666d553f9e2a5_thumb.webp"
+        },
+        {
+            "large": "https://api-statements.tnet.ge/uploads/statements/pLLaj9D666d555d169c6.jpg",
+            "thumb": "https://api-statements.tnet.ge/uploads/statements/pLLaj9D666d555d169c6_thumb.jpg",
+            "large_webp": "https://api-statements.tnet.ge/uploads/statements/pLLaj9D666d555d169c6.webp",
+            "thumb_webp": "https://api-statements.tnet.ge/uploads/statements/pLLaj9D666d555d169c6_thumb.webp"
+        },
+        {
+            "large": "https://api-statements.tnet.ge/uploads/statements/qyNxqh4666d555d1fc04.jpg",
+            "thumb": "https://api-statements.tnet.ge/uploads/statements/qyNxqh4666d555d1fc04_thumb.jpg",
+            "large_webp": "https://api-statements.tnet.ge/uploads/statements/qyNxqh4666d555d1fc04.webp",
+            "thumb_webp": "https://api-statements.tnet.ge/uploads/statements/qyNxqh4666d555d1fc04_thumb.webp"
+        },
+        {
+            "large": "https://api-statements.tnet.ge/uploads/statements/ewYXohd666d555d2564f.jpg",
+            "thumb": "https://api-statements.tnet.ge/uploads/statements/ewYXohd666d555d2564f_thumb.jpg",
+            "large_webp": "https://api-statements.tnet.ge/uploads/statements/ewYXohd666d555d2564f.webp",
+            "thumb_webp": "https://api-statements.tnet.ge/uploads/statements/ewYXohd666d555d2564f_thumb.webp"
+        }
+    ],
+    "address": "საინგილოს ქ. ",
+    "area": 71.0,
+    "yard_area": null,
+    "area_type_id": 1,
+    "bedroom": "1",
+    "room": "2",
+    "favorite": false,
+    "is_old": true,
+    "has_3d": null,
+    "3d_url": null,
+    "dynamic_title": "Продается 2 комнатная квартира в авлабари",
+    "dynamic_slug": "prodaetsia-2-komnatnaia-kvartira-v-avlabari",
+    "last_updated": "2024-07-31 19:00:13",
+    "floor": 2,
+    "total_floors": 5,
+    "street_id": 1280,
+    "urban_id": 62,
+    "urban_name": "Авлабари",
+    "district_id": 6,
+    "district_name": "Старий Тбилиси",
+    "city_name": "Тбилиси",
+    "quantity_of_day": 442,
+    "hidden": false,
+    "viewed": false,
+    "user_id": 3218167,
+    "price_type_id": 3,
+    "statement_currency_id": 2,
+    "currency_id": 2,
+    "user_title": "ელია",
+    "grouped_street_id": 789,
+    "comment": "სასწრაფოდ!! იყიდება ერთიანი გადახდით 2-ოთახიანი ბინა ავლაბარში ელიაზე,  ბარდება თეთრი კარკასით. სამშენებლო სამუშაოები დასრულებულია. მოცემული ფასი მოქმედებს 3 დღის მანძილზე.",
+    "has_color": true,
+    "is_vip": false,
+    "is_vip_plus": false,
+    "is_super_vip": true,
+    "user_statements_count": null
+}

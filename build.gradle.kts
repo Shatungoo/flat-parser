@@ -17,6 +17,7 @@ repositories {
 }
 
 val ktor_version = "2.3.12"
+val ktorm_version = "4.1.0"
 
 dependencies {
     implementation(compose.desktop.currentOs)
@@ -27,9 +28,14 @@ dependencies {
     implementation("io.ktor:ktor-client-encoding:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
 //    implementation ("androidx.sqlite:sqlite-ktx:2.4.0")
-    implementation ("com.h2database:h2:2.2.224")
-    implementation ("com.google.cloud:google-cloud-translate:2.46.0")
+//    implementation ("com.h2database:h2:2.2.224")
+//    implementation ("com.google.cloud:google-cloud-translate:2.46.0")
     implementation("org.jxmapviewer:jxmapviewer2:2.8")
+
+    implementation("org.xerial:sqlite-jdbc:3.46.0.0")
+    implementation("org.ktorm:ktorm-support-sqlite:${ktorm_version}")
+    implementation("org.ktorm:ktorm-core:${ktorm_version}")
+    implementation("org.ktorm:ktorm-jackson:${ktorm_version}")
 
 }
 

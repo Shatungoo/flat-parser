@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
@@ -49,7 +50,9 @@ fun main() {
 
         try {
             json.decodeFromString<Response>(response).data.data.forEach {
-                db.insertFlat(it)
+                val file= File("${it.id}.json")
+                file.writeText(Json { prettyPrint = true }.encodeToString(it))
+//                db.insertFlat(it)
             }
         } catch (e: Exception) {
             println(e)

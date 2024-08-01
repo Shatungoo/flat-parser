@@ -1,9 +1,6 @@
 package com.helldasy
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.helldasy.ui.FilterDb
@@ -66,11 +63,8 @@ data class Settings(
         "area_types" to "1",
     ),
 
-//    @Transient
-//    val query: MutableState<String> = mutableStateOf("SELECT * from FLATS order by LAST_UPDATED DESC limit 100"),
-
     @Transient
-    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(query = filterDb.value.buildQuery()))
+    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value))
 )
 
 val settingsPath = run {
