@@ -1,19 +1,14 @@
 package com.helldasy
 
-import com.helldasy.ui.buildQuery
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -23,14 +18,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
-
 fun main() {
 //
     val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
     val db = Db(path)
-    for (i in 0..2) {
-        println("page $i")
-        val response = runBlocking { getFlats(
+
+    val flats = runBlocking {
+        getFlats(
             "https://api-statements.tnet.ge/v1/statements",
             mapOf(
                 "deal_types" to "1",
@@ -46,29 +40,16 @@ fun main() {
                 "area_to" to "90",
                 "area_types" to "1",
             ),
-            i) }
-
-        try {
-            json.decodeFromString<Response>(response).data.data.forEach {
-                val file= File("${it.id}.json")
-                file.writeText(Json { prettyPrint = true }.encodeToString(it))
-//                db.insertFlat(it)
-            }
-        } catch (e: Exception) {
-            println(e)
-        }
+            2
+        )
     }
 }
 
 fun updateDb(settings: Settings, cb: () -> Unit = {}) {
     val db = settings.db
     CoroutineScope(Dispatchers.Default).launch {
-        for (i in 0..10) {
-            println("page $i")
-
-            val response = runBlocking { getFlats(settings.baseUrl, settings.urlParamMap, i) }
-            db.insertFlats(json.decodeFromString<Response>(response).data.data)
-        }
+        val response = runBlocking { getFlats(settings.baseUrl, settings.urlParamMap, 5) }
+        db.insertFlats(response)
         cb()
     }
 }
@@ -80,26 +61,48 @@ val json = Json {
     coerceInputValues = true
 }
 
-suspend fun getFlats(baseUrl: String,
-                        urlParamMap: Map<String, String>,
-                     page: Int = 0): String {
+suspend fun getFlats(
+    baseUrl: String,
+    urlParamMap: Map<String, String>,
+    count: Int,
+): List<Response.Flat> {
+    val result = coroutineScope {
+        (0..count).map { n ->
+            async {
+                getFlatsPage(baseUrl, urlParamMap, n)
+            }
+        }
+    }.awaitAll()
+    return result.flatMap { json.decodeFromString<Response>(it).data.data }
+}
+
+suspend fun getFlatsPage(
+    baseUrl: String,
+    urlParamMap: Map<String, String>,
+    page: Int = 0,
+): String {
+    println("Getting page $page")
     val client = HttpClient(CIO) {
         install(ContentEncoding) {
             deflate(1.0F)
             gzip(0.9F)
         }
     }
+
     val req = client.get(
         baseUrl
     ) {
-        url{
+        url {
             urlParamMap.forEach { (key, value) ->
                 parameters.append(key, value)
             }
             parameters.append("page", page.toString())
-       }
+        }
         headers {
-            append("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
+            append(
+                "User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
+            )
             append("Accept", " application/json, text/plain, */*")
             append("Accept-Language", " en,en-US;q=0.7,ru;q=0.3")
             append("Accept-Encoding", " gzip, deflate")
@@ -113,7 +116,7 @@ suspend fun getFlats(baseUrl: String,
             append("Sec-Fetch-Site", "cross-site")
         }
     }.request
-    val response =req.call
+    val response = req.call
     return response.body()
 }
 
@@ -186,13 +189,13 @@ data class Response(
         val is_vip: Boolean?,
         val is_vip_plus: Boolean?,
         val is_super_vip: Boolean?,
-        val user_statements_count: Int?
+        val user_statements_count: Int?,
     )
 
     @Serializable
     data class PriceDetails(
         val price_total: Int?,
-        val price_square: Int?
+        val price_square: Int?,
     )
 
     @Serializable
@@ -200,11 +203,11 @@ data class Response(
         val large: String?,
         val thumb: String?,
         val large_webp: String?,
-        val thumb_webp: String?
+        val thumb_webp: String?,
     )
 }
 
-fun String.toDate(): LocalDateTime{
+fun String.toDate(): LocalDateTime {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     return LocalDateTime.parse(this, formatter)
 }

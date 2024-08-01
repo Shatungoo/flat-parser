@@ -1,4 +1,4 @@
-package com.helldasy.ui
+package com.helldasy.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +16,10 @@ import org.jxmapviewer.OSMTileFactoryInfo
 import org.jxmapviewer.input.PanMouseInputListener
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor
 import org.jxmapviewer.viewer.*
-import javax.swing.event.MouseInputListener
+import java.awt.Point
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.geom.Point2D
 
 
 fun main() = singleWindowApplication {
@@ -41,14 +44,16 @@ fun main() = singleWindowApplication {
 fun MapView(
     lat: Double = 50.11,
     lng: Double = 8.68,
+    zoom: Int = 5,
 ) {
     val points = listOf(GeoPosition(lat, lng))
-    MapView(points)
+    MapView(points, zoom = zoom)
 }
 
 @Composable
 fun MapView(
     points: List<GeoPosition>,
+    zoom: Int = 5,
 ) {
     val waypoints = points.map { DefaultWaypoint(it) }.toSet()
     val mapViewer = JXMapViewer().apply {
@@ -56,9 +61,10 @@ fun MapView(
         overlayPainter = WaypointPainter<Waypoint>().apply {
             setWaypoints(waypoints)
         }
+        this.zoom = zoom
         zoomToBestFit(HashSet<GeoPosition>(points.toSet()), 0.8)
-
-        val mia: MouseInputListener = PanMouseInputListener(this)
+        val mia = PanMouseInputListener(this)
+        addMouseListener(ClickAdapter(this, waypoints))
         addMouseListener(mia)
         addMouseMotionListener(mia)
         addMouseWheelListener(ZoomMouseWheelListenerCursor(this));
@@ -68,10 +74,30 @@ fun MapView(
         modifier = Modifier.fillMaxSize(),
         factory = { mapViewer }
     )
+}
 
+class ClickAdapter(
+    val mapViewer: JXMapViewer,
+    val points: Set<Waypoint>,
+) : MouseAdapter() {
+    override fun mouseClicked(me: MouseEvent) {
+        var gp_pt: Point2D? = null
 
-    SwingPanel(
-        modifier = Modifier.fillMaxSize(),
-        factory = { mapViewer }
-    )
+        for (waypoint in points) {
+            //convert to world bitmap
+            gp_pt = mapViewer.tileFactory.geoToPixel(waypoint.position, mapViewer.zoom)
+            //convert to screen
+            val rect = mapViewer.viewportBounds
+            val converted_gp_pt = Point(
+                gp_pt.x.toInt() - rect.x,
+                gp_pt.y.toInt() - rect.y-10
+            )
+            //check if near the mouse
+            if (converted_gp_pt.distance(me.point) < 20) {
+                println("mapViewer mouse click has been detected within 10 pixels " +
+                        "of a waypoint ${waypoint}")
+//                waypoint
+            }
+        }
+    }
 }

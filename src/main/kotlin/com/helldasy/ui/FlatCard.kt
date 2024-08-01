@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
+import com.helldasy.map.MapView
 import java.net.URI
 import java.net.URLEncoder
 
@@ -76,7 +77,7 @@ fun FlatCard(
                 if (flat.lat != null && flat.lng != null) {
                     Spacer(modifier = Modifier.width(10.dp))
                     Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                        MapView(flat.lat, flat.lng)
+                        MapView(flat.lat, flat.lng, )
                     }
                 }
             }

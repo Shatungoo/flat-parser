@@ -33,24 +33,6 @@ data class FilterDb(
     val limit: MutableState<Int> = mutableStateOf(100),
 )
 
-fun FilterDb.buildQuery() = run {
-    var where = "where 1 = 1 ";
-    if (priceFrom.value != null) where += " AND price > ${priceFrom.value} "
-    if (priceTo.value != null) where += " AND price < ${priceTo.value} "
-    if (roomsFrom.value != null) where += " AND rooms > ${roomsFrom.value} "
-    if (roomsTo.value != null) where += " AND rooms < ${roomsTo.value} "
-    if (areaFrom.value != null) where += " AND area > ${areaFrom.value} "
-    if (areaTo.value != null) where += " AND area < ${areaTo.value} "
-    if (floorFrom.value != null) where += " AND floor > ${floorFrom.value} "
-    if (floorTo.value != null) where += " AND floor < ${floorTo.value} "
-    if (totalFloorsFrom.value != null) where += " AND total_floors > ${totalFloorsFrom.value} "
-    if (totalFloorsTo.value != null) where += " AND total_floors < ${totalFloorsTo.value} "
-    if (city.value != null) where += " AND city_name in (${city.value}) "
-    if (district.value != null) where += " AND district_name in (${district.value}) "
-    if (urban.value != null) where += " AND urban_name in (${urban.value}) "
-    if (city.value != null) where += " AND street_id in (${street.value}) "
-    "SELECT * from FLATS $where order by LAST_UPDATED DESC limit ${limit.value}"
-}
 
 fun String.toLatin(): String {
     val georgian = mapOf(
@@ -97,12 +79,6 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
     val filter = filter1.value
 
     Column {
-        TextField(
-            value = filter.buildQuery(),
-            readOnly = true,
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth()
-        )
         FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
@@ -116,7 +92,6 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
-            println(filter.buildQuery())
             apply()
             filterView.value = false
         }) {

@@ -18,7 +18,7 @@ fun FilterParser(
 
     Column {
         Text(baseUrl)
-        urlParamMap.map { entry ->
+        urlParamMap.toSortedMap().map { entry ->
             Row(modifier = Modifier.padding(5.dp).fillMaxWidth().height(55.dp)) {
                 Text(entry.key, modifier = Modifier.fillMaxHeight().width(100.dp))
                 TextField(

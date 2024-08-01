@@ -4,7 +4,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.helldasy.ui.FilterDb
-import com.helldasy.ui.buildQuery
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -26,9 +25,6 @@ data class Settings(
     @Transient
     val filterDb: MutableState<FilterDb> = mutableStateOf(FilterDb()),
 
-//    @Transient
-//    val filterParser: MutableState<FilterParser> = mutableStateOf(FilterParser()),
-
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),
 
@@ -41,8 +37,6 @@ data class Settings(
     val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString(),
 
     @Transient val db: Db = Db(dbPath),
-
-//    @Transient val database: Database = Database(path = dbPath),
 
     @Transient
     val baseUrl:String = "https://api-statements.tnet.ge/v1/statements",
