@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.OutlinedButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
@@ -45,15 +47,17 @@ fun MapView(
     lat: Double = 50.11,
     lng: Double = 8.68,
     zoom: Int = 5,
+    visibility: MutableState<Boolean> = mutableStateOf(true),
 ) {
     val points = listOf(GeoPosition(lat, lng))
-    MapView(points, zoom = zoom)
+    MapView(points, zoom = zoom, visibility = visibility)
 }
 
 @Composable
 fun MapView(
     points: List<GeoPosition>,
     zoom: Int = 5,
+    visibility: MutableState<Boolean> = mutableStateOf(true),
 ) {
     val waypoints = points.map { DefaultWaypoint(it) }.toSet()
     val mapViewer = JXMapViewer().apply {
@@ -69,11 +73,11 @@ fun MapView(
         addMouseMotionListener(mia)
         addMouseWheelListener(ZoomMouseWheelListenerCursor(this));
     }
-
-    SwingPanel(
-        modifier = Modifier.fillMaxSize(),
-        factory = { mapViewer }
-    )
+    if (visibility.value)
+        SwingPanel(
+            modifier = Modifier.fillMaxSize(),
+            factory = { mapViewer }
+        )
 }
 
 class ClickAdapter(
