@@ -6,10 +6,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.Theme
-import com.helldasy.ui.FlatView
-import com.helldasy.ui.MainView
-import com.helldasy.ui.MapView
-import com.helldasy.ui.Settings
+import com.helldasy.ui.*
 
 val settings = loadSettings()
 
@@ -31,13 +28,28 @@ fun main() = application {
                 )
 
                 Views.Main -> MainView(settings = settings)
-                Views.Map -> MapView(settings)
-                Views.Flat -> FlatView(settings)
+                Views.Map -> MapView(settings,
+                    back = { settings.view.value = Views.Main },
+                    selectFlat = ::selectFlat
+                    )
+                Views.Flat -> FlatCardView(settings.selectedFlat.value!!, back = { settings.view.value = Views.Main })
+                Views.ImageGallery -> ImageGallery(settings.selectedImage.value!!)
+//                    back = { settings.view.value = Views.Main
             }
         }
     }
 }
 
+fun selectFlat(flat: Response.Flat) {
+    settings.selectedFlat.value = flat
+    settings.view.value = Views.Flat
+}
+
+fun selectImage(image: SelectedImage) {
+    settings.selectedImage.value = image
+    settings.view.value = Views.Flat
+}
+
 enum class Views {
-    Main, Settings, Map, Flat
+    Main, Settings, Map, Flat, ImageGallery
 }

@@ -5,7 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,8 +18,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
+import com.helldasy.Views
 import com.helldasy.getFile
 import com.helldasy.map.Map
+import com.helldasy.settings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -155,56 +160,90 @@ fun textField(label: String, value: String) {
 @Composable
 fun FlatCardView(
     flat: Response.Flat,
+    back: () -> Unit,
     selectImage: (image: SelectedImage) -> Unit = {},
 ) {
     val image = SelectedImage(flat.id.toString(), flat.images, mutableStateOf(0))
-    Row {
-        Spacer(modifier = Modifier.weight(1f))
-        Box(modifier = Modifier.size(300.dp).clickable(onClick = {
-            selectImage(image)
-        })) {
-            ImageGallery(image)
+    Column {
+        BackButtonAct { back() }
+        Center {
+            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h3)
+        }
+        Center {
+            Box(modifier = Modifier.size(500.dp).clickable(onClick = {
+                selectImage(image)
+            })) {
+                ImageGallery(image)
+            }
         }
         Spacer(modifier = Modifier.width(50.dp))
-        Column {
-            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
-            Spacer(modifier = Modifier.width(10.dp))
-            Row {
-                FlatDescription(flat)
+        Center {
+            Column {
                 Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.width(400.dp).fillMaxHeight()) {
-                    if (flat.comment != null) TextField(
-                        value = flat.comment.toString().replace("<br />", ""),
-                        onValueChange = { },
-                        readOnly = true,
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row {
-                        Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
-                            Text("Open")
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Button(onClick = {
-                            val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
-                            val text = flat.dynamic_title.toString()
-                            val encodedUrl = URI.create(url).toASCIIString()
-                            val encodedText = URLEncoder.encode(text, "UTF-8")
-                            val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
-                            openInBrowser(telegramUrl)
-                        }) {
-                            Text("Share in Telegram")
+                Row {
+                    FlatDescription(flat)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.width(400.dp).fillMaxHeight()) {
+                        if (flat.comment != null) TextField(
+                            value = flat.comment.toString().replace("<br />", ""),
+                            onValueChange = { },
+                            readOnly = true,
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Row {
+                            Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
+                                Text("Open")
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Button(onClick = {
+                                val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
+                                val text = flat.dynamic_title.toString()
+                                val encodedUrl = URI.create(url).toASCIIString()
+                                val encodedText = URLEncoder.encode(text, "UTF-8")
+                                val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
+                                openInBrowser(telegramUrl)
+                            }) {
+                                Text("Share in Telegram")
+                            }
                         }
                     }
-                }
 
-                if (flat.lat != null && flat.lng != null) {
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                        Map(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
+                    if (flat.lat != null && flat.lng != null) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
+                            Map(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
+                        }
                     }
                 }
             }
         }
         Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+fun Center(content: @Composable () -> Unit) {
+    Row {
+        Spacer(modifier = Modifier.weight(1f))
+        content()
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+
+@Composable
+fun BackButtonAct(back: () -> Unit) {
+    OutlinedButton(
+        onClick = back,
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = MaterialTheme.colors.onPrimary,
+            contentColor = Color.LightGray
+        )
+
+    ) {
+        Image(
+            Icons.Default.ArrowBack,
+            contentDescription = "Back",
+        )
     }
 }

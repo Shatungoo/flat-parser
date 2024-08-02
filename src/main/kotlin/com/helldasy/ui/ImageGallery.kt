@@ -23,10 +23,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun ImageGallery(image: SelectedImage) {
+fun ImageGallery(image: SelectedImage,
+                 close: () -> Unit ={}) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
     BoxWithConstraints {
-        val isBig = maxWidth > 500.dp
+        val isBig = maxWidth > 700.dp
         val crop =
             if (isBig) ContentScale.Fit else ContentScale.Crop
 
@@ -50,7 +51,8 @@ fun ImageGallery(image: SelectedImage) {
             ) {
                 bitmapImage.value?.let {
                     Image(
-                        it, contentDescription = "",
+                        it,
+                        contentDescription = "",
                         modifier = Modifier
                             .align(Alignment.Center),
                         contentScale = crop

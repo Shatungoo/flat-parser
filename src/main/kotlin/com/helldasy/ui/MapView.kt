@@ -62,8 +62,10 @@ fun main() = singleWindowApplication {
 
 
 @Composable
-fun MapView(settings: Settings) {
-    val selectedFlat = mutableStateOf(0)
+fun MapView(settings: Settings,
+    back: () -> Unit ={},
+    selectFlat: (Response.Flat) -> Unit = {},
+){
     val flats = settings.flats
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
     Row {
@@ -73,14 +75,11 @@ fun MapView(settings: Settings) {
 
             LazyColumn(modifier = Modifier.width(400.dp)) {
                 item{
-                    BackButton(settings.view)
+                    BackButtonAct { back() }
                 }
                 selectedFlats.value.map { flat ->
                     item {
-                        SmallFlatCard(flat, onClick = {
-                            settings.selectedFlat.value = flat
-                            settings.view.value = Views.Flat
-                        })
+                        SmallFlatCard(flat, onClick = { selectFlat(flat) })
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
@@ -96,22 +95,5 @@ fun MapView(settings: Settings) {
                 },
             )
         }
-    }
-}
-
-@Composable
-fun BackButton(view: MutableState<Views> = mutableStateOf(Views.Main)) {
-    OutlinedButton(
-        onClick = { settings.view.value = view.value },
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = MaterialTheme.colors.onPrimary,
-            contentColor = Color.LightGray
-        )
-
-    ) {
-        Image(
-            Icons.Default.ArrowBack,
-            contentDescription = "Back",
-        )
     }
 }
