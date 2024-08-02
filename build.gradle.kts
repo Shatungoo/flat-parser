@@ -2,9 +2,9 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm") version "2.0.0"
-    id("org.jetbrains.compose") version "1.7.0-alpha01"
+    id("org.jetbrains.compose") version "1.7.0-alpha02"
     kotlin("plugin.serialization") version "2.0.0"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.20-Beta1"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.20-RC"
 }
 
 group = "com.helldaisy"
