@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
@@ -42,13 +43,17 @@ fun MainView(settings: Settings) {
         modifier = Modifier.verticalScroll(rememberScrollState)
     ) {
         ControlPanel(settings)
+        Spacer(modifier = Modifier.height(10.dp))
         Box(modifier = Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally)) {
             LazyColumn {
                 items(flats.value) { flat ->
                     FlatCard(flat = flat, selectImage = { image ->
                         selectedImage.value = image
+                    }, onClick = {
+                        settings.selectedFlat.value = flat
+                        settings.view.value = Views.Flat
                     })
-                    Spacer(modifier = Modifier.height(50.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
         }
@@ -105,14 +110,15 @@ fun MainView(settings: Settings) {
 
 @Composable
 fun FlatView(
-    flat: Response.Flat,
-    selectImage: (image: SelectedImage) -> Unit,
+    settings: Settings
 ) {
+    val flat = settings.selectedFlat.value!!
+
     val image = SelectedImage(flat.id.toString(), flat.images, mutableStateOf(0))
     Row {
 
         Box(modifier = Modifier.size(300.dp).clickable(onClick = {
-            selectImage(image)
+//            selectImage(image)
         })) {
             ImageGallery(image)
         }
@@ -156,30 +162,32 @@ fun ControlPanel(
 ) {
     val db = settings.db
     val flats = settings.flats
-    Row(
-        modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        val btnName = mutableStateOf("Update DB")
-        BtnWithSettings(name = btnName, action = {
-            btnName.value = "In progress..."
-            updateDb(settings) {
+    Card {
+        Row(
+            modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            val btnName = mutableStateOf("Update DB")
+            BtnWithSettings(name = btnName, action = {
+                btnName.value = "In progress..."
+                updateDb(settings) {
+                    settings.flats.value = db.getFlats(settings.filterDb.value)
+                    btnName.value = "Update DB"
+                }
+            }, settings = {
+                filterParserView.value = true
+            })
+            controlPanelButton(onClick = {
+                filterView.value = true
+            }, text = "Filter")
+
+            controlPanelButton(onClick = {
                 settings.flats.value = db.getFlats(settings.filterDb.value)
-                btnName.value = "Update DB"
-            }
-        }, settings = {
-            filterParserView.value = true
-        })
-        controlPanelButton(onClick = {
-            filterView.value = true
-        }, text = "Filter")
+            }, text = "Search")
+            controlPanelButton(onClick = {
+                settings.view.value = Views.Map
+            }, text = "Show on map")
 
-        controlPanelButton(onClick = {
-            settings.flats.value = db.getFlats(settings.filterDb.value)
-        }, text = "Search")
-        controlPanelButton(onClick = {
-            settings.view.value = Views.Map
-        }, text = "Show on map")
-
+        }
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.helldasy.ui.FilterDb
+import com.helldasy.ui.SelectedImage
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -55,7 +56,14 @@ data class Settings(
     ),
 
     @Transient
-    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value))
+    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value)),
+
+    @Transient
+    val selectedImage: MutableState<SelectedImage?> = mutableStateOf(null),
+
+    @Transient
+    val selectedFlat: MutableState<Response.Flat?> = mutableStateOf(null),
+
 )
 
 data class Screen(

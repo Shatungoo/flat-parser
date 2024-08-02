@@ -44,14 +44,14 @@ fun ImageGallery(image: SelectedImage) {
                 width = width
             )
             Box(
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier.height(this@BoxWithConstraints.maxHeight -10.dp)
                     .width(boxWidth)
                     .align(Alignment.CenterVertically)
             ) {
                 bitmapImage.value?.let {
                     Image(
                         it, contentDescription = "",
-                        modifier = Modifier.fillMaxHeight()
+                        modifier = Modifier
                             .align(Alignment.Center),
                         contentScale = crop
                     )

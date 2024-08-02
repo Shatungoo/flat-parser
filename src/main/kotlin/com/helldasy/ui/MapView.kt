@@ -10,6 +10,7 @@ import androidx.compose.ui.window.singleWindowApplication
 import com.helldasy.map.Map
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -72,19 +73,14 @@ fun MapView(settings: Settings) {
 
             LazyColumn(modifier = Modifier.width(400.dp)) {
                 item{
-                    OutlinedButton(onClick = { settings.view.value = Views.Main },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent, contentColor = Color.LightGray)
-
-                    ) {
-                        Image(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
+                    BackButton(settings.view)
                 }
                 selectedFlats.value.map { flat ->
                     item {
-                        SmallFlatCard(flat)
+                        SmallFlatCard(flat, onClick = {
+                            settings.selectedFlat.value = flat
+                            settings.view.value = Views.Flat
+                        })
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
@@ -100,5 +96,22 @@ fun MapView(settings: Settings) {
                 },
             )
         }
+    }
+}
+
+@Composable
+fun BackButton(view: MutableState<Views> = mutableStateOf(Views.Main)) {
+    OutlinedButton(
+        onClick = { settings.view.value = view.value },
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = MaterialTheme.colors.onPrimary,
+            contentColor = Color.LightGray
+        )
+
+    ) {
+        Image(
+            Icons.Default.ArrowBack,
+            contentDescription = "Back",
+        )
     }
 }
