@@ -7,6 +7,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.Theme
 import com.helldasy.ui.MainView
+import com.helldasy.ui.MapView
 import com.helldasy.ui.Settings
 
 val settings = loadSettings()
@@ -29,11 +30,12 @@ fun main() = application {
                 )
 
                 Views.Main -> MainView(settings = settings)
+                Views.Map -> MapView(settings)
             }
         }
     }
 }
 
 enum class Views {
-    Main, Settings
+    Main, Settings, Map
 }

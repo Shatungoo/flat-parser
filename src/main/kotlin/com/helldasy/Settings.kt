@@ -31,10 +31,7 @@ data class Settings(
     @Serializable(with = MutableStateSerializer::class)
     val theme: MutableState<String> = mutableStateOf("Default"),
 
-    @Serializable(with = MutableStateSerializer::class)
-    val link: MutableState<String> = mutableStateOf(""),
-
-    val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString(),
+    private val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString(),
 
     @Transient val db: Db = Db(dbPath),
 
@@ -60,6 +57,12 @@ data class Settings(
     @Transient
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value))
 )
+
+data class Screen(
+    val view: MutableState<Views> = mutableStateOf(Views.Main),
+    val filterDb: MutableState<FilterDb> = mutableStateOf(FilterDb()),
+    val flats: MutableState<List<Response.Flat>> //= mutableStateOf(db.getFlats(filterDb.value))
+){}
 
 val settingsPath = run {
     val userHome = System.getProperty("user.home")

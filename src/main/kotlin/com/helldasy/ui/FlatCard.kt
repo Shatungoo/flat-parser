@@ -1,19 +1,25 @@
 package com.helldasy.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
-import com.helldasy.map.MapView
+import com.helldasy.getFile
+import com.helldasy.map.Map
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.net.URI
 import java.net.URLEncoder
 
@@ -36,19 +42,7 @@ fun FlatCard(
             Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
             Spacer(modifier = Modifier.width(10.dp))
             Row {
-                Column(modifier = Modifier.width(200.dp)) {
-                    textField("Город", flat.city_name.toString())
-                    textField("Район", flat.urban_name.toString())
-                    textField("Район", flat.district_name.toString())
-                    textField("Адрес ", flat.address.toString().toLatin())
-//                    textField("Улица", flat.street_id.toString())
-                    textField("Цена", flat.price["2"]?.price_total.toString() + " $")
-                    textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")
-                    textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
-                    textField("Комнат", flat.room.toString())
-//                    textField("Координаты", "${flat.lat.toString()}, ${flat.lng.toString()}")
-                    textField("Площадь ", flat.area.toString())
-                }
+                FlatDescription(flat)
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.width(400.dp).fillMaxHeight()) {
                     if (flat.comment != null) TextField(
@@ -78,7 +72,7 @@ fun FlatCard(
                 if (flat.lat != null && flat.lng != null) {
                     Spacer(modifier = Modifier.width(10.dp))
                     Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                        MapView(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null) )
+                        Map(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
                     }
                 }
             }
@@ -86,6 +80,65 @@ fun FlatCard(
         Spacer(modifier = Modifier.weight(1f))
     }
 }
+
+
+@Composable
+fun SmallFlatCard(
+    flat: Response.Flat,
+) {
+//    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
+//    CoroutineScope(Dispatchers.Default).launch {
+//        flat.images[0].thumb?.let {link ->
+//            getFile(flat.id.toString(), link)?.let { file ->
+//                bitmapImage.value = BitmapPainter(file.toImageBitmap())
+//            }
+//        }
+//    }
+    val bitmapImage = runBlocking {
+        flat.images[0].thumb?.let { link ->
+            getFile(flat.id.toString(), link)?.let { file ->
+                return@runBlocking BitmapPainter(file.toImageBitmap()) as Painter
+            }
+        }
+        return@runBlocking null
+    }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column() {
+            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
+            Row {
+                Box(modifier = Modifier.size(100.dp).clickable(onClick = {})) {
+//            bitmapImage.value?.let {
+                    bitmapImage?.let {
+                        Image(
+                            bitmapImage,
+                            contentDescription = "",
+                            modifier = Modifier.fillMaxHeight().align(Alignment.Center),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(50.dp))
+                FlatDescription(flat, short = true)
+            }
+        }
+    }
+}
+
+@Composable
+fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
+    Column(modifier = Modifier.width(200.dp)) {
+        if (!short) textField("Город", flat.city_name.toString())
+        if (!short) textField("Район", flat.urban_name.toString())
+        if (!short) textField("Район", flat.district_name.toString())
+        if (!short) textField("Адрес ", flat.address.toString().toLatin())
+        textField("Цена", flat.price["2"]?.price_total.toString() + " $")
+        textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")
+        textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
+        textField("Комнат", flat.room.toString())
+        textField("Площадь ", flat.area.toString())
+    }
+}
+
 
 @Composable
 fun textField(label: String, value: String) {

@@ -37,7 +37,8 @@ fun ImageGallery(image: SelectedImage) {
         val boxWidth = maxWidth - width * 2
         Row {
             galleryButton(
-                onClick = { image.selectedImage.value-- },
+                onClick = {
+                    if (image.selectedImage.value > 0) image.selectedImage.value-- },
                 enabled = image.selectedImage.value > 0,
                 text = "<",
                 width = width
@@ -72,7 +73,7 @@ fun ImageGallery(image: SelectedImage) {
     }
 }
 
-private suspend fun getImage(
+suspend fun getImage(
     big: Boolean,
     image: SelectedImage,
 ): BitmapPainter? {

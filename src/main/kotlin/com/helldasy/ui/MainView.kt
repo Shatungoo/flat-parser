@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
 import com.helldasy.Settings
+import com.helldasy.Views
 import com.helldasy.updateDb
 import java.awt.event.ItemEvent
 
@@ -29,8 +30,8 @@ data class SelectedImage(
 )
 
 val selectedImage = mutableStateOf<SelectedImage?>(null)
-val filterView = mutableStateOf<Boolean>(false)
-val filterParserView = mutableStateOf<Boolean>(false)
+val filterView = mutableStateOf(false)
+val filterParserView = mutableStateOf(false)
 
 @Composable
 fun MainView(settings: Settings) {
@@ -175,7 +176,9 @@ fun ControlPanel(
         controlPanelButton(onClick = {
             settings.flats.value = db.getFlats(settings.filterDb.value)
         }, text = "Search")
-
+        controlPanelButton(onClick = {
+            settings.view.value = Views.Map
+        }, text = "Show on map")
 
     }
 }

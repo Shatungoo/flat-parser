@@ -31,6 +31,9 @@ data class FilterDb(
     val urban: MutableState<String?> = mutableStateOf(null),
     val street: MutableState<String?> = mutableStateOf(null),
     val limit: MutableState<Int> = mutableStateOf(100),
+
+    val lan: MutableState<Double?> = mutableStateOf(null),
+    val lng: MutableState<Double?> = mutableStateOf(null),
 )
 
 
@@ -84,6 +87,7 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Floor", filter.floorFrom, filter.floorTo)
         FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
+//        FilterBetween("Coordinates", filter.lan as MutableState<Int?>, filter.lng as MutableState<Int?>)
         Row(verticalAlignment = Alignment.Bottom) {
             Text("Limit", style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
 

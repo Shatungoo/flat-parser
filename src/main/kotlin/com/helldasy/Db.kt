@@ -15,8 +15,6 @@ import java.sql.SQLException
 
 fun main() {
     val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
-//    val h2 = Database.connect("jdbc:h2:./flats;DB_CLOSE_DELAY=-1")
-//    val db = Database.connect("jdbc:sqlite:${path}.db")
     val db = Db(path)
 
     val query = db.connection.from(FlatTable).select(FlatTable.flat)
@@ -56,8 +54,8 @@ class Db(path: String = "./flats") {
         val floor get() = this.flat.jsonExtract("$.floor", IntSqlType)
         val totalFloors get() = this.flat.jsonExtract("$.total_floors", IntSqlType)
         val rooms get() = this.flat.jsonExtract("$.room", VarcharSqlType).cast(IntSqlType)
-
-
+        val lan get() = this.flat.jsonExtract("$.lat", DoubleSqlType)
+        val lng get() = this.flat.jsonExtract("$.lng", DoubleSqlType)
     }
 
     private fun createTableIfNotExistQuery(table: BaseTable<*>): String {
@@ -131,10 +129,11 @@ class Db(path: String = "./flats") {
                 filter.priceTo.value?.let {expr += FlatTable.price.lt(it)}
                 filter.roomsFrom.value?.let {expr += FlatTable.rooms.greaterEq(it)}
                 filter.roomsTo.value?.let {expr += FlatTable.rooms.lt(it)}
-                filter.city.value?.let {expr += FlatTable.city.eq(it)}
-                filter.district.value?.let {expr += FlatTable.district.eq(it)}
-                filter.urban.value?.let {expr += FlatTable.urban.eq(it)}
-                filter.street.value?.let {expr += FlatTable.street.eq(it)}
+
+                filter.city.value?.let {expr += FlatTable.city.inList(it)}
+                filter.district.value?.let {expr += FlatTable.district.inList(it)}
+                filter.urban.value?.let {expr += FlatTable.urban.inList(it)}
+                filter.street.value?.let {expr += FlatTable.street.inList(it)}
             }
             .limit(filter.limit.value)
             .orderBy(FlatTable.lastUpdated.desc())
