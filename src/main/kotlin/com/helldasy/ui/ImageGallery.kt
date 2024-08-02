@@ -7,7 +7,6 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,20 +21,19 @@ import com.helldasy.getFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @Composable
 fun ImageGallery(image: SelectedImage) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
     BoxWithConstraints {
-        val big = maxWidth > 500.dp
+        val isBig = maxWidth > 500.dp
         val crop =
-            if (big) ContentScale.Fit else ContentScale.Crop
+            if (isBig) ContentScale.Fit else ContentScale.Crop
 
-        CoroutineScope(Dispatchers.Default).launch {
-            bitmapImage.value = getImage(big = big, image = image)
+        val coroutine = CoroutineScope(Dispatchers.Default).launch {
+            bitmapImage.value = getImage(big = isBig, image = image)
         }
-        val width = if (big) 100.dp else 30.dp
+        val width = if (isBig) 100.dp else 30.dp
         val boxWidth = maxWidth - width * 2
         Row {
             galleryButton(
@@ -74,22 +72,21 @@ fun ImageGallery(image: SelectedImage) {
     }
 }
 
-private fun getImage(
+private suspend fun getImage(
     big: Boolean,
     image: SelectedImage,
 ): BitmapPainter? {
     val selectedImage = image.selectedImage.value
     if (image.images.isNotEmpty()) {
-        val imageUrl = when {
+        when {
             big && image.images[selectedImage].large != null -> image.images[selectedImage].large
             image.images[selectedImage].thumb != null -> image.images[selectedImage].thumb
             else -> null
-        }
-        getFile(image.id, imageUrl)?.let { file ->
-            val imageBitmap = runBlocking {
-                file.readBytes().toImageBitmap()
+        }?.let { imageUrl ->
+            getFile(image.id, imageUrl)?.let { file ->
+                val imageBitmap = file.toImageBitmap()
+                return BitmapPainter(imageBitmap)
             }
-            return BitmapPainter(imageBitmap)
         }
     }
     return null

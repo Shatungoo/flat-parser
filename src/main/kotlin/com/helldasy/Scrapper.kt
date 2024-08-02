@@ -125,7 +125,6 @@ suspend fun downloadImage(url: String, file: File): File {
     println("Downloading image from $url")
     val response = client.get(url)
     response.bodyAsChannel().copyAndClose(file.writeChannel())
-
     return file
 }
 

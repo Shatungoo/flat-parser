@@ -1,35 +1,51 @@
 package com.helldasy
 
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.nio.file.Paths
 
 fun main() {
     val id = "123"
     val url = "https://api-statements.tnet.ge/uploads/statements/1mcs02f666c7d4f87f6e_thumb.jpg"
-    getFile(id, url)
+//    getFile(id, url)
 }
 
-fun getFile(id: String?, url: String?): File? {
-    if (id == null || url == null) return null
+val cash: MutableMap<String, ByteArray> = mutableMapOf()
+
+suspend fun getFile(imageId: String, url: String): ByteArray? {
     try {
-        val dir = getTemporalDirectory(id)
+        val dir = getTemporalDirectory(imageId)
         val fileName = getFileNameFromUrl(url)
-        val file = Paths.get(dir.absolutePath, fileName).toFile()
-        if (!file.exists()) {
-            return runBlocking {
-                downloadImage(url, file)
-            }
+        val id = "$imageId-$fileName"
+        if (!cash.containsKey(id)) {
+            val file = Paths.get(dir.absolutePath, fileName).toFile()
+            putToCache(file, url, id)
         }
-        return file
+        return cash[id]
     } catch (e: Exception) {
         println("Error uploading image: $url ${e.message}")
         return null
     }
 }
 
-fun getTemporalDirectory(id: String): File {
-    val path = Paths.get(System.getProperty("java.io.tmpdir"), appName, id)
+private suspend fun putToCache(
+    file: File,
+    url: String,
+    id: String,
+): Boolean {
+    if (file.exists()) {
+        println("Load from file: $url")
+        cash[id] = file.readBytes()
+        return true
+    }
+    downloadImage(url, file).let {
+        println("Load from url: $url")
+        cash[id] = it.readBytes()
+    }
+    return false
+}
+
+fun getTemporalDirectory(flatId: String): File {
+    val path = Paths.get(System.getProperty("java.io.tmpdir"), appName, flatId)
     val file = path.toFile()
     file.mkdirs()
     return file
@@ -41,7 +57,3 @@ fun getFileNameFromUrl(url: String): String {
     return parts[parts.size - 1]
 }
 
-fun checkFileExists(path: String): Boolean {
-    val file = File(path)
-    return file.exists()
-}
