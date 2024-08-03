@@ -39,16 +39,17 @@ fun FlatCard(
     selectImage: (image: SelectedImage) -> Unit,
     onClick: () -> Unit = {},
 ) {
-    val image = SelectedImage(flat.id.toString(), flat.images, mutableStateOf(0))
+    val image = mutableStateOf(0)
 
     Row {
         Spacer(modifier = Modifier.weight(1f))
         Card(onClick = onClick, backgroundColor = Color.Transparent) {
             Row {
                 Box(modifier = Modifier.size(300.dp).clickable(onClick = {
-                    selectImage(image)
+                    selectImage(SelectedImage(flat.id.toString(), flat.images, image))
                 })) {
-                    ImageGallery(image)
+//                    ImageGallery(image)
+                    flat.images.mapNotNull { it.thumb }.let { SmallImageGallery(it, flat.id.toString(), image) }
                 }
                 Spacer(modifier = Modifier.width(50.dp))
                 Column {

@@ -149,9 +149,7 @@ fun MapCompose(
             }
 
             val point = tileFactory.geoToPixel(centerPoint, zoomLevel).toPoint()
-
             val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-
             val waypointIm =PointInt(waypointImage.width/2, waypointImage.height)
             val offset= (point - topLeft - waypointIm).toOffset()
 //            canvas.drawImage(waypointImage, (point - topLeft).toOffset(), Paint())

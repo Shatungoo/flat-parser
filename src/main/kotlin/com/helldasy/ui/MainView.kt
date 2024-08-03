@@ -54,15 +54,17 @@ fun MainView(settings: Settings) {
             }
         }
     }
-    if (selectedImage.value != null) {
+    (selectedImage.value)?.let {
+        val (id, images) = it
         Box(
-            modifier = Modifier.fillMaxSize().background(Color.Black).clickable(onClick = {
-                    selectedImage.value = null
-                })
+            modifier = Modifier.fillMaxSize().background(Color.Black)
+                .clickable(onClick = { selectedImage.value = null })
         ) {
-            ImageGallery(selectedImage.value!!)
+//            ImageGallery(selectedImage.value!!)
+            BigImageGallery(images.mapNotNull { it.large }, id, it.selectedImage)
         }
-    } else if (filterView.value) {
+    }
+    if (filterView.value) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {

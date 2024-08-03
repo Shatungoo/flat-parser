@@ -7,7 +7,9 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,31 +23,43 @@ import com.helldasy.getFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
-fun ImageGallery(image: SelectedImage,
-                 close: () -> Unit ={}) {
+fun ImageGallery(
+    image: SelectedImage,
+    close: () -> Unit = {}
+) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
+    val (large, thumb) = image.images[image.selectedImage.value]
+
     BoxWithConstraints {
         val isBig = maxWidth > 700.dp
         val crop =
             if (isBig) ContentScale.Fit else ContentScale.Crop
 
-        val coroutine = CoroutineScope(Dispatchers.Default).launch {
-            bitmapImage.value = getImage(big = isBig, image = image)
+        when {
+            isBig -> large
+            else -> thumb
+        }?.let {
+            CoroutineScope(Dispatchers.Default).launch {
+                bitmapImage.value = getFile(url = it, imageId = image.id)
+                    ?.let { BitmapPainter(it.toImageBitmap()) }
+            }
         }
         val width = if (isBig) 100.dp else 30.dp
         val boxWidth = maxWidth - width * 2
         Row {
             galleryButton(
                 onClick = {
-                    if (image.selectedImage.value > 0) image.selectedImage.value-- },
+                    if (image.selectedImage.value > 0) image.selectedImage.value--
+                },
                 enabled = image.selectedImage.value > 0,
                 text = "<",
                 width = width
             )
             Box(
-                modifier = Modifier.height(this@BoxWithConstraints.maxHeight -10.dp)
+                modifier = Modifier.height(this@BoxWithConstraints.maxHeight - 10.dp)
                     .width(boxWidth)
                     .align(Alignment.CenterVertically)
             ) {
@@ -75,25 +89,114 @@ fun ImageGallery(image: SelectedImage,
     }
 }
 
-suspend fun getImage(
-    big: Boolean,
-    image: SelectedImage,
-): BitmapPainter? {
-    val selectedImage = image.selectedImage.value
-    if (image.images.isNotEmpty()) {
-        when {
-            big && image.images[selectedImage].large != null -> image.images[selectedImage].large
-            image.images[selectedImage].thumb != null -> image.images[selectedImage].thumb
-            else -> null
-        }?.let { imageUrl ->
-            getFile(image.id, imageUrl)?.let { file ->
-                val imageBitmap = file.toImageBitmap()
-                return BitmapPainter(imageBitmap)
+
+@Composable
+fun SmallImageGallery(
+    urls: List<String>,
+    id: String,
+    selectedImage: MutableState<Int>
+) {
+//    val selectedImage = mutableStateOf(0)
+    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
+    bitmapImage.getImage(urls[selectedImage.value], id)
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
+        Row {
+            galleryButton(
+                onClick = {
+                    if (selectedImage.value > 0)
+                        selectedImage.value--
+                },
+                enabled = selectedImage.value > 0,
+                text = "<",
+                width = 30.dp
+            )
+            Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 60.dp)) {
+                bitmapImage.value?.let {
+                    Image(
+                        it,
+                        contentDescription = "",
+                        modifier = Modifier.align(Alignment.Center),
+                        contentScale = ContentScale.Crop
+                    )
+                } ?: run {
+                    CircularProgressIndicator()
+                }
             }
+
+            galleryButton(
+                onClick = {
+                    if (selectedImage.value < urls.size - 1) {
+                        selectedImage.value += 1
+                        bitmapImage.getImage(urls[3], id)
+                    }
+                },
+                enabled = selectedImage.value < urls.size - 1,
+                text = ">",
+                width = 30.dp
+            )
         }
     }
-    return null
 }
+
+
+@Composable
+fun BigImageGallery(
+    urls: List<String>,
+    id: String,
+    selectedImage: MutableState<Int>
+) {
+    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
+    bitmapImage.getImage(urls[selectedImage.value], id)
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
+        Row {
+            galleryButton(
+                onClick = {
+                    if (selectedImage.value > 0)
+                        selectedImage.value--
+                },
+                enabled = selectedImage.value > 0,
+                text = "<",
+                width = 60.dp
+            )
+            Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 120.dp)) {
+                bitmapImage.value?.let {
+                    Image(
+                        it,
+                        contentDescription = "",
+                        modifier = Modifier.align(Alignment.Center),
+                        contentScale = ContentScale.Crop
+                    )
+                } ?: run {
+                    CircularProgressIndicator()
+                }
+            }
+
+            galleryButton(
+                onClick = {
+                    if (selectedImage.value < urls.size - 1) {
+                        selectedImage.value += 1
+                        bitmapImage.getImage(urls[3], id)
+                    }
+                },
+                enabled = selectedImage.value < urls.size - 1,
+                text = ">",
+                width = 60.dp
+            )
+        }
+    }
+}
+
+private fun MutableState<BitmapPainter?>.getImage(
+    url: String,
+    id: String,
+) {
+    val bitmapImage = this
+    CoroutineScope(Dispatchers.Default).launch {
+        getFile(url = url, imageId = id)
+            ?.let { bitmapImage.value = BitmapPainter(it.toImageBitmap()) }
+    }
+}
+
 
 @Composable
 fun galleryButton(
