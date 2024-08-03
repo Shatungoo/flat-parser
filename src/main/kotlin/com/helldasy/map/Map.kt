@@ -1,14 +1,16 @@
 package com.helldasy.map
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -21,9 +23,12 @@ import org.jxmapviewer.cache.FileBasedLocalCache
 import org.jxmapviewer.input.PanMouseInputListener
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor
 import org.jxmapviewer.viewer.*
+import java.awt.CardLayout
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 
 fun main() = singleWindowApplication {
@@ -80,27 +85,31 @@ val tileFactoryExt = DefaultTileFactory(OSMTileFactoryInfo())
     }
 
 
-
 @Composable
 fun Map(
     points: List<Response.Flat>,
     zoom: Int = 5,
     modifier: Modifier = Modifier.fillMaxSize(),
     visibility: MutableState<Boolean> = mutableStateOf(true),
-    onClick: (List<Response.Flat>) -> Unit = {}
+    onClick: (List<Response.Flat>) -> Unit = {},
+    content: @Composable () -> Unit = {},
 ) {
-    val waypoints = points.map { ClickableWaypoint(
-        GeoPosition(it.lat!!, it.lng!!),
-        data = it
-    ) }.toSet()
+    val waypoints = points.map {
+        ClickableWaypoint(
+            GeoPosition(it.lat!!, it.lng!!),
+            data = it
+        )
+    }.toSet()
     val mapViewer = JXMapViewer().apply {
         this.tileFactory = tileFactoryExt
         overlayPainter = WaypointPainter<Waypoint>().apply {
             setWaypoints(waypoints)
         }
         this.zoom = zoom
-        zoomToBestFit(points.mapNotNull { if (it.lat != null && it.lng!=null)
-            GeoPosition(it.lat, it.lng) else null}.toSet(), 0.8)
+        zoomToBestFit(points.mapNotNull {
+            if (it.lat != null && it.lng != null)
+                GeoPosition(it.lat, it.lng) else null
+        }.toSet(), 0.8)
         val mia = PanMouseInputListener(this)
         addMouseListener(ClickAdapter(this, waypoints, onClick = { it ->
             onClick(it.map { it.data })
@@ -108,12 +117,12 @@ fun Map(
         addMouseListener(mia)
         addMouseMotionListener(mia)
         addMouseWheelListener(ZoomMouseWheelListenerCursor(this));
+        add(ComposePanel().apply { setContent { content() }})
     }
-    if (visibility.value)
-        SwingPanel(
-            modifier = modifier,
-            factory = { mapViewer }
-        )
+    SwingPanel(
+        modifier = modifier,
+        factory = { mapViewer }
+    )
 }
 
 class ClickableWaypoint(
@@ -128,7 +137,7 @@ class ClickAdapter(
     val onClick: (Set<ClickableWaypoint>) -> Unit = {}
 ) : MouseAdapter() {
     override fun mouseClicked(me: MouseEvent) {
-        val clicked:MutableSet<ClickableWaypoint> = mutableSetOf()
+        val clicked: MutableSet<ClickableWaypoint> = mutableSetOf()
         for (waypoint in points) {
             //convert to world bitmap
             val point = mapViewer.tileFactory.geoToPixel(waypoint.position, mapViewer.zoom)

@@ -1,6 +1,7 @@
 package com.helldasy.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -23,56 +24,38 @@ fun main() = singleWindowApplication {
     val db = Db(path)
     val flats = db.getFlats()
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
-    Row {
-        Box(modifier = Modifier.fillMaxWidth(0.7f)) {
 
-            Map(
-                points = flats,
-                onClick = {
-                    selectedFlats.value = it
-                },
-//            modifier = Modifier.fillMaxWidth(0.7f)
-            )
-        }
-        LazyColumn {
-            selectedFlats.value.map { flat ->
-                item {
-                    Column {
-                        Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Row {
-                            Column(modifier = Modifier.width(200.dp)) {
-                                textField("Город", flat.city_name.toString())
-                                textField("Район", flat.urban_name.toString())
-                                textField("Район", flat.district_name.toString())
-                                textField("Адрес ", flat.address.toString().toLatin())
-                                textField("Цена", flat.price["2"]?.price_total.toString() + " $")
-                                textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")
-                                textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
-                                textField("Комнат", flat.room.toString())
-                                textField("Площадь ", flat.area.toString())
-                            }
-                        }
-                    }
-                }
-            }
+    Box {
+        Map(
+            points = flats,
+            onClick = {
+                selectedFlats.value = it
+            },
+        )
+        Button(
+            onClick = {
+                selectedFlats.value = emptyList()
+            },
+//            modifier = Modifier.align(Alignment.TopStart)
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
         }
     }
 }
 
 
 @Composable
-fun MapView(settings: Settings,
-    back: () -> Unit ={},
+fun MapView(
+    settings: Settings,
+    back: () -> Unit = {},
     selectFlat: (Response.Flat) -> Unit = {},
-){
+) {
     val flats = settings.flats
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
     Row {
 //        Spacer(modifier = Modifier.weight(1f))
 
         Box {
-
             LazyColumn(modifier = Modifier.width(400.dp)) {
                 item{
                     BackButtonAct { back() }
