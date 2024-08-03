@@ -2,6 +2,7 @@ package com.helldasy.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -21,6 +22,7 @@ import com.helldasy.Response
 import com.helldasy.Views
 import com.helldasy.getFile
 import com.helldasy.map.Map
+import com.helldasy.map.MapComposeSmall
 import com.helldasy.settings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,8 +84,8 @@ fun FlatCard(
 
                         if (flat.lat != null && flat.lng != null) {
                             Spacer(modifier = Modifier.width(10.dp))
-                            Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                                Map(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
+                            Box(modifier = Modifier.size(250.dp)) {
+                                MapComposeSmall(flat.lat, flat.lng, 4)
                             }
                         }
                     }

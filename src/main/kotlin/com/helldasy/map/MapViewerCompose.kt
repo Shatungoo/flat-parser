@@ -3,21 +3,28 @@ package com.helldasy.map
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.helldasy.getTemporalDirectory
@@ -26,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.skia.Canvas
+import org.jxmapviewer.JXMapViewer
 import org.jxmapviewer.OSMTileFactoryInfo
 import org.jxmapviewer.cache.FileBasedLocalCache
 import org.jxmapviewer.viewer.DefaultTileFactory
@@ -33,9 +41,19 @@ import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.TileFactory
 import java.awt.geom.Point2D
 import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 import kotlin.math.floor
 
-data class Point(val x: Double, val y: Double){
+data class PointInt(val x: Int, val y: Int){
+    operator fun minus(other: PointInt) = PointInt(x - other.x, y - other.y)
+    operator fun plus(other: PointInt) = PointInt(x + other.x, y + other.y)
+
+    operator fun div(other: PointInt) = PointInt(x / other.x, y / other.y)
+    operator fun div(other: Int) = PointInt(x / other, y / other)
+
+    fun toOffset() = Offset(x.toFloat(), y.toFloat())
+}
+data class Point(val x: Double, val y: Double) {
     operator fun minus(other: Point) = Point(x - other.x, y - other.y)
     operator fun plus(other: Point) = Point(x + other.x, y + other.y)
 
@@ -49,36 +67,30 @@ data class Point(val x: Double, val y: Double){
     operator fun div(other: Int) = Point(x / other, y / other)
 
     fun toOffset() = Offset(x.toFloat(), y.toFloat())
-//    operator fun rangeTo(other: Point):  = IntRange(x.toInt(), other.x.toInt())
-}
-//data class Waypoint(val position: GeoPosition, val label: String)
+    operator fun plus(other: PointInt) = Point(x + other.x, y + other.y)
+    operator fun minus(other: PointInt) = Point(x - other.x, y - other.y)
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MapCompose(
     tileFactory: TileFactory,
     centerPoint :GeoPosition = GeoPosition(42.50, 43.00),
-    waypoints: MutableState<List<GeoPosition>> = mutableStateOf(emptyList<GeoPosition>()),
-    overlay: @Composable (Canvas) -> Unit = { }
-
+    zoom: Int = 8,
 ) {
-    var zoomLevel by remember { mutableStateOf(8) }
+    var zoomLevel by remember { mutableStateOf(zoom) }
     val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
     val a = tileFactory.geoToPixel(centerPoint, zoomLevel)
     var center by remember { mutableStateOf(Point(a.x,a.y)) }
+    val url = object {}.javaClass.getResource("/waypoint_white.png")
+    val waypointImage = ImageIO.read(url).toComposeImageBitmap()
 
-
-//    fun setAddressLocation(addressLocation: GeoPosition) {
-//        val old: GeoPosition = this.getAddressLocation()
-//        this.addressLocation = addressLocation
-//        this.setCenter(this.getTileFactory().geoToPixel(addressLocation, this.getZoom()))
-//        this.firePropertyChange("addressLocation", old, this.getAddressLocation())
-//        this.repaint()
-//    }
 
     Canvas(
         modifier = Modifier
             .fillMaxSize()
+            .clipToBounds()
             .pointerInput(Unit) {
                 detectTransformGestures { c, pan, _, _ ->
 //                    center -= pan
@@ -122,7 +134,7 @@ fun MapCompose(
                         image.value = tile.image.toComposeImageBitmap()
                     } else CoroutineScope(Dispatchers.Default).launch {
                         while (!tile.isLoaded or tile.loadingFailed()) {
-                            delay(100)
+                            delay(40)
                             tile = tileFactory.getTile(itpx, itpy, zoomLevel)
                         }
                         image.value = tile.image.toComposeImageBitmap()
@@ -140,9 +152,11 @@ fun MapCompose(
 
             val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
 
-            val offset= (point - topLeft).toOffset()
-
-            canvas.drawCircle(offset, 5f, Paint().apply { color = Color.Red })
+            val waypointIm =PointInt(waypointImage.width/2, waypointImage.height)
+            val offset= (point - topLeft - waypointIm).toOffset()
+//            canvas.drawImage(waypointImage, (point - topLeft).toOffset(), Paint())
+            canvas.drawImage(waypointImage, offset, Paint())
+//            canvas.drawCircle(offset, 5f, Paint().apply { color = Color.Red })
 //            waypoints.value.forEach { waypoint ->
 //                val point1 = tileFactory.geoToPixel(waypoint, zoomLevel)
 //                val offset = Offset(
@@ -171,17 +185,19 @@ fun PreviewMapViewer() {
             setLocalCache(cache)
         }
     val tileFactory = tileFactoryExt // Replace with actual TileFactory implementation
+    Box(modifier = Modifier.size(600.dp).background(Color.Red)) {
 
-    MapCompose(
-        tileFactory,
-        centerPoint = GeoPosition(41.740527, 44.752613),
-//        waypoints = mutableStateOf(
-//            listOf(
-//                GeoPosition(42.50, 43.00),
-//                GeoPosition(42.51, 43.01)
-//            )
-//        )
-    )
+        Box(modifier = Modifier.size(150.dp).border(1.dp, Color.Black)
+            .wrapContentSize(align = Alignment.TopCenter, unbounded = false)
+        ) {
+            Column {
+            MapCompose(
+                tileFactory,
+                centerPoint = GeoPosition(41.740527, 44.752613),
+            )
+                }
+        }
+    }
 }
 
 fun main() = application {

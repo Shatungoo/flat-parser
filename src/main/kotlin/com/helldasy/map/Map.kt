@@ -48,6 +48,18 @@ fun main() = singleWindowApplication {
 //    )
 }
 
+@Composable
+fun MapComposeSmall(
+    lat: Double = 50.11,
+    lng: Double = 8.68,
+    zoom: Int = 5,
+){
+    MapCompose(
+        centerPoint = GeoPosition(lat, lng),
+        tileFactory = DefaultTileFactory(OSMTileFactoryInfo()),
+        zoom = zoom,
+    )
+}
 
 @Composable
 fun Map(
