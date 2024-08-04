@@ -2,7 +2,6 @@ package com.helldasy.map
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -16,14 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -32,8 +29,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.skia.Canvas
-import org.jxmapviewer.JXMapViewer
 import org.jxmapviewer.OSMTileFactoryInfo
 import org.jxmapviewer.cache.FileBasedLocalCache
 import org.jxmapviewer.viewer.DefaultTileFactory
@@ -72,6 +67,15 @@ data class Point(val x: Double, val y: Double) {
 
 }
 
+
+val waypointImage =
+    ImageIO
+        .read(object {}.javaClass
+            .getResource("/waypoint_white.png"))
+        .toComposeImageBitmap()
+
+val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MapCompose(
@@ -80,12 +84,8 @@ fun MapCompose(
     zoom: Int = 8,
 ) {
     var zoomLevel by remember { mutableStateOf(zoom) }
-    val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
     val a = tileFactory.geoToPixel(centerPoint, zoomLevel)
     var center by remember { mutableStateOf(Point(a.x,a.y)) }
-    val url = object {}.javaClass.getResource("/waypoint_white.png")
-    val waypointImage = ImageIO.read(url).toComposeImageBitmap()
-
 
     Canvas(
         modifier = Modifier
@@ -99,9 +99,9 @@ fun MapCompose(
                 }
             }
             .onPointerEvent(PointerEventType.Scroll) {
-                val zoom = it.changes.first().scrollDelta.y
+                val zoomL = it.changes.first().scrollDelta.y
                 val oldMapSize = tileFactory.getMapSize(zoomLevel)
-                zoomLevel = (zoomLevel + zoom).toInt().coerceIn(
+                zoomLevel = (zoomLevel + zoomL).toInt().coerceIn(
                     tileFactory.info.minimumZoomLevel,
                     tileFactory.info.maximumZoomLevel
                 )
@@ -121,6 +121,7 @@ fun MapCompose(
 
         val numWide = (this.size.width / tileSize).toInt() + 2 // количество тайлов по ширине
         val numHigh = (this.size.height / tileSize).toInt() + 2
+
         drawIntoCanvas { canvas ->
             for (itpx in startTileX.rangeTo(startTileX + numWide))
                         for (itpy in startTileY..(startTileY+numHigh)) {
@@ -149,7 +150,7 @@ fun MapCompose(
             }
 
             val point = tileFactory.geoToPixel(centerPoint, zoomLevel).toPoint()
-            val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
+//            val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
             val waypointIm =PointInt(waypointImage.width/2, waypointImage.height)
             val offset= (point - topLeft - waypointIm).toOffset()
 //            canvas.drawImage(waypointImage, (point - topLeft).toOffset(), Paint())

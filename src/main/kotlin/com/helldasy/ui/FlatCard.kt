@@ -2,14 +2,13 @@ package com.helldasy.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,14 +18,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
-import com.helldasy.Views
 import com.helldasy.getFile
 import com.helldasy.map.Map
 import com.helldasy.map.MapComposeSmall
-import com.helldasy.settings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.net.URI
 import java.net.URLEncoder
@@ -108,7 +102,7 @@ fun SmallFlatCard(
     val bitmapImage = runBlocking {
         flat.images[0].thumb?.let { link ->
             getFile(flat.id.toString(), link)?.let { file ->
-                return@runBlocking BitmapPainter(file.toImageBitmap()) as Painter
+                return@runBlocking BitmapPainter(file.toImageBitmap())
             }
         }
         return@runBlocking null
@@ -245,7 +239,7 @@ fun BackButtonAct(back: () -> Unit) {
 
     ) {
         Image(
-            Icons.Default.ArrowBack,
+            Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Back",
         )
     }

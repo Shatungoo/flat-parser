@@ -111,7 +111,6 @@ fun ControlPanel(
     settings: Settings,
 ) {
     val db = settings.db
-    val flats = settings.flats
     Card {
         Row(
             modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)
