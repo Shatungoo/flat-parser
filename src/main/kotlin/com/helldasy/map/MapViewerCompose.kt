@@ -15,13 +15,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
@@ -44,7 +42,6 @@ import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
 import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
 import kotlin.math.floor
 
 
@@ -197,7 +194,6 @@ private fun getTile(
     itpx: Int,
     itpy: Int,
     zoomLevel: Int,
-//    image: MutableState<ImageBitmap>,
 ): MutableState<ImageBitmap> {
     val key = "$itpx-$itpy-$zoomLevel"
     if (localCache.containsKey(key)) {
@@ -221,9 +217,7 @@ private fun getTile(
         val superTile: Tile? = if (zoomLevel < tileFactory.info.maximumZoomLevel) {
             tileFactory.getTile(itpx / 2, itpy / 2, zoomLevel + 1)
         } else null
-        val zoomOld = zoomLevel
         if (superTile != null && superTile.isLoaded) {
-//        if (localCache.containsKey("${itpx / 2}-${itpy / 2}-${zoomLevel + 1}")) {
             val size = tileFactory.getTileSize(zoomLevel)
             val imageX: Int = itpx % 2 * size / 2
             val imageY: Int = itpy % 2 * size / 2
@@ -281,12 +275,6 @@ fun PreviewMapViewer() {
                 tileFactory,
                 centerPoint = GeoPosition(41.740527, 44.752613),
                 layer = CenterLayer(GeoPosition(41.740527, 44.752613))
-//                WaypointLayer(
-//                    listOf(
-//                        GeoPosition(41.740527, 44.752613),
-//                        GeoPosition(41.697537, 44.820813),
-//                    )
-//                )
             )
         }
 

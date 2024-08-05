@@ -91,16 +91,16 @@ data class SelectablePoint(
     val geoPoistion: GeoPosition,
     val data: Any?,
     val image: MutableState<ImageBitmap> = mutableStateOf(waypointImage),
-    var selected: Boolean = false,
+    val selected: MutableState<Boolean> = mutableStateOf(false),
 ) {
     fun select() {
         image.value = selectedWaypoint
-        selected = true
+        selected.value = true
     }
 
     fun deselect() {
         image.value = waypointImage
-        selected = false
+        selected.value = false
     }
 
     val imageBox: Rectnagle
@@ -127,9 +127,7 @@ class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val on
     override fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size) {
         if (event.type == PointerEventType.Press) {
             val click = event.changes.first().position
-            val list = mutableListOf<Any>()
-            val screen = Rectnagle.fromTopLeft(Point(0.0, 0.0), size.width.toDouble(), size.height.toDouble())
-            selectablePoints.forEach { data ->
+            val list = selectablePoints.mapNotNull { data ->
                 val pointLocal = tileFactory.geoToPixel(data.geoPoistion, zoomLevel).toPoint() - Point(
                     center.x - size.width / 2,
                     center.y - size.height / 2
@@ -138,12 +136,13 @@ class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val on
                     fromBottomCenter(pointLocal, waypointImage.width.toDouble(), waypointImage.height.toDouble())
                 if (waypointIcon.contains(click)) {
                     data.select()
-                    list.add(data.data!!)
-                } else if (data.selected) {
+                    data.data!!
+                } else if (data.selected.value) {
                     data.deselect()
-                }
+                    null
+                } else null
             }
-            if (list.size > 0) onClick(list)
+            if (list.isNotEmpty()) onClick(list)
         }
     }
 
