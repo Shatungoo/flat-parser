@@ -6,14 +6,12 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.window.singleWindowApplication
-import com.helldasy.map.MapSwing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.helldasy.*
-import com.helldasy.map.ClickablePoint
-import com.helldasy.map.MapComposeBig
+import com.helldasy.map.*
 import org.jxmapviewer.viewer.GeoPosition
 import java.nio.file.Paths
 
@@ -74,17 +72,18 @@ fun MapView(
 //                    selectedFlats.value = it
 //                },
 //            )
-
-            MapComposeBig(
-                points = flats.value.mapNotNull {
-                    if (it.lat != null && it.lng != null)
-                        ClickablePoint(GeoPosition(it.lat, it.lng), it) else null
-                },
-                zoom = 5,
-                onClick = {
-                    selectedFlats.value = it.map { it.data }
-                },
-            )
+//            Box(modifier = Modifier.size(1000.dp)) {
+                MapComposeBig(
+                    points = flats.value.mapNotNull {
+                        if (it.lat != null && it.lng != null)
+                            SelectablePoint(geoPoistion = GeoPosition(it.lat, it.lng), data =  it) else null
+                    },
+                    zoom = 5,
+                    onClick = {
+                        selectedFlats.value = it.toList()
+                    },
+                )
+//            }
         }
     }
 }

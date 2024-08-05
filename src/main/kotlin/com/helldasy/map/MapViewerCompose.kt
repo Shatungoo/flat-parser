@@ -15,15 +15,18 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.helldasy.getTemporalDirectory
@@ -74,26 +77,7 @@ data class Point(val x: Double, val y: Double) {
 
 }
 
-data class Rectnagle(val x: Double, val y: Double, val width: Double, val height: Double) {
-    fun contains(point: Point): Boolean {
-        return point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height
-    }
 
-    val center: Point
-        get() = Point(x + width / 2, y + height / 2)
-
-    val bottomCenter: Point
-        get() = Point(x + width / 2, y + height)
-
-}
-
-val waypointImage =
-    ImageIO
-        .read(
-            object {}.javaClass
-                .getResource("/standard_waypoint.png")
-        )
-        .toComposeImageBitmap()
 
 val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
 
@@ -140,67 +124,70 @@ fun MapCompose(
     zoom: Int = 8,
     layer: ILayer? = WaypointLayer(listOf(centerPoint)),
 ) {
-    var zoomLevel by remember { mutableStateOf(zoom) }
-    val a = tileFactory.geoToPixel(centerPoint, zoomLevel)
-    var center by remember { mutableStateOf(Point(a.x, a.y)) }
+    val zoomLevel = mutableStateOf(zoom)
+    val center = mutableStateOf(tileFactory.geoToPixel(centerPoint, zoomLevel.value).toPoint())
+    Box(modifier = Modifier.fillMaxSize()) {
 
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .clipToBounds()
-            .pointerInput(Unit) {
-                detectTransformGestures { c, pan, _, _ ->
-//                    println(c)
-                    center -= pan
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .clipToBounds()
+                .pointerInput(Unit) {
+                    detectTransformGestures { c, pan, _, _ ->
+                        center.value -= pan
+                    }
                 }
-            }
-            .onPointerEvent(PointerEventType.Scroll) {
-                val zoomL = it.changes.first().scrollDelta.y
-                val oldMapSize = tileFactory.getMapSize(zoomLevel)
-                zoomLevel = (zoomLevel + zoomL).toInt().coerceIn(
-                    tileFactory.info.minimumZoomLevel,
-                    tileFactory.info.maximumZoomLevel
-                )
-                val mapSize = tileFactory.getMapSize(zoomLevel)
-                val oldCenter = center
-                center = Point(
-                    oldCenter.x * (mapSize.getWidth() / oldMapSize.getWidth()),
-                    oldCenter.y * (mapSize.getHeight() / oldMapSize.getHeight())
-                )
-            },
-    ) {
-        val tileSize = tileFactory.getTileSize(zoomLevel)
-        val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-
-        val startTileX = floor(topLeft.x / tileSize).toInt() // номер тайла
-        val startTileY = floor(topLeft.y / tileSize).toInt()
-
-        val numWide = (this.size.width / tileSize).toInt() + 2 // количество тайлов по ширине
-        val numHigh = (this.size.height / tileSize).toInt() + 2
-        val paint = Paint()
-        drawIntoCanvas { canvas ->
-            for (itpx in startTileX.rangeTo(startTileX + numWide))
-                for (itpy in startTileY..(startTileY + numHigh)) {
-//                    CoroutineScope(Dispatchers.Default).launch {
-                    val ox = itpx * tileSize - topLeft.x // координаты тайла на экране
-                    val oy = itpy * tileSize - topLeft.y
-
-                    val image = getTile(tileFactory, itpx, itpy, zoomLevel)
-                    canvas.drawImage(
-                        image.value,
-                        Offset(ox.toFloat(), oy.toFloat()),
-                        paint
+                .onPointerEvent(PointerEventType.Press){
+                    layer?.onEvent(it, tileFactory, center.value, zoomLevel.value, size.toSize())
+                }
+                .onPointerEvent(PointerEventType.Scroll) {
+                    val zoomL = it.changes.first().scrollDelta.y
+                    val oldMapSize = tileFactory.getMapSize(zoomLevel.value)
+                    zoomLevel.value = (zoomLevel.value + zoomL).toInt().coerceIn(
+                        tileFactory.info.minimumZoomLevel,
+                        tileFactory.info.maximumZoomLevel
                     )
-//                    }
-                }
-        }
-    }
+                    val mapSize = tileFactory.getMapSize(zoomLevel.value)
+                    val oldCenter = center.value
+                    center.value = Point(
+                        oldCenter.x * (mapSize.getWidth() / oldMapSize.getWidth()),
+                        oldCenter.y * (mapSize.getHeight() / oldMapSize.getHeight())
+                    )
+                },
+        ) {
+            val tileSize = tileFactory.getTileSize(zoomLevel.value)
+            val topLeft = Point(center.value.x - size.width / 2, center.value.y - size.height / 2)
 
-    layer?.Layer(
-        tileFactory,
-        mutableStateOf(center),
-        mutableStateOf(zoomLevel),
-    )
+            val startTileX = floor(topLeft.x / tileSize).toInt() // номер тайла
+            val startTileY = floor(topLeft.y / tileSize).toInt()
+
+            val numWide = (this.size.width / tileSize).toInt() + 2 // количество тайлов по ширине
+            val numHigh = (this.size.height / tileSize).toInt() + 2
+            val paint = Paint()
+            drawIntoCanvas { canvas ->
+                for (itpx in startTileX.rangeTo(startTileX + numWide))
+                    for (itpy in startTileY..(startTileY + numHigh)) {
+//                    CoroutineScope(Dispatchers.Default).launch {
+                        val ox = itpx * tileSize - topLeft.x // координаты тайла на экране
+                        val oy = itpy * tileSize - topLeft.y
+
+                        val image = getTile(tileFactory, itpx, itpy, zoomLevel.value)
+                        canvas.drawImage(
+                            image.value,
+                            Offset(ox.toFloat(), oy.toFloat()),
+                            paint
+                        )
+//                    }
+                    }
+            }
+        }
+
+        layer?.Layer(
+            tileFactory,
+            center,
+            zoomLevel,
+        )
+    }
 }
 
 private val localCache = mutableMapOf<String, ImageBitmap>()
@@ -270,9 +257,12 @@ private fun BufferedImage.scale(scale: Double): BufferedImage {
 interface ILayer {
     @Composable
     fun Layer(
-        tileFactory: TileFactory, centerP: MutableState<Point>,
+        tileFactory: TileFactory,
+        centerP: MutableState<Point>,
         zoom: MutableState<Int>,
     )
+
+    fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size){}
 }
 
 fun Point2D.toPoint(): Point {

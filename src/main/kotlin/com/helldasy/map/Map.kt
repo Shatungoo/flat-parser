@@ -59,15 +59,15 @@ fun MapComposeSmall(
 @Composable
 fun MapComposeBig(
     zoom: Int = 5,
-    points: List<ClickablePoint<*>>,
-    onClick: (Set<ClickableWaypoint>) -> Unit = {},
+    points: List<SelectablePoint>,
+    onClick: (List<Response.Flat>) -> Unit = {},
 ){
+    val layer =ClickableWaypointLayer(points, onClick = { onClick(it.map { data -> data as Response.Flat }) })
     MapCompose(
-        centerPoint = points.first().coord,
+        centerPoint = points.first().geoPoistion,
         tileFactory = tileFactory,
         zoom = zoom,
-//        layer = ClickableWaypointLayer(points)
-        layer = CenterLayer(points.map { it.coord }.first())
+        layer = layer,
     )
 }
 

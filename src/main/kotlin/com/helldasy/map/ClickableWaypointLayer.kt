@@ -5,23 +5,133 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
+import com.helldasy.map.Rectnagle.Companion.fromBottomCenter
 import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.TileFactory
+import javax.imageio.ImageIO
+
+val waypointImage =
+    ImageIO
+        .read(
+            object {}.javaClass
+                .getResource("/standard_waypoint.png")
+        )
+        .toComposeImageBitmap()
+
+val selectedWaypoint =
+    ImageIO
+        .read(
+            object {}.javaClass
+                .getResource("/waypoint_red.png")
+        )
+        .toComposeImageBitmap()
 
 data class ClickablePoint<T>(val coord: GeoPosition, val data: T) {}
 
+data class Rectnagle(val x: Double, val y: Double, val width: Double, val height: Double) {
 
-class ClickableWaypointLayer(val points: List<ClickablePoint<*>>, val onClick: (data: Any?) -> Unit = {}) : ILayer {
-    val selectedWaypoint = mutableStateOf<GeoPosition?>(null)
+    companion object {
+        fun fromTopLeft(x: Double, y: Double, width: Double, height: Double): Rectnagle {
+            return Rectnagle(x, y - height, width.toDouble(), height.toDouble())
+        }
 
-    @OptIn(ExperimentalComposeUiApi::class)
+        fun fromCenter(center: Point, width: Double, height: Double): Rectnagle {
+            return Rectnagle(center.x - width / 2, center.y - height / 2, width, height)
+        }
+
+        fun fromCenter(center: Point, width: Float, height: Float): Rectnagle {
+            return Rectnagle(center.x - width / 2, center.y - height / 2, width.toDouble(), height.toDouble())
+        }
+
+        fun fromBottomCenter(bottomCenter: Point, width: Double, height: Double): Rectnagle {
+            return Rectnagle(bottomCenter.x - width / 2, bottomCenter.y - height, width, height)
+        }
+
+        fun fromTopLeft(topLeft: Point, width: Double, height: Double): Rectnagle {
+            return Rectnagle(topLeft.x, topLeft.y, width, height)
+        }
+
+        fun fromSize(toDouble: Double, toDouble1: Double): Rectnagle {
+            return Rectnagle(0.0, 0.0, toDouble, toDouble1)
+        }
+    }
+
+    fun contains(point: Point): Boolean {
+        return point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height
+    }
+
+    fun contains(point: Offset): Boolean {
+        return point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height
+    }
+
+    fun contains(that: Rectnagle): Boolean {
+        return this.x <= that.x && this.y <= that.y && this.x + this.width >= that.x + that.width && this.y + this.height >= that.y + that.height
+    }
+
+    val center = Point(x + width / 2, y + height / 2)
+    val bottomCenter = Point(x + width / 2, y + height)
+    val topLeft = Point(x, y)
+
+    val topRight = Point(x + width, y)
+    val bottomLeft = Point(x, y + height)
+}
+
+
+data class SelectablePoint(
+    val geoPoistion: GeoPosition,
+    val data: Any?,
+    val image: MutableState<ImageBitmap> = mutableStateOf(waypointImage),
+    var selected: Boolean = false,
+){
+    fun select(){
+        image.value = selectedWaypoint
+        selected=true
+    }
+
+    fun deselect(){
+        image.value = waypointImage
+        selected=false
+    }
+
+    val imageBox: Rectnagle
+        get() =  Rectnagle.fromSize(waypointImage.width.toDouble(), waypointImage.height.toDouble())
+}
+
+class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val onClick: (data: List<*>) -> Unit = {}) : ILayer {
+
+    override fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size) {
+        if (event.type == PointerEventType.Press) {
+            val click = event.changes.first().position
+            val list = mutableListOf<Any>()
+            val screen = Rectnagle.fromTopLeft(Point(0.0, 0.0), size.width.toDouble(), size.height.toDouble())
+            selectablePoints.forEach { data ->
+                val pointLocal = tileFactory.geoToPixel(data.geoPoistion, zoomLevel).toPoint() - Point(
+                    center.x - size.width / 2,
+                    center.y - size.height / 2
+                )
+                val waypointIcon =
+                    fromBottomCenter(pointLocal, waypointImage.width.toDouble(), waypointImage.height.toDouble())
+                if (waypointIcon.contains(click)) {
+                    data.select()
+                    list.add(data.data!!)
+                } else if (data.selected) {
+                    data.deselect()
+                }
+            }
+            if (list.size > 0) onClick(list)
+        }
+    }
+
     @Composable
     override fun Layer(
         tileFactory: TileFactory,
@@ -30,50 +140,20 @@ class ClickableWaypointLayer(val points: List<ClickablePoint<*>>, val onClick: (
     ) {
         val center = centerP.value
         val zoomLevel = zoom.value
-        val waypointImageRect = Rectnagle(0.0, 0.0, waypointImage.width.toDouble(), waypointImage.height.toDouble())
-
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .clipToBounds()
-//                .onPointerEvent(PointerEventType.Press) {
-//                    val offset = it.changes.first().position
-//                    val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-//                    points.forEach { data ->
-//                        val waypoint = data.coord
-//                        val point = tileFactory.geoToPixel(waypoint, zoomLevel).toPoint()
-//                        val imagePoint = (point - topLeft - waypointImageRect.bottomCenter).toOffset()
-//                        if (waypointImageRect.contains(point - topLeft)) {
-//                            selectedWaypoint.value = waypoint
-//                            println(waypoint)
-//                            onClick(data.data)
-//                        }
-//                    }
-//                },
         ) {
-//            val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-//            drawIntoCanvas { canvas ->
-//                points.forEach { point ->
-//                    val waypoint = point.coord
-//                    val waypointPx = tileFactory.geoToPixel(waypoint, zoomLevel).toPoint()
-//
-//                    val imagePoint = (waypointPx - topLeft - waypointImageRect.bottomCenter).toOffset()
-//                    if (imagePoint.x >= -100
-//                        && imagePoint.x <= size.width+100
-//                        && imagePoint.y >= -100
-//                        && imagePoint.y <= size.height+100
-//                        ) {
-//                            canvas.drawImage(waypointImage, imagePoint, Paint())
-//                    }
-//                }
-//            }
+//            val screen = Rectnagle.fromTopLeft(center, size.width.toDouble(), size.height.toDouble())
+
             val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
             drawIntoCanvas { canvas ->
-                points.forEach { waypoint ->
-                    val point = tileFactory.geoToPixel(waypoint.coord, zoomLevel).toPoint()
-                    val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
-                    val offset = (point - topLeft - waypointIm).toOffset()
-                    canvas.drawImage(waypointImage, offset, Paint())
+                selectablePoints.forEach { waypoint ->
+
+                    val point = tileFactory.geoToPixel(waypoint.geoPoistion, zoomLevel).toPoint()
+                    val offset = (point - topLeft - waypoint.imageBox.bottomCenter).toOffset()
+                    canvas.drawImage(waypoint.image.value, offset, Paint())
                 }
             }
         }
