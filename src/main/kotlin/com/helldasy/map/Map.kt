@@ -2,13 +2,10 @@ package com.helldasy.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
 import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.awt.SwingPanel
@@ -23,12 +20,9 @@ import org.jxmapviewer.cache.FileBasedLocalCache
 import org.jxmapviewer.input.PanMouseInputListener
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor
 import org.jxmapviewer.viewer.*
-import java.awt.CardLayout
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JLabel
-import javax.swing.JPanel
 
 
 fun main() = singleWindowApplication {
@@ -37,16 +31,17 @@ fun main() = singleWindowApplication {
             println("Button clicked")
         }
     ) {
-//        MapView()
 
     }
-//    MapView(
-//        points = listOf(
-//            GeoPosition(50.11, 8.68),
-//            GeoPosition(50.12, 8.69)
-//        )
-//    )
+
 }
+
+val cacheDir = getTemporalDirectory(".osm")
+val cache = FileBasedLocalCache(cacheDir, false)
+val tileFactory = DefaultTileFactory(OSMTileFactoryInfo())
+    .apply {
+        setLocalCache(cache)
+    }
 
 @Composable
 fun MapComposeSmall(
@@ -56,13 +51,28 @@ fun MapComposeSmall(
 ){
     MapCompose(
         centerPoint = GeoPosition(lat, lng),
-        tileFactory = DefaultTileFactory(OSMTileFactoryInfo()),
+        tileFactory = tileFactory,
         zoom = zoom,
     )
 }
 
 @Composable
-fun Map(
+fun MapComposeBig(
+    zoom: Int = 5,
+    points: List<ClickablePoint<*>>,
+    onClick: (Set<ClickableWaypoint>) -> Unit = {},
+){
+    MapCompose(
+        centerPoint = points.first().coord,
+        tileFactory = tileFactory,
+        zoom = zoom,
+//        layer = ClickableWaypointLayer(points)
+        layer = CenterLayer(points.map { it.coord }.first())
+    )
+}
+
+@Composable
+fun MapSwing(
     lat: Double = 50.11,
     lng: Double = 8.68,
     zoom: Int = 5,
@@ -89,16 +99,9 @@ fun Map(
         )
 }
 
-val cacheDir = getTemporalDirectory(".osm")
-val cache = FileBasedLocalCache(cacheDir, false)
-val tileFactoryExt = DefaultTileFactory(OSMTileFactoryInfo())
-    .apply {
-        setLocalCache(cache)
-    }
-
 
 @Composable
-fun Map(
+fun MapSwing(
     points: List<Response.Flat>,
     zoom: Int = 5,
     modifier: Modifier = Modifier.fillMaxSize(),
@@ -113,7 +116,7 @@ fun Map(
         )
     }.toSet()
     val mapViewer = JXMapViewer().apply {
-        this.tileFactory = tileFactoryExt
+        this.tileFactory = tileFactory
         overlayPainter = WaypointPainter<Waypoint>().apply {
             setWaypoints(waypoints)
         }

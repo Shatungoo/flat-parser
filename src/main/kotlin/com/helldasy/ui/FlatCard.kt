@@ -7,19 +7,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
 import com.helldasy.getFile
-import com.helldasy.map.Map
+import com.helldasy.map.MapSwing
 import com.helldasy.map.MapComposeSmall
 import kotlinx.coroutines.runBlocking
 import java.net.URI
@@ -208,7 +206,7 @@ fun FlatCardView(
                     if (flat.lat != null && flat.lng != null) {
                         Spacer(modifier = Modifier.width(10.dp))
                         Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                            Map(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
+                            MapSwing(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
                         }
                     }
                 }

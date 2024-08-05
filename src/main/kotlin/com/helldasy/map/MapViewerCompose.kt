@@ -1,8 +1,9 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.helldasy.map
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toComposeImageBitmap
@@ -33,11 +35,15 @@ import org.jxmapviewer.OSMTileFactoryInfo
 import org.jxmapviewer.cache.FileBasedLocalCache
 import org.jxmapviewer.viewer.DefaultTileFactory
 import org.jxmapviewer.viewer.GeoPosition
+import org.jxmapviewer.viewer.Tile
 import org.jxmapviewer.viewer.TileFactory
+import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
+import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.floor
+
 
 data class PointInt(val x: Int, val y: Int) {
     operator fun minus(other: PointInt) = PointInt(x - other.x, y - other.y)
@@ -68,25 +74,71 @@ data class Point(val x: Double, val y: Double) {
 
 }
 
+data class Rectnagle(val x: Double, val y: Double, val width: Double, val height: Double) {
+    fun contains(point: Point): Boolean {
+        return point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height
+    }
+
+    val center: Point
+        get() = Point(x + width / 2, y + height / 2)
+
+    val bottomCenter: Point
+        get() = Point(x + width / 2, y + height)
+
+}
 
 val waypointImage =
     ImageIO
         .read(
             object {}.javaClass
-                .getResource("/waypoint_white.png")
+                .getResource("/standard_waypoint.png")
         )
         .toComposeImageBitmap()
 
 val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
 
-@OptIn(ExperimentalComposeUiApi::class)
+data class MapData(
+    val tileFactory: TileFactory,
+    val center: GeoPosition,
+    val zoom: Int,
+) {
+    fun localToGlobal(x: Double, y: Double): Point {
+        val a = tileFactory.geoToPixel(center, zoom)
+        return Point(a.x + x, a.y + y)
+    }
+
+    fun globalToLocal(x: Double, y: Double): Point {
+        val a = tileFactory.geoToPixel(center, zoom)
+        return Point(x - a.x, y - a.y)
+    }
+
+    fun localToScreen(x: Double, y: Double): Point {
+        val a = tileFactory.geoToPixel(center, zoom)
+        return Point(a.x + x, a.y + y)
+    }
+
+    fun screenToLocal(x: Double, y: Double): Point {
+        val a = tileFactory.geoToPixel(center, zoom)
+        return Point(x - a.x, y - a.y)
+    }
+
+    fun screenToGlobal(x: Double, y: Double): Point {
+        val a = tileFactory.geoToPixel(center, zoom)
+        return Point(a.x + x, a.y + y)
+    }
+
+    fun globalToScreen(x: Double, y: Double): Point {
+        val a = tileFactory.geoToPixel(center, zoom)
+        return Point(x - a.x, y - a.y)
+    }
+}
+
 @Composable
 fun MapCompose(
     tileFactory: TileFactory,
     centerPoint: GeoPosition = GeoPosition(42.50, 43.00),
     zoom: Int = 8,
-    layer: ILayer? = CenterLayer(centerPoint),
-    lay: () -> Unit = {}
+    layer: ILayer? = WaypointLayer(listOf(centerPoint)),
 ) {
     var zoomLevel by remember { mutableStateOf(zoom) }
     val a = tileFactory.geoToPixel(centerPoint, zoomLevel)
@@ -98,8 +150,7 @@ fun MapCompose(
             .clipToBounds()
             .pointerInput(Unit) {
                 detectTransformGestures { c, pan, _, _ ->
-//                    center -= pan
-                    println(c)
+//                    println(c)
                     center -= pan
                 }
             }
@@ -126,34 +177,22 @@ fun MapCompose(
 
         val numWide = (this.size.width / tileSize).toInt() + 2 // количество тайлов по ширине
         val numHigh = (this.size.height / tileSize).toInt() + 2
-
+        val paint = Paint()
         drawIntoCanvas { canvas ->
             for (itpx in startTileX.rangeTo(startTileX + numWide))
                 for (itpy in startTileY..(startTileY + numHigh)) {
+//                    CoroutineScope(Dispatchers.Default).launch {
                     val ox = itpx * tileSize - topLeft.x // координаты тайла на экране
                     val oy = itpy * tileSize - topLeft.y
 
-                    val image = mutableStateOf(loadingImage)
-                    tileFactory.getTile(itpx, itpy, zoomLevel)?.let {
-                        var tile = it
-                        if (tile.isLoaded) {
-                            image.value = tile.image.toComposeImageBitmap()
-                        } else CoroutineScope(Dispatchers.Default).launch {
-                            while (!tile.isLoaded or tile.loadingFailed()) {
-                                delay(40)
-                                tile = tileFactory.getTile(itpx, itpy, zoomLevel)
-                            }
-                            image.value = tile.image.toComposeImageBitmap()
-                        }
-                    }
+                    val image = getTile(tileFactory, itpx, itpy, zoomLevel)
                     canvas.drawImage(
                         image.value,
                         Offset(ox.toFloat(), oy.toFloat()),
-                        Paint()
+                        paint
                     )
-
+//                    }
                 }
-
         }
     }
 
@@ -164,69 +203,69 @@ fun MapCompose(
     )
 }
 
-class CenterLayer(val point1: GeoPosition) : ILayer {
-    @Composable
-    override fun Layer(
-        tileFactory: TileFactory,
-        centerP: MutableState<Point>,
-        zoom: MutableState<Int>,
+private val localCache = mutableMapOf<String, ImageBitmap>()
 
-        ) {
-        val center = centerP.value
-        val zoomLevel = zoom.value
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .clipToBounds()
-        ) {
-            val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-            drawIntoCanvas { canvas ->
-                val point = tileFactory.geoToPixel(point1, zoomLevel).toPoint()
-                val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
-                val offset = (point - topLeft - waypointIm).toOffset()
-                canvas.drawImage(waypointImage, offset, Paint())
-//            canvas.drawCircle(offset, 5f, Paint().apply { color = Color.Red })
-//            waypoints.value.forEach { waypoint ->
-//                val point1 = tileFactory.geoToPixel(waypoint, zoomLevel)
-//                val offset = Offset(
-//                    (point1.x - center.x).toFloat(),
-//                    (point1.y - center.y).toFloat()
-//                )
-//
-//                canvas.drawCircle(offset, 5f, Paint().apply { color = androidx.compose.ui.graphics.Color.Red })
-//            }
-            }
-        }
+private fun getTile(
+    tileFactory: TileFactory,
+    itpx: Int,
+    itpy: Int,
+    zoomLevel: Int,
+//    image: MutableState<ImageBitmap>,
+): MutableState<ImageBitmap> {
+    val key = "$itpx-$itpy-$zoomLevel"
+    if (localCache.containsKey(key)) {
+        return mutableStateOf(localCache[key]!!)
     }
+    tileFactory.getTile(itpx, itpy, zoomLevel)?.let {
+        var tile = it
+        if (tile.isLoaded) {
+            return mutableStateOf(tile.image.toComposeImageBitmap())
+        }
+        val image = mutableStateOf(loadingImage)
+        CoroutineScope(Dispatchers.Default).launch {
+            while (!tile.isLoaded or tile.loadingFailed()) {
+                delay(40)
+                tile = tileFactory.getTile(itpx, itpy, zoomLevel)
+            }
+            localCache[key] = tile.image.toComposeImageBitmap()
+            image.value = tile.image.toComposeImageBitmap()
+        }
+
+        val superTile: Tile? = if (zoomLevel < tileFactory.info.maximumZoomLevel) {
+            tileFactory.getTile(itpx / 2, itpy / 2, zoomLevel + 1)
+        } else null
+        val zoomOld = zoomLevel
+        if (superTile != null && superTile.isLoaded) {
+//        if (localCache.containsKey("${itpx / 2}-${itpy / 2}-${zoomLevel + 1}")) {
+            val size = tileFactory.getTileSize(zoomLevel)
+            val imageX: Int = itpx % 2 * size / 2
+            val imageY: Int = itpy % 2 * size / 2
+
+            image.value = superTile.image.getSubimage(imageX, imageY, size / 2, size / 2)
+                .scale(2.0)
+                .toComposeImageBitmap()
+            return image
+        }
+        return image
+    }
+    return mutableStateOf(loadingImage)
 }
 
-class WaypointLayer(val points: List<GeoPosition>) : ILayer {
-    @Composable
-    override fun Layer(
-        tileFactory: TileFactory,
-        centerP: MutableState<Point>,
-        zoom: MutableState<Int>,
+private fun BufferedImage.scale(scale: Double): BufferedImage {
+    val before = this
+    val w = before.width
+    val h = before.height
+    // Create a new image of the proper size
+    val w2 = (w * scale).toInt()
+    val h2 = (h * scale).toInt()
+    val after = BufferedImage(w2, h2, BufferedImage.TYPE_INT_ARGB)
+    val scaleInstance = AffineTransform.getScaleInstance(scale, scale)
+    val scaleOp = AffineTransformOp(scaleInstance, AffineTransformOp.TYPE_BILINEAR)
 
-        ) {
-        val center = centerP.value
-        val zoomLevel = zoom.value
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .clipToBounds()
-        ) {
-            val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-            drawIntoCanvas { canvas ->
-                points.forEach { waypoint ->
-                    val point = tileFactory.geoToPixel(waypoint, zoomLevel).toPoint()
-                    val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
-                    val offset = (point - topLeft - waypointIm).toOffset()
-                    canvas.drawImage(waypointImage, offset, Paint())
-                }
-            }
-        }
-    }
+    scaleOp.filter(before, after)
+    return after
 }
+
 
 interface ILayer {
     @Composable
@@ -236,7 +275,7 @@ interface ILayer {
     )
 }
 
-private fun Point2D.toPoint(): Point {
+fun Point2D.toPoint(): Point {
     return Point(x, y)
 }
 
@@ -251,20 +290,25 @@ fun PreviewMapViewer() {
             setLocalCache(cache)
         }
     val tileFactory = tileFactoryExt // Replace with actual TileFactory implementation
-    Box(modifier = Modifier.size(600.dp).background(Color.Red)) {
 
-        Box(
-            modifier = Modifier.size(150.dp).border(1.dp, Color.Black)
-                .wrapContentSize(align = Alignment.TopCenter, unbounded = false)
-        ) {
-            Column {
-                MapCompose(
-                    tileFactory,
-                    centerPoint = GeoPosition(41.740527, 44.752613),
-                    layer = CenterLayer(GeoPosition(41.740527, 44.752613))
-                )
-            }
+    Box(
+        modifier = Modifier.size(800.dp).border(1.dp, Color.Black)
+            .wrapContentSize(align = Alignment.TopCenter, unbounded = false)
+    ) {
+        Column {
+            MapCompose(
+                tileFactory,
+                centerPoint = GeoPosition(41.740527, 44.752613),
+                layer = CenterLayer(GeoPosition(41.740527, 44.752613))
+//                WaypointLayer(
+//                    listOf(
+//                        GeoPosition(41.740527, 44.752613),
+//                        GeoPosition(41.697537, 44.820813),
+//                    )
+//                )
+            )
         }
+
     }
 }
 
