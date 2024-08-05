@@ -1,5 +1,6 @@
 package com.helldasy.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -49,41 +50,33 @@ fun MapView(
 ) {
     val flats = settings.flats
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
-    Row {
-        Box {
-            LazyColumn(modifier = Modifier.width(400.dp)) {
+    Box {
+
+        MapComposeBig(
+            points = flats.value.mapNotNull {
+                if (it.lat != null && it.lng != null)
+                    SelectablePoint(geoPoistion = GeoPosition(it.lat, it.lng), data = it) else null
+            },
+            zoom = 5,
+            onClick = {
+                selectedFlats.value = it.toList()
+            },
+        )
+        Column {
+            BackButtonAct { back() }
+            LazyColumn(modifier = Modifier.width(400.dp).padding(5.dp).background(MaterialTheme.colors.surface)) {
                 item {
-                    BackButtonAct { back() }
+
                 }
                 selectedFlats.value.map { flat ->
                     item {
                         SmallFlatCard(flat, onClick = { selectFlat(flat) })
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
                     }
                 }
             }
-
         }
 
-        Row {
-//            MapSwing(
-//                points = flats.value,
-//                onClick = {
-//                    selectedFlats.value = it
-//                },
-//            )
-//            Box(modifier = Modifier.size(1000.dp)) {
-                MapComposeBig(
-                    points = flats.value.mapNotNull {
-                        if (it.lat != null && it.lng != null)
-                            SelectablePoint(geoPoistion = GeoPosition(it.lat, it.lng), data =  it) else null
-                    },
-                    zoom = 5,
-                    onClick = {
-                        selectedFlats.value = it.toList()
-                    },
-                )
-//            }
-        }
     }
 }
+
