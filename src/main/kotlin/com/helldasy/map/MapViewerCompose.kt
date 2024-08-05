@@ -124,8 +124,9 @@ fun MapCompose(
     zoom: Int = 8,
     layer: ILayer? = WaypointLayer(listOf(centerPoint)),
 ) {
-    val zoomLevel = mutableStateOf(zoom)
-    val center = mutableStateOf(tileFactory.geoToPixel(centerPoint, zoomLevel.value).toPoint())
+    val zoomLevel1 = mutableStateOf (zoom)
+    var zoomLevel by zoomLevel1
+    val center = mutableStateOf(tileFactory.geoToPixel(centerPoint, zoom).toPoint())
     Box(modifier = Modifier.fillMaxSize()) {
 
         Canvas(
@@ -138,16 +139,16 @@ fun MapCompose(
                     }
                 }
                 .onPointerEvent(PointerEventType.Press){
-                    layer?.onEvent(it, tileFactory, center.value, zoomLevel.value, size.toSize())
+                    layer?.onEvent(it, tileFactory, center.value, zoomLevel, size.toSize())
                 }
                 .onPointerEvent(PointerEventType.Scroll) {
                     val zoomL = it.changes.first().scrollDelta.y
-                    val oldMapSize = tileFactory.getMapSize(zoomLevel.value)
-                    zoomLevel.value = (zoomLevel.value + zoomL).toInt().coerceIn(
+                    val oldMapSize = tileFactory.getMapSize(zoomLevel)
+                    zoomLevel = (zoomLevel + zoomL).toInt().coerceIn(
                         tileFactory.info.minimumZoomLevel,
                         tileFactory.info.maximumZoomLevel
                     )
-                    val mapSize = tileFactory.getMapSize(zoomLevel.value)
+                    val mapSize = tileFactory.getMapSize(zoomLevel)
                     val oldCenter = center.value
                     center.value = Point(
                         oldCenter.x * (mapSize.getWidth() / oldMapSize.getWidth()),
@@ -155,7 +156,7 @@ fun MapCompose(
                     )
                 },
         ) {
-            val tileSize = tileFactory.getTileSize(zoomLevel.value)
+            val tileSize = tileFactory.getTileSize(zoomLevel)
             val topLeft = Point(center.value.x - size.width / 2, center.value.y - size.height / 2)
 
             val startTileX = floor(topLeft.x / tileSize).toInt() // номер тайла
@@ -171,13 +172,12 @@ fun MapCompose(
                         val ox = itpx * tileSize - topLeft.x // координаты тайла на экране
                         val oy = itpy * tileSize - topLeft.y
 
-                        val image = getTile(tileFactory, itpx, itpy, zoomLevel.value)
+                        val image = getTile(tileFactory, itpx, itpy, zoomLevel)
                         canvas.drawImage(
                             image.value,
                             Offset(ox.toFloat(), oy.toFloat()),
                             paint
                         )
-//                    }
                     }
             }
         }
@@ -185,7 +185,7 @@ fun MapCompose(
         layer?.Layer(
             tileFactory,
             center,
-            zoomLevel,
+            zoomLevel1,
         )
     }
 }
@@ -254,16 +254,7 @@ private fun BufferedImage.scale(scale: Double): BufferedImage {
 }
 
 
-interface ILayer {
-    @Composable
-    fun Layer(
-        tileFactory: TileFactory,
-        centerP: MutableState<Point>,
-        zoom: MutableState<Int>,
-    )
 
-    fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size){}
-}
 
 fun Point2D.toPoint(): Point {
     return Point(x, y)

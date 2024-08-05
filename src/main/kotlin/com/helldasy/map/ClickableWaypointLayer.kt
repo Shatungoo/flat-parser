@@ -92,22 +92,37 @@ data class SelectablePoint(
     val data: Any?,
     val image: MutableState<ImageBitmap> = mutableStateOf(waypointImage),
     var selected: Boolean = false,
-){
-    fun select(){
+) {
+    fun select() {
         image.value = selectedWaypoint
-        selected=true
+        selected = true
     }
 
-    fun deselect(){
+    fun deselect() {
         image.value = waypointImage
-        selected=false
+        selected = false
     }
 
     val imageBox: Rectnagle
-        get() =  Rectnagle.fromSize(waypointImage.width.toDouble(), waypointImage.height.toDouble())
+        get() = Rectnagle.fromSize(waypointImage.width.toDouble(), waypointImage.height.toDouble())
 }
 
-class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val onClick: (data: List<*>) -> Unit = {}) : ILayer {
+interface ILayer {
+    @Composable
+    fun Layer(
+        tileFactory: TileFactory,
+        centerP: MutableState<Point>,
+        zoom: MutableState<Int>,
+    )
+
+    fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size){}
+}
+
+class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val onClick: (data: List<*>) -> Unit = {}) :
+    ILayer {
+    init {
+        println("ClickableWaypointLayer")
+    }
 
     override fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size) {
         if (event.type == PointerEventType.Press) {
@@ -146,7 +161,7 @@ class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val on
                 .clipToBounds()
         ) {
 //            val screen = Rectnagle.fromTopLeft(center, size.width.toDouble(), size.height.toDouble())
-
+            println("ClickableWaypointLayer Layer $center $zoomLevel")
             val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
             drawIntoCanvas { canvas ->
                 selectablePoints.forEach { waypoint ->
