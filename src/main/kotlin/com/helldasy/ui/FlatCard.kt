@@ -11,13 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
-import com.helldasy.ImageState
 import com.helldasy.Response
 import java.net.URI
 import java.net.URLEncoder
@@ -96,17 +94,8 @@ fun SmallFlatCard(
     flat: Response.Flat,
     onClick: () -> Unit = {},
 ) {
-//    SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0))
-//    val bitmapImage = runBlocking {
-//        flat.images[0].thumb?.let { link ->
-//            getFile(flat.id.toString(), link)?.let { file ->
-//                return@runBlocking BitmapPainter(file.toImageBitmap())
-//            }
-//        }
-//        return@runBlocking null
-//    }
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    flat.images[0]?.thumb?.let {
+    flat.images.firstOrNull()?.thumb?.let {
         bitmapImage.getImage(it, flat.id.toString())
     }
     Card(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
