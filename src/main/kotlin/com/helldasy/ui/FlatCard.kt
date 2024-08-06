@@ -162,7 +162,7 @@ fun FlatCardView(
             Box(modifier = Modifier.size(500.dp).clickable(onClick = {
                 selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage.value)
             })) {
-                BigImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage)
+                SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage)
             }
         }
         Spacer(modifier = Modifier.width(50.dp))
