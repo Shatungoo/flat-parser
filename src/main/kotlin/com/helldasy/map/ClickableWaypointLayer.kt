@@ -1,10 +1,14 @@
 package com.helldasy.map
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -12,9 +16,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.layout.ContentScale
 import com.helldasy.map.Rectnagle.Companion.fromBottomCenter
 import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.TileFactory
@@ -151,6 +157,7 @@ class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val on
     ) {
         val center = centerP.value
         val zoomLevel = zoom.value
+
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -165,6 +172,7 @@ class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val on
                     canvas.drawImage(waypoint.image.value, offset, Paint())
                 }
             }
+
         }
     }
 }

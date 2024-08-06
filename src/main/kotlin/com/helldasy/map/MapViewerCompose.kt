@@ -2,20 +2,15 @@
 
 package com.helldasy.map
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -23,18 +18,11 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
-import com.helldasy.getTemporalDirectory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jxmapviewer.OSMTileFactoryInfo
-import org.jxmapviewer.cache.FileBasedLocalCache
-import org.jxmapviewer.viewer.DefaultTileFactory
 import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.Tile
 import org.jxmapviewer.viewer.TileFactory
@@ -112,6 +100,7 @@ data class MapData(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MapCompose(
     tileFactory: TileFactory,
@@ -163,7 +152,6 @@ fun MapCompose(
             drawIntoCanvas { canvas ->
                 for (itpx in startTileX.rangeTo(startTileX + numWide))
                     for (itpy in startTileY..(startTileY + numHigh)) {
-//                    CoroutineScope(Dispatchers.Default).launch {
                         val ox = itpx * tileSize - topLeft.x // координаты тайла на экране
                         val oy = itpy * tileSize - topLeft.y
 

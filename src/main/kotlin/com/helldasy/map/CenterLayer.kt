@@ -1,6 +1,6 @@
 package com.helldasy.map
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.TileFactory
 
-class CenterLayer(val point1: GeoPosition) : ILayer {
+class CenterLayer(val point: GeoPosition) : ILayer {
     @Composable
     override fun Layer(
         tileFactory: TileFactory,
@@ -26,13 +26,16 @@ class CenterLayer(val point1: GeoPosition) : ILayer {
                 .fillMaxSize()
                 .clipToBounds()
         ) {
+
             val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
+            val point = tileFactory.geoToPixel(point, zoomLevel).toPoint()
+            val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
+            val offset = (point - topLeft - waypointIm).toOffset()
+            println("offset: $offset")
             drawIntoCanvas { canvas ->
-                val point = tileFactory.geoToPixel(point1, zoomLevel).toPoint()
-                val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
-                val offset = (point - topLeft - waypointIm).toOffset()
                 canvas.drawImage(waypointImage, offset, Paint())
             }
+
         }
     }
 }

@@ -39,8 +39,7 @@ fun SmallImageGallery(
         Row {
             galleryButton(
                 onClick = {
-                    if (selectedImage.value > 0)
-                        selectedImage.value--
+                    if (selectedImage.value > 0) selectedImage.value--
                 },
                 enabled = selectedImage.value > 0,
                 text = "<",
@@ -63,7 +62,6 @@ fun SmallImageGallery(
                 onClick = {
                     if (selectedImage.value < urls.size - 1) {
                         selectedImage.value += 1
-                        bitmapImage.getImage(urls[3], id)
                     }
                 },
                 enabled = selectedImage.value < urls.size - 1,

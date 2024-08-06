@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.helldasy.ui.FilterDb
+import kotlinx.coroutines.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -15,6 +16,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
+import kotlin.time.Duration
 
 @Serializable
 data class Settings(
@@ -34,7 +36,7 @@ data class Settings(
     @Transient val db: Db = Db(dbPath),
 
     @Transient
-    val baseUrl:String = "https://api-statements.tnet.ge/v1/statements",
+    val baseUrl: String = "https://api-statements.tnet.ge/v1/statements",
 
     @Transient
     val urlParamMap: SnapshotStateMap<String, String> = mutableStateMapOf(
@@ -54,7 +56,18 @@ data class Settings(
 
     @Transient
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value)),
-)
+) {
+    init {
+        CoroutineScope(Dispatchers.Default).launch {
+            while (true) {
+                val response = runBlocking { getFlats(baseUrl, urlParamMap, 5) }
+                db.insertFlats(response)
+                delay(Duration.parse("1h"))
+            }
+        }
+    }
+}
+
 
 val settingsPath = run {
     val userHome = System.getProperty("user.home")
