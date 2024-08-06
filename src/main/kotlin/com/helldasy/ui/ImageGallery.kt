@@ -1,7 +1,9 @@
 package com.helldasy.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.onClick
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
@@ -23,70 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Composable
-fun ImageGallery(
-    image: SelectedImage,
-    close: () -> Unit = {}
-) {
-    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    val (large, thumb) = image.images[image.selectedImage.value]
-
-    BoxWithConstraints {
-        val isBig = maxWidth > 700.dp
-        val crop =
-            if (isBig) ContentScale.Fit else ContentScale.Crop
-
-        when {
-            isBig -> large
-            else -> thumb
-        }?.let {
-            CoroutineScope(Dispatchers.Default).launch {
-                bitmapImage.value = getFile(url = it, imageId = image.id)
-                    ?.let { BitmapPainter(it.toImageBitmap()) }
-            }
-        }
-        val width = if (isBig) 100.dp else 30.dp
-        val boxWidth = maxWidth - width * 2
-        Row {
-            galleryButton(
-                onClick = {
-                    if (image.selectedImage.value > 0) image.selectedImage.value--
-                },
-                enabled = image.selectedImage.value > 0,
-                text = "<",
-                width = width
-            )
-            Box(
-                modifier = Modifier.height(this@BoxWithConstraints.maxHeight - 10.dp)
-                    .width(boxWidth)
-                    .align(Alignment.CenterVertically)
-            ) {
-                bitmapImage.value?.let {
-                    Image(
-                        it,
-                        contentDescription = "",
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        contentScale = crop
-                    )
-                } ?: run {
-                    CircularProgressIndicator()
-                }
-            }
-
-            galleryButton(
-                onClick = {
-                    if (image.selectedImage.value < image.images.size - 1)
-                        image.selectedImage.value += 1
-                },
-                enabled = image.selectedImage.value < image.images.size - 1,
-                text = ">",
-                width = width
-            )
-        }
-    }
-}
-
 
 @Composable
 fun SmallImageGallery(
@@ -94,9 +32,9 @@ fun SmallImageGallery(
     id: String,
     selectedImage: MutableState<Int>
 ) {
-//    val selectedImage = mutableStateOf(0)
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    bitmapImage.getImage(urls[selectedImage.value], id)
+    if (urls.isEmpty()) return
+     bitmapImage.getImage(urls[selectedImage.value], id)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
         Row {
             galleryButton(
@@ -137,12 +75,15 @@ fun SmallImageGallery(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BigImageGallery(
     urls: List<String>,
     id: String,
-    selectedImage: MutableState<Int>
+    selectedImage: MutableState<Int>,
+    onClick: () -> Unit = {}
 ) {
+    if (urls.isEmpty()) return
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
     bitmapImage.getImage(urls[selectedImage.value], id)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
@@ -156,7 +97,8 @@ fun BigImageGallery(
                 text = "<",
                 width = 60.dp
             )
-            Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 120.dp)) {
+            Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 120.dp)
+                .onClick { onClick() }) {
                 bitmapImage.value?.let {
                     Image(
                         it,
@@ -184,7 +126,7 @@ fun BigImageGallery(
     }
 }
 
-private fun MutableState<BitmapPainter?>.getImage(
+fun MutableState<BitmapPainter?>.getImage(
     url: String,
     id: String,
 ) {

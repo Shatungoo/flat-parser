@@ -39,14 +39,14 @@ fun main() = singleWindowApplication {
 
 @Composable
 fun MapView(
-    settings: Settings,
+    flats: List<Response.Flat>,
     back: () -> Unit = {},
     selectFlat: (Response.Flat) -> Unit = {},
 ) {
-    val flats = settings.flats
+//    val flats = settings.flats
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
     Box {
-        val points = flats.value.mapNotNull {
+        val points = flats.mapNotNull {
             if (it.lat != null && it.lng != null) SelectablePoint(GeoPosition(it.lat, it.lng), it)
             else null
         }

@@ -45,8 +45,7 @@ fun main() {
     }
 }
 
-fun updateDb(settings: Settings, cb: () -> Unit = {}) {
-    val db = settings.db
+fun updateDb(db: Db, cb: () -> Unit = {}) {
     CoroutineScope(Dispatchers.Default).launch {
         val response = runBlocking { getFlats(settings.baseUrl, settings.urlParamMap, 5) }
         db.insertFlats(response)

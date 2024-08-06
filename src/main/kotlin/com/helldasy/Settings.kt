@@ -4,7 +4,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.helldasy.ui.FilterDb
-import com.helldasy.ui.SelectedImage
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -21,9 +20,6 @@ import java.nio.file.Paths
 data class Settings(
 
     @Transient
-    val view: MutableState<Views> = mutableStateOf(Views.Main),
-
-    @Transient
     val filterDb: MutableState<FilterDb> = mutableStateOf(FilterDb()),
 
     @Serializable(with = MutableStateSerializer::class)
@@ -32,6 +28,7 @@ data class Settings(
     @Serializable(with = MutableStateSerializer::class)
     val theme: MutableState<String> = mutableStateOf("Default"),
 
+    @Transient
     private val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString(),
 
     @Transient val db: Db = Db(dbPath),
@@ -57,20 +54,7 @@ data class Settings(
 
     @Transient
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value)),
-
-    @Transient
-    val selectedImage: MutableState<SelectedImage?> = mutableStateOf(null),
-
-    @Transient
-    val selectedFlat: MutableState<Response.Flat?> = mutableStateOf(null),
-
 )
-
-data class Screen(
-    val view: MutableState<Views> = mutableStateOf(Views.Main),
-    val filterDb: MutableState<FilterDb> = mutableStateOf(FilterDb()),
-    val flats: MutableState<List<Response.Flat>> //= mutableStateOf(db.getFlats(filterDb.value))
-){}
 
 val settingsPath = run {
     val userHome = System.getProperty("user.home")

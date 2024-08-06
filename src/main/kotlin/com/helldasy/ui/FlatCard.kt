@@ -11,13 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
+import com.helldasy.ImageState
 import com.helldasy.Response
-import com.helldasy.getFile
-import kotlinx.coroutines.runBlocking
 import java.net.URI
 import java.net.URLEncoder
 
@@ -26,17 +27,17 @@ import java.net.URLEncoder
 @Composable
 fun FlatCard(
     flat: Response.Flat,
-    selectImage: (image: SelectedImage) -> Unit,
-    onClick: () -> Unit = {},
+    selectImage: (url: List<String>, id: String, selected: Int) -> Unit = {_,_,_->},
+    selectFlat:() -> Unit = {},
 ) {
     val image = mutableStateOf(0)
 
     Row {
         Spacer(modifier = Modifier.weight(1f))
-        Card(onClick = onClick, backgroundColor = Color.Transparent) {
+        Card(onClick = selectFlat, backgroundColor = Color.Transparent) {
             Row {
                 Box(modifier = Modifier.size(300.dp).clickable(onClick = {
-                    selectImage(SelectedImage(flat.id.toString(), flat.images, image))
+                    selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), image.value)
                 })) {
 //                    ImageGallery(image)
                     flat.images.mapNotNull { it.thumb }.let { SmallImageGallery(it, flat.id.toString(), image) }
@@ -95,23 +96,29 @@ fun SmallFlatCard(
     flat: Response.Flat,
     onClick: () -> Unit = {},
 ) {
-    val bitmapImage = runBlocking {
-        flat.images[0].thumb?.let { link ->
-            getFile(flat.id.toString(), link)?.let { file ->
-                return@runBlocking BitmapPainter(file.toImageBitmap())
-            }
-        }
-        return@runBlocking null
+//    SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0))
+//    val bitmapImage = runBlocking {
+//        flat.images[0].thumb?.let { link ->
+//            getFile(flat.id.toString(), link)?.let { file ->
+//                return@runBlocking BitmapPainter(file.toImageBitmap())
+//            }
+//        }
+//        return@runBlocking null
+//    }
+    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
+    flat.images[0]?.thumb?.let {
+        bitmapImage.getImage(it, flat.id.toString())
     }
     Card(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Column() {
             Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
             Row {
                 Box(modifier = Modifier.size(100.dp).clickable(onClick = {})) {
-//            bitmapImage.value?.let {
-                    bitmapImage?.let {
+                    SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0))
+                    bitmapImage.value?.let {
+//                    bitmapImage?.let {
                         Image(
-                            bitmapImage,
+                            it,
                             contentDescription = "",
                             modifier = Modifier.fillMaxHeight().align(Alignment.Center),
                             contentScale = ContentScale.Crop
@@ -154,9 +161,9 @@ fun textField(label: String, value: String) {
 fun FlatCardView(
     flat: Response.Flat,
     back: () -> Unit,
-    selectImage: (image: SelectedImage) -> Unit = {},
+    selectImage: (url: List<String>, id: String, selected: Int) -> Unit = {_,_,_->},
 ) {
-    val image = SelectedImage(flat.id.toString(), flat.images, mutableStateOf(0))
+    val selectedImage = mutableStateOf(0)
     Column {
         BackButtonAct { back() }
         Center {
@@ -164,9 +171,9 @@ fun FlatCardView(
         }
         Center {
             Box(modifier = Modifier.size(500.dp).clickable(onClick = {
-                selectImage(image)
+                selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage.value)
             })) {
-                ImageGallery(image)
+                BigImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage)
             }
         }
         Spacer(modifier = Modifier.width(50.dp))
@@ -227,12 +234,15 @@ fun Center(content: @Composable () -> Unit) {
 
 @Composable
 fun BackButtonAct(back: () -> Unit) {
+    val focus = mutableStateOf(false)
     OutlinedButton(
         onClick = back,
         colors = ButtonDefaults.buttonColors(
             backgroundColor = MaterialTheme.colors.onPrimary,
-            contentColor = Color.LightGray
-        )
+            contentColor = if (focus.value) Color.LightGray else Color.Red
+        ),
+        modifier = Modifier.onPlaced { focus.value = !focus.value }
+//            .onFocusEvent { focus.value = it.isFocused
 
     ) {
         Image(

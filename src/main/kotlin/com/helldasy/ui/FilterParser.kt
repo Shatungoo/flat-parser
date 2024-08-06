@@ -29,9 +29,7 @@ fun FilterParser(
                 )
             }
         }
-        Button(onClick = apply) {
-            Text("Apply")
-        }
+        Button(onClick = apply) { Text("Apply") }
     }
 }
 
