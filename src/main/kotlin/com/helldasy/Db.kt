@@ -56,6 +56,7 @@ class Db(path: String = "./flats") {
         val rooms get() = this.flat.jsonExtract("$.room", VarcharSqlType).cast(IntSqlType)
         val lan get() = this.flat.jsonExtract("$.lat", DoubleSqlType)
         val lng get() = this.flat.jsonExtract("$.lng", DoubleSqlType)
+        val favorite get() = this.flat.jsonExtract("$.favorite", BooleanSqlType)
     }
 
     private fun createTableIfNotExistQuery(table: BaseTable<*>): String {
@@ -96,13 +97,32 @@ class Db(path: String = "./flats") {
                 set(it.id, flat.id)
                 set(it.flat, flat)
                 onConflict{
-                    set(it.flat, flat)
+//                    set(it.flat, flat)
+                    doNothing()
                 }
             }
         } catch (e: SQLException) {
             System.err.println(e.message)
         }
     }
+
+    fun getFavoriteFlats(): List<Response.Flat> {
+        return connection.from(FlatTable)
+            .select(FlatTable.flat)
+            .where(FlatTable.favorite eq true)
+            .map {
+                it[FlatTable.flat]!!
+            }.toList()
+    }
+
+//    fun setFavorite(id: Int, favorite: Boolean = true) {
+//        connection.update(FlatTable) {
+//            set(FlatTable.favorite, favorite)
+//            where {
+//                it.id eq id
+//            }
+//        }
+//    }
 
 
     fun getFlats(): List<Response.Flat> {

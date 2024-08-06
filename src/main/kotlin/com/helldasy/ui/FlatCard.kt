@@ -17,8 +17,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.helldasy.Response
 import com.helldasy.getFile
-import com.helldasy.map.MapSwing
-import com.helldasy.map.MapComposeSmall
 import kotlinx.coroutines.runBlocking
 import java.net.URI
 import java.net.URLEncoder
@@ -206,7 +204,8 @@ fun FlatCardView(
                     if (flat.lat != null && flat.lng != null) {
                         Spacer(modifier = Modifier.width(10.dp))
                         Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-                            MapSwing(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
+//                            MapSwing(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
+                            MapComposeSmall(flat.lat, flat.lng, 4)
                         }
                     }
                 }

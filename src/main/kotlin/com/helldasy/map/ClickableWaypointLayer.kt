@@ -120,9 +120,6 @@ interface ILayer {
 
 class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val onClick: (data: List<*>) -> Unit = {}) :
     ILayer {
-    init {
-        println("ClickableWaypointLayer")
-    }
 
     override fun onEvent(event: PointerEvent, tileFactory: TileFactory, center: Point, zoomLevel: Int, size: Size) {
         if (event.type == PointerEventType.Press) {
@@ -159,8 +156,6 @@ class ClickableWaypointLayer(val selectablePoints: List<SelectablePoint>, val on
                 .fillMaxSize()
                 .clipToBounds()
         ) {
-//            val screen = Rectnagle.fromTopLeft(center, size.width.toDouble(), size.height.toDouble())
-            println("ClickableWaypointLayer Layer $center $zoomLevel")
             val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
             drawIntoCanvas { canvas ->
                 selectablePoints.forEach { waypoint ->

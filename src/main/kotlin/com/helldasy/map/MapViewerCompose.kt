@@ -74,8 +74,6 @@ data class Point(val x: Double, val y: Double) {
 
 }
 
-
-
 val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
 
 data class MapData(
@@ -119,13 +117,13 @@ fun MapCompose(
     tileFactory: TileFactory,
     centerPoint: GeoPosition = GeoPosition(42.50, 43.00),
     zoom: Int = 8,
-    layer: ILayer? = WaypointLayer(listOf(centerPoint)),
+    layer: ILayer? = CenterLayer(centerPoint),
+    a: @Composable () -> Unit = {},
 ) {
     val zoomLevel1 = mutableStateOf (zoom)
     var zoomLevel by zoomLevel1
     val center = mutableStateOf(tileFactory.geoToPixel(centerPoint, zoom).toPoint())
     Box(modifier = Modifier.fillMaxSize()) {
-
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -184,6 +182,7 @@ fun MapCompose(
             center,
             zoomLevel1,
         )
+        a()
     }
 }
 
@@ -247,46 +246,6 @@ private fun BufferedImage.scale(scale: Double): BufferedImage {
     return after
 }
 
-
-
-
 fun Point2D.toPoint(): Point {
     return Point(x, y)
-}
-
-
-@Preview
-@Composable
-fun PreviewMapViewer() {
-    val cacheDir = getTemporalDirectory(".osm")
-    val cache = FileBasedLocalCache(cacheDir, false)
-    val tileFactoryExt = DefaultTileFactory(OSMTileFactoryInfo())
-        .apply {
-            setLocalCache(cache)
-        }
-    val tileFactory = tileFactoryExt // Replace with actual TileFactory implementation
-
-    Box(
-        modifier = Modifier.size(800.dp).border(1.dp, Color.Black)
-            .wrapContentSize(align = Alignment.TopCenter, unbounded = false)
-    ) {
-        Column {
-            MapCompose(
-                tileFactory,
-                centerPoint = GeoPosition(41.740527, 44.752613),
-                layer = CenterLayer(GeoPosition(41.740527, 44.752613))
-            )
-        }
-
-    }
-}
-
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "Compose Map Viewer") {
-        MaterialTheme {
-            Surface {
-                PreviewMapViewer()
-            }
-        }
-    }
 }

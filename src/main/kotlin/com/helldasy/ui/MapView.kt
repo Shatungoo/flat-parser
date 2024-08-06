@@ -13,8 +13,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.helldasy.*
 import com.helldasy.map.*
+import org.jxmapviewer.OSMTileFactoryInfo
+import org.jxmapviewer.cache.FileBasedLocalCache
+import org.jxmapviewer.viewer.DefaultTileFactory
 import org.jxmapviewer.viewer.GeoPosition
 import java.nio.file.Paths
+
+
+val cacheDir = getTemporalDirectory(".osm")
+val cache = FileBasedLocalCache(cacheDir, false)
+val tileFactory = DefaultTileFactory(OSMTileFactoryInfo())
+    .apply {
+        setLocalCache(cache)
+    }
+
 
 fun main() = singleWindowApplication {
 
@@ -22,23 +34,6 @@ fun main() = singleWindowApplication {
     val db = Db(path)
     val flats = db.getFlats()
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
-
-    Box {
-        MapSwing(
-            points = flats,
-            onClick = {
-                selectedFlats.value = it
-            },
-        )
-        Button(
-            onClick = {
-                selectedFlats.value = emptyList()
-            },
-//            modifier = Modifier.align(Alignment.TopStart)
-        ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-        }
-    }
 }
 
 
@@ -51,16 +46,15 @@ fun MapView(
     val flats = settings.flats
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
     Box {
-
-        MapComposeBig(
-            points = flats.value.mapNotNull {
-                if (it.lat != null && it.lng != null)
-                    SelectablePoint(geoPoistion = GeoPosition(it.lat, it.lng), data = it) else null
-            },
+        val points = flats.value.mapNotNull {
+            if (it.lat != null && it.lng != null) SelectablePoint(GeoPosition(it.lat, it.lng), it)
+            else null
+        }
+        MapCompose(
+            centerPoint = points.first().geoPoistion,
+            tileFactory = tileFactory,
             zoom = 5,
-            onClick = {
-                selectedFlats.value = it.toList()
-            },
+            layer = ClickableWaypointLayer(points, onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } }),
         )
         Column {
             BackButtonAct { back() }
@@ -80,3 +74,15 @@ fun MapView(
     }
 }
 
+@Composable
+fun MapComposeSmall(
+    lat: Double = 50.11,
+    lng: Double = 8.68,
+    zoom: Int = 5,
+){
+    MapCompose(
+        centerPoint = GeoPosition(lat, lng),
+        tileFactory = tileFactory,
+        zoom = zoom,
+    )
+}

@@ -189,7 +189,12 @@ data class Response(
         val is_vip_plus: Boolean?,
         val is_super_vip: Boolean?,
         val user_statements_count: Int?,
-    )
+    ){
+        override fun toString(): String = json.encodeToString(Flat.serializer(), this)
+//        fun merge(flat: Flat): Flat {
+//
+//        }
+    }
 
     @Serializable
     data class PriceDetails(
