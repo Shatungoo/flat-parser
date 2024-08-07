@@ -105,7 +105,6 @@ fun SmallFlatCard(
                 Box(modifier = Modifier.size(100.dp).clickable(onClick = {})) {
                     SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0))
                     bitmapImage.value?.let {
-//                    bitmapImage?.let {
                         Image(
                             it,
                             contentDescription = "",
@@ -200,7 +199,6 @@ fun FlatCardView(
                     if (flat.lat != null && flat.lng != null) {
                         Spacer(modifier = Modifier.width(10.dp))
                         Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
-//                            MapSwing(flat.lat, flat.lng, visibility = mutableStateOf(selectedImage.value == null))
                             MapComposeSmall(flat.lat, flat.lng, 4)
                         }
                     }
@@ -231,8 +229,6 @@ fun BackButtonAct(back: () -> Unit) {
             contentColor = if (focus.value) Color.LightGray else Color.Red
         ),
         modifier = Modifier.onPlaced { focus.value = !focus.value }
-//            .onFocusEvent { focus.value = it.isFocused
-
     ) {
         Image(
             Icons.AutoMirrored.Filled.ArrowBack,

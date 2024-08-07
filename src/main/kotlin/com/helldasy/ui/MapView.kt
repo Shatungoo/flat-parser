@@ -50,8 +50,8 @@ fun MapView(
         }
 
         val center = MapData.getCenter(points.map { it.geoPoistion })
-        MapData.create(tileFactory, center, 5).Map {
-            it.ClickableWaypointLayer(
+        MapData.create(tileFactory, center, 4).Map {
+            ClickableWaypointLayer(
                 points,
                 onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } })
         }
@@ -80,7 +80,7 @@ fun MapComposeSmall(
     zoom: Int = 5,
 ) {
     MapData.create(tileFactory, GeoPosition(lat, lng), zoom).Map {
-        it.CenterLayer(GeoPosition(lat, lng))
-        it.MoveableLayer()
+        WaypointsLayer(GeoPosition(lat, lng))
+        MoveableLayer()
     }
 }

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.helldasy.map
 
 import androidx.compose.foundation.Canvas
@@ -21,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.Tile
 import org.jxmapviewer.viewer.TileFactory
+import org.ktorm.support.sqlite.InsertOrUpdateOnConflictClauseBuilder
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
 import java.awt.image.AffineTransformOp
@@ -119,7 +118,7 @@ data class MapData(
 
     @Composable
     fun Map(
-        content: @Composable (mapData: MapData) -> Unit = {},
+        content: @Composable MapData.() -> Unit = {},
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Canvas(
