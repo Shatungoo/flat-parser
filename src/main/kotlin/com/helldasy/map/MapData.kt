@@ -3,7 +3,6 @@
 package com.helldasy.map
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -15,10 +14,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.toSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -74,25 +69,6 @@ data class Point(val x: Float, val y: Float) {
 
 }
 
-//data class Point(val x: Float, val y: Float) {
-//    operator fun minus(other: Point) = Point(x - other.x, y - other.y)
-//    operator fun plus(other: Point) = Point(x + other.x, y + other.y)
-//
-//    operator fun minus(other: Offset) = Point(x - other.x, y - other.y)
-//    operator fun plus(other: Offset) = Point(x + other.x, y + other.y)
-//
-//    operator fun times(other: Double) = Point(x * other, y * other)
-//    operator fun div(other: Double) = Point(x / other, y / other)
-//
-//    operator fun div(other: Point) = Point(x / other.x, y / other.y)
-//    operator fun div(other: Int) = Point(x / other, y / other)
-//
-//    fun toOffset() = Offset(x.toFloat(), y.toFloat())
-//    operator fun plus(other: PointInt) = Point(x + other.x, y + other.y)
-//    operator fun minus(other: PointInt) = Point(x - other.x, y - other.y)
-//
-//}
-
 val loadingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).toComposeImageBitmap()
 
 data class MapData(
@@ -104,6 +80,12 @@ data class MapData(
         fun create(tileFactory: TileFactory, center: GeoPosition, zoom: Int): MapData {
             val cent = tileFactory.geoToPixel(center, zoom).toPoint()
             return MapData(tileFactory, mutableStateOf(cent), mutableStateOf(zoom))
+        }
+
+        fun getCenter(geoPositions: List<GeoPosition>): GeoPosition {
+            val x = geoPositions.map { it.latitude }.average()
+            val y = geoPositions.map { it.longitude }.average()
+            return GeoPosition(x, y)
         }
     }
 
@@ -137,7 +119,7 @@ data class MapData(
 
     @Composable
     fun Map(
-        content: @Composable () -> Unit = {},
+        content: @Composable (mapData: MapData) -> Unit = {},
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Canvas(
@@ -156,7 +138,7 @@ data class MapData(
                 drawIntoCanvas { canvas ->
                     for (itp in startTile..endTile) {
                         val o = itp * tileSize - topLeft
-                        val image = getTile(tileFactory, itp.x, itp.y, zoomLevel)
+                        val image = getTile(itp.x, itp.y)
                         canvas.drawImage(
                             image.value,
                             o.toOffset(),
@@ -165,17 +147,15 @@ data class MapData(
                     }
                 }
             }
-            content()
+            content(this@MapData)
         }
     }
 
     private val localCache = mutableMapOf<String, ImageBitmap>()
 
     private fun getTile(
-        tileFactory: TileFactory,
         itpx: Int,
         itpy: Int,
-        zoomLevel: Int,
     ): MutableState<ImageBitmap> {
         val key = "$itpx-$itpy-$zoomLevel"
         if (localCache.containsKey(key)) {

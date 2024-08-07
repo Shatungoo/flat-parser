@@ -26,8 +26,6 @@ val tileFactory = DefaultTileFactory(OSMTileFactoryInfo())
     }
 
 
-
-
 fun main() = singleWindowApplication {
 
     val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
@@ -51,9 +49,11 @@ fun MapView(
             else null
         }
 
-        val map= MapData.create(tileFactory, points.first().geoPoistion, 5)
-        map.Map {
-            map.ClickableWaypointLayer(points, onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } })
+        val center = MapData.getCenter(points.map { it.geoPoistion })
+        MapData.create(tileFactory, center, 5).Map {
+            it.ClickableWaypointLayer(
+                points,
+                onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } })
         }
         Column {
             BackButtonAct { back() }
@@ -78,10 +78,9 @@ fun MapComposeSmall(
     lat: Double = 50.11,
     lng: Double = 8.68,
     zoom: Int = 5,
-){
-    val map= MapData.create(tileFactory, GeoPosition(lat, lng), zoom)
-    map.Map {
-        map.CenterLayer(GeoPosition(lat, lng))
-        map.MoveableLayer()
+) {
+    MapData.create(tileFactory, GeoPosition(lat, lng), zoom).Map {
+        it.CenterLayer(GeoPosition(lat, lng))
+        it.MoveableLayer()
     }
 }
