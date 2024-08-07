@@ -11,31 +11,19 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import org.jxmapviewer.viewer.GeoPosition
 import org.jxmapviewer.viewer.TileFactory
 
-class CenterLayer(val point: GeoPosition) : ILayer {
-    @Composable
-    override fun Layer(
-        tileFactory: TileFactory,
-        centerP: MutableState<Point>,
-        zoom: MutableState<Int>,
 
-        ) {
-        val center = centerP.value
-        val zoomLevel = zoom.value
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .clipToBounds()
-        ) {
-
-            val topLeft = Point(center.x - size.width / 2, center.y - size.height / 2)
-            val point = tileFactory.geoToPixel(point, zoomLevel).toPoint()
-            val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
-            val offset = (point - topLeft - waypointIm).toOffset()
-            println("offset: $offset")
-            drawIntoCanvas { canvas ->
-                canvas.drawImage(waypointImage, offset, Paint())
-            }
-
-        }
+@Composable
+fun MapData.CenterLayer(geoPoint: GeoPosition) {
+    val centerPoint = geoToPixel(geoPoint)
+    val cent = center.value
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds()
+    ) {
+        val topLeft = cent - Point(size.width, size.height) / 2
+        val waypointIm = PointInt(waypointImage.width / 2, waypointImage.height)
+        val offset = (centerPoint - topLeft - waypointIm).toOffset()
+        drawIntoCanvas { canvas -> canvas.drawImage(waypointImage, offset, Paint()) }
     }
 }

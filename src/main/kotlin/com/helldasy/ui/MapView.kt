@@ -7,8 +7,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.window.singleWindowApplication
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.helldasy.*
@@ -26,6 +24,8 @@ val tileFactory = DefaultTileFactory(OSMTileFactoryInfo())
     .apply {
         setLocalCache(cache)
     }
+
+
 
 
 fun main() = singleWindowApplication {
@@ -50,12 +50,11 @@ fun MapView(
             if (it.lat != null && it.lng != null) SelectablePoint(GeoPosition(it.lat, it.lng), it)
             else null
         }
-        MapCompose(
-            centerPoint = points.first().geoPoistion,
-            tileFactory = tileFactory,
-            zoom = 5,
-            layer = ClickableWaypointLayer(points, onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } }),
-        )
+
+        val map= MapData.create(tileFactory, points.first().geoPoistion, 5)
+        map.Map {
+            map.ClickableWaypointLayer(points, onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } })
+        }
         Column {
             BackButtonAct { back() }
             LazyColumn(modifier = Modifier.width(400.dp).padding(5.dp).background(MaterialTheme.colors.surface)) {
@@ -80,9 +79,9 @@ fun MapComposeSmall(
     lng: Double = 8.68,
     zoom: Int = 5,
 ){
-    MapCompose(
-        centerPoint = GeoPosition(lat, lng),
-        tileFactory = tileFactory,
-        zoom = zoom,
-    )
+    val map= MapData.create(tileFactory, GeoPosition(lat, lng), zoom)
+    map.Map {
+        map.CenterLayer(GeoPosition(lat, lng))
+        map.MoveableLayer()
+    }
 }

@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldasy.*
-import javax.swing.text.View
 
 val filterView = mutableStateOf(false)
 val filterParserView = mutableStateOf(false)
@@ -82,6 +81,8 @@ fun ControlPanel(
 ) {
     val db = settings.db
     val current = state.value as FlatsState
+    val flats = settings.flats.value
+    val filterDb = settings.filterDb.value
     Card {
         Row(
             modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -90,7 +91,7 @@ fun ControlPanel(
             BtnWithSettings(name = btnName, action = {
                 btnName.value = "In progress..."
                 updateDb(db) {
-                    val flats = db.getFlats(settings.filterDb.value)
+                    val flats = db.getFlats(filterDb)
                     btnName.value = "Update DB"
 
                     state.value = current.copy(flats = flats)
@@ -101,13 +102,8 @@ fun ControlPanel(
             controlPanelButton(onClick = {
                 filterView.value = true
             }, text = "Filter")
-
-//            controlPanelButton(onClick = {
-//                val flats = db.getFlats(settings.filterDb.value)
-//                state.value = current.copy(flats = flats)
-//            }, text = "Search")
             controlPanelButton(onClick = {
-                state.value = MapState(flats = settings.flats.value, previous = current)
+                state.value = MapState(flats = flats, previous = current)
             }, text = "Show on map")
 
         }
