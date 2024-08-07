@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import com.helldasy.map.Rectnagle.Companion.fromBottomCenter
+import com.helldasy.map.Rectangle.Companion.fromBottomCenter
 import org.jxmapviewer.viewer.GeoPosition
 import javax.imageio.ImageIO
 
@@ -38,16 +38,16 @@ val selectedWaypoint =
         .toComposeImageBitmap()
 
 
-data class Rectnagle(val x: Double, val y: Double, val width: Double, val height: Double) {
+data class Rectangle(val x: Double, val y: Double, val width: Double, val height: Double) {
     companion object {
 
-        fun fromBottomCenter(bottomCenter: Point, width: Double, height: Double): Rectnagle {
-            return Rectnagle(bottomCenter.x - width / 2, bottomCenter.y - height, width, height)
+        fun fromBottomCenter(bottomCenter: Point, width: Double, height: Double): Rectangle {
+            return Rectangle(bottomCenter.x - width / 2, bottomCenter.y - height, width, height)
         }
 
 
-        fun fromSize(toDouble: Double, toDouble1: Double): Rectnagle {
-            return Rectnagle(0.0, 0.0, toDouble, toDouble1)
+        fun fromSize(toDouble: Double, toDouble1: Double): Rectangle {
+            return Rectangle(0.0, 0.0, toDouble, toDouble1)
         }
     }
 
@@ -59,7 +59,7 @@ data class Rectnagle(val x: Double, val y: Double, val width: Double, val height
         return point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height
     }
 
-    fun contains(that: Rectnagle): Boolean {
+    fun contains(that: Rectangle): Boolean {
         return this.x <= that.x && this.y <= that.y && this.x + this.width >= that.x + that.width && this.y + this.height >= that.y + that.height
     }
 
@@ -84,8 +84,8 @@ data class SelectablePoint(
         selected.value = false
     }
 
-    val imageBox: Rectnagle
-        get() = Rectnagle.fromSize(waypointImage.width.toDouble(), waypointImage.height.toDouble())
+    val imageBox: Rectangle
+        get() = Rectangle.fromSize(waypointImage.width.toDouble(), waypointImage.height.toDouble())
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

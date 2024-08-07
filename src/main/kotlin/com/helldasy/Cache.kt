@@ -7,9 +7,21 @@ fun main() {
     val id = "123"
     val url = "https://api-statements.tnet.ge/uploads/statements/1mcs02f666c7d4f87f6e_thumb.jpg"
 //    getFile(id, url)
+//    val c = get(id) { url }
+//    println(c)
 }
 
-val cash: MutableMap<String, ByteArray> = mutableMapOf()
+val cash: MutableMap<Any, ByteArray> = mutableMapOf()
+
+interface ICache {
+    fun get(key: Any, block: () -> Any): Any
+}
+class LocalCache:ICache {
+    private val csh = mutableMapOf<Any, Any>()
+    override fun get(key: Any, block: () -> Any): Any {
+        return csh[key] ?: block().also { csh[key] = it }
+    }
+}
 
 suspend fun getFile(imageId: String, url: String): ByteArray? {
     try {
@@ -51,7 +63,6 @@ fun getTemporalDirectory(flatId: String): File {
     return file
 }
 
-//https://api-statements.tnet.ge/uploads/statements/1mcs02f666c7d4f87f6e_thumb.jpg
 fun getFileNameFromUrl(url: String): String {
     val parts = url.split("/")
     return parts[parts.size - 1]
