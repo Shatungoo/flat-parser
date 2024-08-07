@@ -1,9 +1,9 @@
-package com.helldasy
+package com.helldaisy
 
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import com.helldasy.ui.FilterDb
+import com.helldaisy.ui.FilterDb
 import kotlinx.coroutines.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

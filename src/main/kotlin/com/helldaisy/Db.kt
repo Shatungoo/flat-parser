@@ -1,8 +1,8 @@
-package com.helldasy
+package com.helldaisy
 
 
-import com.helldasy.Db.FlatTable
-import com.helldasy.ui.FilterDb
+import com.helldaisy.Db.FlatTable
+import com.helldaisy.ui.FilterDb
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.jackson.json

@@ -1,6 +1,5 @@
-package com.helldasy
+package com.helldaisy
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,7 +15,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.Theme
-import com.helldasy.ui.*
+import com.helldaisy.ui.*
 
 val settings = loadSettings()
 val state: MutableState<State> = mutableStateOf(FlatsState(

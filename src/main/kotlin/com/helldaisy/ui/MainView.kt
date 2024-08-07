@@ -1,4 +1,4 @@
-package com.helldasy.ui
+package com.helldaisy.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.helldasy.*
+import com.helldaisy.*
 
 val filterView = mutableStateOf(false)
 val filterParserView = mutableStateOf(false)

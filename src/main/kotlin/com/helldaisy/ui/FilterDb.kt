@@ -1,6 +1,6 @@
 @file:Suppress("UNUSED_EXPRESSION")
 
-package com.helldasy.ui
+package com.helldaisy.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button

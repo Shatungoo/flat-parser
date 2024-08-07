@@ -1,4 +1,4 @@
-package com.helldasy
+package com.helldaisy
 
 import java.io.File
 import java.nio.file.Paths

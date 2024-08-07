@@ -1,4 +1,4 @@
-package com.helldasy.map
+package com.helldaisy.map
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import com.helldasy.map.Rectangle.Companion.fromBottomCenter
+import com.helldaisy.map.Rectangle.Companion.fromBottomCenter
 import org.jxmapviewer.viewer.GeoPosition
 import javax.imageio.ImageIO
 

@@ -1,4 +1,4 @@
-package com.helldasy.ui
+package com.helldaisy.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,8 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.window.singleWindowApplication
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.helldasy.*
-import com.helldasy.map.*
+import com.helldaisy.*
+import com.helldaisy.map.*
 import org.jxmapviewer.OSMTileFactoryInfo
 import org.jxmapviewer.cache.FileBasedLocalCache
 import org.jxmapviewer.viewer.DefaultTileFactory

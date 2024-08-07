@@ -1,4 +1,4 @@
-package com.helldasy.map
+package com.helldaisy.map
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box

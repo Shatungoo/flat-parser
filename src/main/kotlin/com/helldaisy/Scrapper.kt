@@ -1,4 +1,4 @@
-package com.helldasy
+package com.helldaisy
 
 import io.ktor.client.*
 import io.ktor.client.call.*

@@ -1,4 +1,4 @@
-package com.helldasy.ui
+package com.helldaisy.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

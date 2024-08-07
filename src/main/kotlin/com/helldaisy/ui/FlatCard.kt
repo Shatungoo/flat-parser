@@ -1,4 +1,4 @@
-package com.helldasy.ui
+package com.helldaisy.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
-import com.helldasy.Response
+import com.helldaisy.Response
 import java.net.URI
 import java.net.URLEncoder
 
