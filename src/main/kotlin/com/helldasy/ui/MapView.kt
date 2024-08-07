@@ -44,16 +44,29 @@ fun MapView(
 //    val flats = settings.flats
     val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
     Box {
-        val points = flats.mapNotNull {
-            if (it.lat != null && it.lng != null) SelectablePoint(GeoPosition(it.lat, it.lng), it)
+        val flatMap = mutableMapOf<GeoPosition, List<Response.Flat>>()
+        flats.mapNotNull {
+            if (it.lat != null && it.lng != null) Pair(GeoPosition(it.lat, it.lng), it)
             else null
+        }.forEach { (geo, flat) ->
+            val flatList = flatMap[geo]
+            if (flatList == null) {
+                flatMap[geo] = listOf(flat)
+            } else if (flatMap[geo] != null) {
+                flatMap[geo] = flatList + flat
+            }
         }
-
-        val center = MapData.getCenter(points.map { it.geoPoistion })
+        val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
+        val center = MapData.getCenter(flatMap.keys.toList())
         MapData.create(tileFactory, center, 4).Map {
             ClickableWaypointLayer(
-                points,
-                onClick = { selectedFlats.value = it.map { data -> data as Response.Flat } })
+                flatMap.map { (geo, flatList) ->
+                    SelectablePoint(
+                        geoPoistion = geo,
+                        data = flatList,
+                    )
+                },
+                onClick = { selectedFlats.value = it.map { data -> data as List<Response.Flat> }.flatten() })
         }
         Column {
             BackButtonAct { back() }
@@ -72,6 +85,8 @@ fun MapView(
 
     }
 }
+
+
 
 @Composable
 fun MapComposeSmall(
