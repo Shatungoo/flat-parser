@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +26,7 @@ import java.net.URLEncoder
 @Composable
 fun FlatCard(
     flat: Response.Flat,
-    selectImage: (url: List<String>, id: String, selected: Int) -> Unit = {_,_,_->},
+    selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = {_,_,_->},
     selectFlat:() -> Unit = {},
 ) {
     val image = mutableStateOf(0)
@@ -34,11 +35,9 @@ fun FlatCard(
         Spacer(modifier = Modifier.weight(1f))
         Card(onClick = selectFlat, backgroundColor = Color.Transparent) {
             Row {
-                Box(modifier = Modifier.size(300.dp).clickable(onClick = {
-                    selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), image.value)
-                })) {
-//                    ImageGallery(image)
-                    flat.images.mapNotNull { it.thumb }.let { SmallImageGallery(it, flat.id.toString(), image) }
+                Box(modifier = Modifier.size(300.dp)) {
+                    flat.images.mapNotNull { it.thumb }.let { SmallImageGallery(it, flat.id.toString(), image,
+                        onClick = {selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), image)}) }
                 }
                 Spacer(modifier = Modifier.width(50.dp))
                 Column {
@@ -102,8 +101,9 @@ fun SmallFlatCard(
         Column() {
             Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
             Row {
-                Box(modifier = Modifier.size(100.dp).clickable(onClick = {})) {
-                    SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0))
+                Box(modifier = Modifier.size(100.dp)) {
+                    SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0),
+                        onClick = {})
                     bitmapImage.value?.let {
                         Image(
                             it,
@@ -149,7 +149,7 @@ fun textField(label: String, value: String) {
 fun FlatCardView(
     flat: Response.Flat,
     back: () -> Unit,
-    selectImage: (url: List<String>, id: String, selected: Int) -> Unit = {_,_,_->},
+    selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = {_,_,_->},
 ) {
     val selectedImage = mutableStateOf(0)
     Column {
@@ -158,10 +158,9 @@ fun FlatCardView(
             Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h3)
         }
         Center {
-            Box(modifier = Modifier.size(500.dp).clickable(onClick = {
-                selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage.value)
-            })) {
-                SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage)
+            Box(modifier = Modifier.size(500.dp)) {
+                SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage,
+                    onClick = {selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage)})
             }
         }
         Spacer(modifier = Modifier.width(50.dp))

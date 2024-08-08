@@ -60,7 +60,7 @@ fun main() = application {
                     BigImageGallery(
                         urls = currentState.urls,
                         id = currentState.id,
-                        selectedImage = mutableStateOf(currentState.selectedImage),
+                        selectedImage = currentState.selectedImage,
                         onClick = { state.value = currentState.previous }
                     )
                 }
@@ -92,7 +92,7 @@ data class FlatState(
 data class ImageState(
     val urls: List<String> = emptyList(),
     val id: String,
-    val selectedImage: Int = 0,
+    val selectedImage: MutableState<Int> = mutableStateOf(0),
     override val previous: State,
 ) : State
 

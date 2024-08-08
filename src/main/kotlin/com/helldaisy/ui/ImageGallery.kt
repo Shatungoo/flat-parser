@@ -2,6 +2,7 @@ package com.helldaisy.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.onClick
 import androidx.compose.material.Button
@@ -30,10 +31,11 @@ import kotlinx.coroutines.launch
 fun SmallImageGallery(
     urls: List<String>,
     id: String,
-    selectedImage: MutableState<Int>
+    selectedImage: MutableState<Int>,
+    onClick: () -> Unit
 ) {
-    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
     if (urls.isEmpty()) return
+    val bitmapImage = mutableStateOf<BitmapPainter?>(null)
      bitmapImage.getImage(urls[selectedImage.value], id)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
         Row {
@@ -45,7 +47,9 @@ fun SmallImageGallery(
                 text = "<",
                 width = 30.dp
             )
-            Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 60.dp)) {
+            Box(modifier = Modifier.align(Alignment.CenterVertically)
+                .width(this@BoxWithConstraints.maxWidth - 60.dp)
+                .clickable(onClick= onClick)) {
                 bitmapImage.value?.let {
                     Image(
                         it,
