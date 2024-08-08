@@ -41,8 +41,6 @@ fun MapView(
     back: () -> Unit = {},
     selectFlat: (Response.Flat) -> Unit = {},
 ) {
-//    val flats = settings.flats
-    val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
     Box {
         val flatMap = mutableMapOf<GeoPosition, List<Response.Flat>>()
         flats.mapNotNull {

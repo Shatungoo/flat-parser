@@ -5,10 +5,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.onClick
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -27,7 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-val cScale = mutableStateOf(ContentScale.FillWidth)
+val cScale = mutableStateOf(ContentScale.Crop)
 
 @Composable
 fun SmallImageGallery(
@@ -124,6 +128,7 @@ fun BigImageGallery(
                 },
                 enabled = selectedImage.value > 0,
                 text = "<",
+//                icon = Icons.AutoMirrored.Default.ArrowBack,
                 width = 60.dp
             )
             Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 120.dp)
@@ -151,6 +156,7 @@ fun BigImageGallery(
                 },
                 enabled = selectedImage.value < urls.size - 1,
                 text = ">",
+//                icon = Icons.AutoMirrored.Default.ArrowForward,
                 width = 60.dp
             )
         }
@@ -174,6 +180,7 @@ fun galleryButton(
     onClick: () -> Unit,
     enabled: Boolean = true,
     text: String = "",
+    icon: ImageVector? = null,
     width: Dp = 30.dp,
 ) {
     Button(
@@ -185,7 +192,13 @@ fun galleryButton(
         ),
         enabled = enabled,
         onClick = onClick
-    ) { Text(text) }
+    ) {
+        if (text != "") Text(text)
+        if (icon!=null) Image(
+            icon,
+            contentDescription = "Back",
+        )
+    }
 }
 
 fun ByteArray.toImageBitmap(): ImageBitmap =
