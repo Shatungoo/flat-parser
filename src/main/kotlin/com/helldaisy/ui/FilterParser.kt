@@ -18,7 +18,7 @@ fun FilterParser(
     val baseUrl = filter.baseUrl.value
     Column {
 
-        Text(baseUrl)
+        FilterValueStr("Base url", filter.baseUrl)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterExactLstInt("Deal types", filter.dealTypes)

@@ -1,14 +1,12 @@
 package com.helldaisy.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.dp
 import com.helldaisy.MutableStateSerializer
 import kotlinx.serialization.Serializable
@@ -142,9 +140,25 @@ fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>
 
 
 @Composable
+fun FilterValueStr(name: String, value: MutableState<String>, modifier: Modifier = Modifier.fillMaxSize()) {
+    FilterText(name) {
+        TextField(
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
+            modifier = modifier,
+            value = value.value,
+            onValueChange = {
+                value.value = it
+            })
+    }
+}
+
+
+@Composable
 fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {
     TextField(
-        maxLines = 1,
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
         modifier = modifier,
         value = if (value.value != null) value.value.toString() else "",
         onValueChange = { it ->
@@ -157,6 +171,8 @@ fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fill
 fun FilterExactLstStr(name: String, value: MutableState<List<String>>) {
     FilterText(name) {
         TextField(
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
             value = value.value.joinToString(","),
             onValueChange = { value.value = it.split(",") },
             modifier = Modifier.fillMaxSize()
@@ -175,6 +191,8 @@ fun FilterExactInt(name: String, value: MutableState<Int?>) {
 fun FilterExactLstInt(name: String, value: MutableState<List<Int>>) {
     FilterText(name) {
         TextField(
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
             value = value.value.joinToString(","),
             onValueChange = { value.value = it.split(",")
                 .map { it.trim().toInt() }
