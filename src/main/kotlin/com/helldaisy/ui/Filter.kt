@@ -111,15 +111,13 @@ fun String.toLatin(): String {
 @Composable
 fun FilterDb(filter: Filter, apply: () -> Unit) {
 
-    Column {
+    Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
         FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Floor", filter.floorFrom, filter.floorTo)
         FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
-        FilterText("Limit") {
-            FilterValueInt(filter.limit as MutableState<Int?>)
-        }
+        FilterExactInt("Limit", filter.limit as MutableState<Int?>)
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
             apply()
@@ -168,7 +166,7 @@ fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fill
 }
 
 @Composable
-fun FilterExactLstStr(name: String, value: MutableState<List<String>>) {
+fun FilterLstStr(name: String, value: MutableState<List<String>>) {
     FilterText(name) {
         TextField(
             singleLine = true,
@@ -181,14 +179,22 @@ fun FilterExactLstStr(name: String, value: MutableState<List<String>>) {
 }
 
 @Composable
-fun FilterExactInt(name: String, value: MutableState<Int?>) {
+fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {
     FilterText(name) {
-        FilterValueInt(value)
+        TextField(
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
+            modifier = modifier,
+            value = if (value.value != null) value.value.toString() else "",
+            onValueChange = { it ->
+                value.value =
+                    it.filter { it.isDigit() }.let { if (it.isEmpty()) null else it.toInt() }
+            })
     }
 }
 
 @Composable
-fun FilterExactLstInt(name: String, value: MutableState<List<Int>>) {
+fun FilterLstInt(name: String, value: MutableState<List<Int>>) {
     FilterText(name) {
         TextField(
             singleLine = true,

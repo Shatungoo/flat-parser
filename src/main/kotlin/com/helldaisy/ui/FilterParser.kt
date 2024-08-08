@@ -2,9 +2,7 @@ package com.helldaisy.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -15,19 +13,17 @@ fun FilterParser(
     filter: Filter,
     onClick: () -> Unit
     ) {
-    val baseUrl = filter.baseUrl.value
-    Column {
-
+    Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
         FilterValueStr("Base url", filter.baseUrl)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
-        FilterExactLstInt("Deal types", filter.dealTypes)
+        FilterLstInt("Deal types", filter.dealTypes)
         FilterExactInt("Real estate types", filter.realEstateTypes)
-        FilterExactLstInt("Cities", filter.cities)
+        FilterLstInt("Cities", filter.cities)
         FilterExactInt("Currency id", filter.currencyId)
-        FilterExactLstStr("Urbans", filter.urbans)
-        FilterExactLstStr("Districts", filter.districts)
-        FilterExactLstInt("Statuses", filter.statuses)
+        FilterLstStr("Urbans", filter.urbans)
+        FilterLstStr("Districts", filter.districts)
+        FilterLstInt("Statuses", filter.statuses)
         FilterExactInt("Area types", filter.areaTypes)
         FilterExactInt("Pages", filter.limit as MutableState<Int?>)
         Button(onClick = { onClick() }) {
