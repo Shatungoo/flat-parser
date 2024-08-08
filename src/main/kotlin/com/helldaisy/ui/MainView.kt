@@ -16,13 +16,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldaisy.*
 
-val filterView = mutableStateOf(false)
+val filterDbView = mutableStateOf(false)
 val filterParserView = mutableStateOf(false)
 
 @Composable
 fun MainView(settings: Settings, state: MutableState<State>) {
-    if (filterView.value) FilterView(state, settings)
-    else if (filterParserView.value) FilterParser(settings)
+    if (filterDbView.value) FilterView(state, settings)
+    else if (filterParserView.value)
+        FilterParser(settings.filterParser)
 }
 
 @Composable
@@ -43,7 +44,7 @@ fun FilterView(
             }
             Box(
                 modifier = Modifier.fillMaxSize().clickable(onClick = {
-                    filterView.value = false
+                    filterDbView.value = false
                 })
             )
         }
@@ -51,7 +52,7 @@ fun FilterView(
 }
 
 @Composable
-fun FilterParser(settings: Settings) {
+fun FilterParser(filter: MutableState<Filter>) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -59,10 +60,9 @@ fun FilterParser(settings: Settings) {
             Box(
                 modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
             ) {
-                FilterParser(
-                    settings.baseUrl,
-                    settings.urlParamMap,
-                ) {}
+                FilterParser(filter,
+                    onClick = { filterParserView.value = false }
+                )
             }
             Box(
                 modifier = Modifier.fillMaxSize().clickable(onClick = {
@@ -91,16 +91,16 @@ fun ControlPanel(
             BtnWithSettings(name = btnName, action = {
                 btnName.value = "In progress..."
                 updateDb(db) {
-                    val flats = db.getFlats(filterDb)
+                    val flatsUpdate = db.getFlats(filterDb)
                     btnName.value = "Update DB"
 
-                    state.value = current.copy(flats = flats)
+                    state.value = current.copy(flats = flatsUpdate)
                 }
             }, settings = {
                 filterParserView.value = true
             })
             controlPanelButton(onClick = {
-                filterView.value = true
+                filterDbView.value = true
             }, text = "Filter")
             controlPanelButton(onClick = {
                 state.value = MapState(flats = flats, previous = current)

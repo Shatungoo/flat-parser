@@ -1,5 +1,8 @@
 package com.helldaisy
 
+import com.helldaisy.ui.toMap
+import com.helldaisy.ui.Filter
+import com.helldaisy.ui.toFilterDb
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -24,7 +27,7 @@ fun main() {
 
     val flats = runBlocking {
         getFlats(
-            "https://api-statements.tnet.ge/v1/statements",
+
             mapOf(
                 "deal_types" to "1",
                 "real_estate_types" to "1",
@@ -38,15 +41,17 @@ fun main() {
                 "area_from" to "40",
                 "area_to" to "90",
                 "area_types" to "1",
-            ),
-            2
+            ).toFilterDb().apply {
+                limit.value = 2
+                this.baseUrl.value = "https://api-statements.tnet.ge/v1/statements"
+            },
         )
     }
 }
 
 fun updateDb(db: Db, cb: () -> Unit = {}) {
     CoroutineScope(Dispatchers.Default).launch {
-        val response = runBlocking { getFlats(settings.baseUrl, settings.urlParamMap, 5) }
+        val response = runBlocking { getFlats(settings.filterParser.value) }
         db.insertFlats(response)
         cb()
     }
@@ -60,10 +65,11 @@ val json = Json {
 }
 
 suspend fun getFlats(
-    baseUrl: String,
-    urlParamMap: Map<String, String>,
-    count: Int,
+    filter: Filter,
 ): List<Response.Flat> {
+    val baseUrl = filter.baseUrl.value
+    val urlParamMap = filter.toMap()
+    val count = filter.limit.value
     val result = coroutineScope {
         (0..count).map { n ->
             async {
@@ -187,7 +193,7 @@ data class Response(
         val is_vip_plus: Boolean?,
         val is_super_vip: Boolean?,
         val user_statements_count: Int?,
-    ){
+    ) {
         override fun toString(): String = json.encodeToString(Flat.serializer(), this)
 //        fun merge(flat: Flat): Flat {
 //

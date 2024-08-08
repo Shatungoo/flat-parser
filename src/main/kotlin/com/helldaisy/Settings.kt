@@ -2,8 +2,9 @@ package com.helldaisy
 
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.snapshots.SnapshotStateMap
-import com.helldaisy.ui.FilterDb
+import com.helldaisy.ui.Filter
+import com.helldaisy.ui.toFilterDb
+import com.helldaisy.ui.toMap
 import kotlinx.coroutines.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -18,11 +19,30 @@ import java.io.File
 import java.nio.file.Paths
 import kotlin.time.Duration
 
+
+val urlParamMap: Map<String, String> = mapOf(
+    "deal_types" to "1",
+    "real_estate_types" to "1",
+    "cities" to "1",
+    "currency_id" to "1",
+    "urbans" to "NaN,23,27,43,47,62,64",
+    "districts" to "3.4,3,4,6",
+    "statuses" to "2",
+    "price_from" to "50000",
+    "price_to" to "300000",
+    "area_from" to "40",
+    "area_to" to "90",
+    "area_types" to "1",
+)
+
 @Serializable
 data class Settings(
 
-    @Transient
-    val filterDb: MutableState<FilterDb> = mutableStateOf(FilterDb()),
+    val filterDb: MutableState<Filter> = mutableStateOf(Filter()),
+
+    val filterParser: MutableState<Filter> = mutableStateOf(urlParamMap.toFilterDb().apply {
+        this.baseUrl.value = "https://api-statements.tnet.ge/v1/statements"
+        limit.value = 2 }),
 
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),
@@ -36,31 +56,12 @@ data class Settings(
     @Transient val db: Db = Db(dbPath),
 
     @Transient
-    val baseUrl: String = "https://api-statements.tnet.ge/v1/statements",
-
-    @Transient
-    val urlParamMap: SnapshotStateMap<String, String> = mutableStateMapOf(
-        "deal_types" to "1",
-        "real_estate_types" to "1",
-        "cities" to "1",
-        "currency_id" to "1",
-        "urbans" to "NaN,23,27,43,47,62,64",
-        "districts" to "3.4,3,4,6",
-        "statuses" to "2",
-        "price_from" to "50000",
-        "price_to" to "300000",
-        "area_from" to "40",
-        "area_to" to "90",
-        "area_types" to "1",
-    ),
-
-    @Transient
     val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value)),
 ) {
     init {
         CoroutineScope(Dispatchers.Default).launch {
             while (true) {
-                val response = runBlocking { getFlats(baseUrl, urlParamMap, 5) }
+                val response = runBlocking { getFlats(filterParser.value) }
                 db.insertFlats(response)
                 delay(Duration.parse("1h"))
             }

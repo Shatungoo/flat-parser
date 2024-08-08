@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_EXPRESSION")
-
 package com.helldaisy.ui
 
 import androidx.compose.foundation.layout.*
@@ -13,28 +11,64 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.helldaisy.MutableStateSerializer
+import kotlinx.serialization.Serializable
 
-
-data class FilterDb(
+@Serializable
+data class Filter(
+    @Serializable
+    val baseUrl: MutableState<String> = mutableStateOf(""),
+    @Serializable(with = MutableStateSerializer::class)
+    val dealTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    @Serializable(with = MutableStateSerializer::class)
+    val realEstateTypes: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
+    val cities: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    @Serializable(with = MutableStateSerializer::class)
+    val currencyId: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
+    val urbans: MutableState<List<String>> = mutableStateOf(listOf()),
+    @Serializable(with = MutableStateSerializer::class)
+    val districts: MutableState<List<String>> = mutableStateOf(emptyList()),
+    @Serializable(with = MutableStateSerializer::class)
+    val statuses: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    @Serializable(with = MutableStateSerializer::class)
+    val areaTypes: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val priceFrom: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val priceTo: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val roomsFrom: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val roomsTo: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val areaFrom: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val areaTo: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val floorFrom: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val floorTo: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val totalFloorsFrom: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val totalFloorsTo: MutableState<Int?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val city: MutableState<String?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val district: MutableState<String?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val urban: MutableState<String?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val street: MutableState<String?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val limit: MutableState<Int> = mutableStateOf(1000),
-
+    @Serializable(with = MutableStateSerializer::class)
     val lan: MutableState<Double?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
     val lng: MutableState<Double?> = mutableStateOf(null),
-)
+){}
 
 
 fun String.toLatin(): String {
@@ -78,7 +112,7 @@ fun String.toLatin(): String {
 }
 
 @Composable
-fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
+fun FilterDb(filter1: MutableState<Filter>, apply: () -> Unit) {
     val filter = filter1.value
 
     Column {
@@ -97,7 +131,7 @@ fun FilterDb(filter1: MutableState<FilterDb>, apply: () -> Unit) {
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
             apply()
-            filterView.value = false
+            filterDbView.value = false
         }) {
             Text("Search")
         }

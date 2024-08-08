@@ -2,7 +2,7 @@ package com.helldaisy
 
 
 import com.helldaisy.Db.FlatTable
-import com.helldaisy.ui.FilterDb
+import com.helldaisy.ui.Filter
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.jackson.json
@@ -135,7 +135,7 @@ class Db(path: String = "./flats") {
             }.toList()
     }
 
-    fun getFlats(filter: FilterDb): List<Response.Flat> {
+    fun getFlats(filter: Filter): List<Response.Flat> {
         val flats:MutableList<Response.Flat> = mutableListOf()
         val query =connection.from(FlatTable).select(FlatTable.flat)
             .whereWithConditions {expr ->
