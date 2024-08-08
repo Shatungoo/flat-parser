@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Filter(
-    @Serializable
+    @Serializable(with = MutableStateSerializer::class)
     val baseUrl: MutableState<String> = mutableStateOf(""),
     @Serializable(with = MutableStateSerializer::class)
     val dealTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
@@ -112,8 +112,7 @@ fun String.toLatin(): String {
 }
 
 @Composable
-fun FilterDb(filter1: MutableState<Filter>, apply: () -> Unit) {
-    val filter = filter1.value
+fun FilterDb(filter: Filter, apply: () -> Unit) {
 
     Column {
         FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)

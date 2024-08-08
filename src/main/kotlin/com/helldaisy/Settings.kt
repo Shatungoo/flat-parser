@@ -38,11 +38,12 @@ val urlParamMap: Map<String, String> = mapOf(
 @Serializable
 data class Settings(
 
-    val filterDb: MutableState<Filter> = mutableStateOf(Filter()),
+//    @Serializable(with = MutableStateSerializer::class)
+    val filterDb: Filter = Filter(),
 
-    val filterParser: MutableState<Filter> = mutableStateOf(urlParamMap.toFilterDb().apply {
+    val filterParser: Filter = urlParamMap.toFilterDb().apply {
         this.baseUrl.value = "https://api-statements.tnet.ge/v1/statements"
-        limit.value = 2 }),
+        limit.value = 2 },
 
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),
@@ -56,12 +57,12 @@ data class Settings(
     @Transient val db: Db = Db(dbPath),
 
     @Transient
-    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb.value)),
+    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb)),
 ) {
     init {
         CoroutineScope(Dispatchers.Default).launch {
             while (true) {
-                val response = runBlocking { getFlats(filterParser.value) }
+                val response = runBlocking { getFlats(filterParser) }
                 db.insertFlats(response)
                 delay(Duration.parse("1h"))
             }

@@ -11,25 +11,24 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FilterParser(
-    filter: MutableState<Filter>,
+    filter: Filter,
     onClick: () -> Unit
     ) {
-    val baseUrl = filter.value.baseUrl.value
-    val filterV = filter.value
+    val baseUrl = filter.baseUrl.value
     Column {
 
         Text(baseUrl)
-        FilterBetween("Area", filterV.areaFrom, filterV.areaTo)
-        FilterBetween("Price", filterV.priceFrom, filterV.priceTo)
-        FilterExactLstInt("Deal types", filterV.dealTypes)
-        FilterExactInt("Real estate types", filterV.realEstateTypes)
-        FilterExactLstInt("Cities", filterV.cities)
-        FilterExactInt("Currency id", filterV.currencyId)
-        FilterExactLstStr("Urbans", filterV.urbans)
-        FilterExactLstStr("Districts", filterV.districts)
-        FilterExactLstInt("Statuses", filterV.statuses)
-        FilterExactInt("Area types", filterV.areaTypes)
-        FilterExactInt("Limit", filterV.limit as MutableState<Int?>)
+        FilterBetween("Area", filter.areaFrom, filter.areaTo)
+        FilterBetween("Price", filter.priceFrom, filter.priceTo)
+        FilterExactLstInt("Deal types", filter.dealTypes)
+        FilterExactInt("Real estate types", filter.realEstateTypes)
+        FilterExactLstInt("Cities", filter.cities)
+        FilterExactInt("Currency id", filter.currencyId)
+        FilterExactLstStr("Urbans", filter.urbans)
+        FilterExactLstStr("Districts", filter.districts)
+        FilterExactLstInt("Statuses", filter.statuses)
+        FilterExactInt("Area types", filter.areaTypes)
+        FilterExactInt("Limit", filter.limit as MutableState<Int?>)
         Button(onClick = { onClick() }) {
             Text("Apply")
         }

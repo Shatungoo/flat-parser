@@ -39,7 +39,8 @@ fun FilterView(
                 modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
             ) {
                 FilterDb(settings.filterDb) {
-                    state.value = FlatsState(flats = settings.db.getFlats(settings.filterDb.value))
+                    settings.saveSettings()
+                    state.value = FlatsState(flats = settings.db.getFlats(settings.filterDb))
                 }
             }
             Box(
@@ -52,7 +53,7 @@ fun FilterView(
 }
 
 @Composable
-fun FilterParser(filter: MutableState<Filter>) {
+fun FilterParser(filter: Filter) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -61,7 +62,9 @@ fun FilterParser(filter: MutableState<Filter>) {
                 modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
             ) {
                 FilterParser(filter,
-                    onClick = { filterParserView.value = false }
+                    onClick = {
+                        settings.saveSettings()
+                        filterParserView.value = false }
                 )
             }
             Box(
@@ -82,7 +85,7 @@ fun ControlPanel(
     val db = settings.db
     val current = state.value as FlatsState
     val flats = settings.flats.value
-    val filterDb = settings.filterDb.value
+    val filterDb = settings.filterDb
     Card {
         Row(
             modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)
