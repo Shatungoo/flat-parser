@@ -8,7 +8,6 @@ import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.helldaisy.MutableStateSerializer
@@ -68,7 +67,7 @@ data class Filter(
     val lan: MutableState<Double?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
     val lng: MutableState<Double?> = mutableStateOf(null),
-){}
+) {}
 
 
 fun String.toLatin(): String {
@@ -120,11 +119,7 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Floor", filter.floorFrom, filter.floorTo)
         FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
-//        FilterBetween("Coordinates", filter.lan as MutableState<Int?>, filter.lng as MutableState<Int?>)
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text("Limit", style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
-
-            Spacer(modifier = Modifier.width(10.dp))
+        FilterText("Limit") {
             FilterValueInt(filter.limit as MutableState<Int?>)
         }
         Spacer(modifier = Modifier.height(50.dp))
@@ -139,26 +134,61 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
 
 @Composable
 fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
-    Row(verticalAlignment = Alignment.Bottom) {
-        Text(name, style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
-
-        Spacer(modifier = Modifier.width(10.dp))
-        FilterValueInt(from)
-        Spacer(modifier = Modifier.width(10.dp))
-        FilterValueInt(to)
+    FilterText(name) {
+            FilterValueInt(from, Modifier.weight(1f))
+            FilterValueInt(to, Modifier.weight(1f))
     }
 }
 
+
 @Composable
-fun FilterValueInt(value: MutableState<Int?>) {
+fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {
     TextField(
         maxLines = 1,
-        modifier = Modifier.width(100.dp)
-            .height(50.dp),
-
+        modifier = modifier,
         value = if (value.value != null) value.value.toString() else "",
         onValueChange = { it ->
             value.value =
                 it.filter { it.isDigit() }.let { if (it.isEmpty()) null else it.toInt() }
         })
+}
+
+@Composable
+fun FilterExactLstStr(name: String, value: MutableState<List<String>>) {
+    FilterText(name) {
+        TextField(
+            value = value.value.joinToString(","),
+            onValueChange = { value.value = it.split(",") },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun FilterExactInt(name: String, value: MutableState<Int?>) {
+    FilterText(name) {
+        FilterValueInt(value)
+    }
+}
+
+@Composable
+fun FilterExactLstInt(name: String, value: MutableState<List<Int>>) {
+    FilterText(name) {
+        TextField(
+            value = value.value.joinToString(","),
+            onValueChange = { value.value = it.split(",").map { it.toInt() } },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun FilterText(name: String, content: @Composable RowScope.() -> Unit = {}) {
+    Row(
+        modifier = Modifier.padding(5.dp).fillMaxWidth().height(50.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Text(name, style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
+        content(this)
+    }
 }

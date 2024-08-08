@@ -2,6 +2,7 @@ package com.helldaisy.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
@@ -28,7 +29,7 @@ fun FilterParser(
         FilterExactLstStr("Districts", filter.districts)
         FilterExactLstInt("Statuses", filter.statuses)
         FilterExactInt("Area types", filter.areaTypes)
-        FilterExactInt("Limit", filter.limit as MutableState<Int?>)
+        FilterExactInt("Pages", filter.limit as MutableState<Int?>)
         Button(onClick = { onClick() }) {
             Text("Apply")
         }
@@ -70,50 +71,3 @@ fun Map<String, String>.toFilterDb(): Filter {
     )
 }
 
-//@Composable
-//fun FilterExact(name: String, value: MutableState<String>) {
-//    Row(modifier = Modifier.padding(5.dp).fillMaxWidth().height(55.dp)) {
-//        Text(name, modifier = Modifier.fillMaxHeight().width(100.dp))
-//        TextField(
-//            value = value.value,
-//            onValueChange = { value.value = it },
-//            modifier = Modifier.fillMaxHeight()
-//        )
-//    }
-//}
-
-@Composable
-fun FilterExactLstStr(name: String, value: MutableState<List<String>>) {
-    Row(modifier = Modifier.padding(5.dp).fillMaxWidth().height(55.dp)) {
-        Text(name, modifier = Modifier.fillMaxHeight().width(100.dp))
-        TextField(
-            value = value.value.joinToString(","),
-            onValueChange = { value.value = it.split(",") },
-            modifier = Modifier.fillMaxHeight()
-        )
-    }
-}
-
-@Composable
-fun FilterExactInt(name: String, value: MutableState<Int?>) {
-    Row(modifier = Modifier.padding(5.dp).fillMaxWidth().height(55.dp)) {
-        Text(name, modifier = Modifier.fillMaxHeight().width(100.dp))
-        TextField(
-            value = value.value.toString(),
-            onValueChange = { value.value = it.toInt() },
-            modifier = Modifier.fillMaxHeight()
-        )
-    }
-}
-
-@Composable
-fun FilterExactLstInt(name: String, value: MutableState<List<Int>>) {
-    Row(modifier = Modifier.padding(5.dp).fillMaxWidth().height(55.dp)) {
-        Text(name, modifier = Modifier.fillMaxHeight().width(100.dp))
-        TextField(
-            value = value.value.joinToString(","),
-            onValueChange = { value.value = it.split(",").map { it.toInt() } },
-            modifier = Modifier.fillMaxHeight()
-        )
-    }
-}
