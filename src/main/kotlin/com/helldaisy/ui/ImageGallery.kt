@@ -5,10 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.onClick
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +26,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+
+val cScale = mutableStateOf(ContentScale.FillWidth)
 
 @Composable
 fun SmallImageGallery(
@@ -54,12 +56,13 @@ fun SmallImageGallery(
                     Image(
                         it,
                         contentDescription = "",
-                        modifier = Modifier.align(Alignment.Center),
+                        modifier = Modifier.align(Alignment.Center).fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } ?: run {
                     CircularProgressIndicator()
                 }
+
             }
 
             galleryButton(
@@ -74,6 +77,30 @@ fun SmallImageGallery(
             )
         }
     }
+}
+
+@Composable
+fun CScale(){
+    Row { Spacer(modifier = Modifier.weight(1f))
+        Column {
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                modifier = Modifier,//.width(60.dp).height(30.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Transparent,
+                ),
+                onClick ={
+                cScale.value = when (cScale.value) {
+                    ContentScale.Crop -> ContentScale.Inside
+                    else -> ContentScale.Crop
+                }
+            }){
+                Text(when (cScale.value) {
+                    ContentScale.Crop -> "Inside"
+                    else -> "Crop"
+                }, modifier = Modifier.width(60.dp))
+            }
+        } }
 }
 
 
@@ -100,14 +127,16 @@ fun BigImageGallery(
                 width = 60.dp
             )
             Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 120.dp)
+                .fillMaxHeight()
                 .onClick { onClick() }) {
                 bitmapImage.value?.let {
                     Image(
                         it,
                         contentDescription = "",
-                        modifier = Modifier.align(Alignment.Center),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier.align(Alignment.Center).fillMaxSize(),
+                        contentScale = cScale.value
                     )
+                    CScale()
                 } ?: run {
                     CircularProgressIndicator()
                 }

@@ -176,7 +176,9 @@ fun FilterExactLstInt(name: String, value: MutableState<List<Int>>) {
     FilterText(name) {
         TextField(
             value = value.value.joinToString(","),
-            onValueChange = { value.value = it.split(",").map { it.toInt() } },
+            onValueChange = { value.value = it.split(",")
+                .map { it.trim().toInt() }
+            },
             modifier = Modifier.fillMaxSize()
         )
     }
