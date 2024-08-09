@@ -10,25 +10,25 @@ permissions:
   contents: write
 
 jobs:
-  build_macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'microsoft'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: current
-          arguments: ":desktop:packageDmg"
-      - name: Upload MacOS Build
-        uses: actions/upload-artifact@v2
-        with:
-          name: macos-build
-          path: desktop/build/compose/binaries/main/dmg/composedesktop*.dmg
+#  build_macos:
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up JDK
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '21'
+#          distribution: 'microsoft'
+#      - name: Build with Gradle
+#        uses: gradle/gradle-build-action@v2
+#        with:
+#          gradle-version: current
+#          arguments: ":packageDistributionForCurrentOS"
+#      - name: Upload MacOS Build
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: macos-build
+#          path: desktop/build/compose/binaries/main/dmg/composedesktop*.dmg
   build_windows:
     runs-on: windows-latest
     steps:
@@ -42,12 +42,12 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: current
-          arguments: ":desktop:packageMsi"
+          arguments: ":packageDistributionForCurrentOS"
       - name: Upload Windows Build
         uses: actions/upload-artifact@v2
         with:
           name: windows-build
-          path: desktop/build/compose/binaries/main/msi/composedesktop*.msi
+          path: flat-parser/build/compose/binaries/main/msi/flat*.msi
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -64,5 +64,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/macos-build/composedesktop*.dmg
+#            build/macos-build/composedesktop*.dmg
             build/windows-build/composedesktop*.msi
