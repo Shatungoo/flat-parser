@@ -13,7 +13,7 @@ fun FilterParser(
     filter: Filter,
     onClick: () -> Unit
     ) {
-    Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
         FilterValueStr("Base url", filter.baseUrl)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)

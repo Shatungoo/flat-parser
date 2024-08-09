@@ -151,7 +151,7 @@ fun BigImageGallery(
                 onClick = {
                     if (selectedImage.value < urls.size - 1) {
                         selectedImage.value += 1
-                        bitmapImage.getImage(urls[3], id)
+                        bitmapImage.getImage(urls[selectedImage.value], id)
                     }
                 },
                 enabled = selectedImage.value < urls.size - 1,
