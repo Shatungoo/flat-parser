@@ -63,6 +63,5 @@ jobs:
       - name: Make Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-#            build/macos-build/composedesktop*.dmg
+          files:
             build/windows-build/composedesktop*.msi
