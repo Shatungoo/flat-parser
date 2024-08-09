@@ -2,8 +2,8 @@ name: Build
 
 on:
   push:
-    tags:
-      - "v**"
+#    tags:
+#      - "v**"
 
 permissions:
   contents: write
@@ -33,20 +33,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'microsoft'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: current
-          arguments: ":packageDistributionForCurrentOS"
+          cache: 'gradle'
+
+      - run: ./gradlew :packageDistributionForCurrentOS --no-daemon
+
+#      - name: Build with Gradle
+#        uses: gradle/gradle-build-action@v2
+#        with:
+#          gradle-version: current
+#          arguments: ":packageDistributionForCurrentOS"
       - name: Upload Windows Build
         uses: actions/upload-artifact@v2
         with:
           name: windows-build
-          path: flat-parser/build/compose/binaries/main/msi/flat*.msi
+          path: flat-parser/build/compose/binaries/main/msi/flat-parser-1.0.0.msi
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -63,4 +67,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files:
-            build/windows-build/composedesktop*.msi
+            build/windows-build/flat*.msi
