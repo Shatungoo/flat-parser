@@ -41,10 +41,13 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "com.helldaisy.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            windows{
+                includeAllModules = true
+            }
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi)
             packageName = "flat-parser"
             packageVersion = "1.0.0"
         }
