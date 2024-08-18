@@ -27,25 +27,30 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-encoding:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
-//    implementation ("androidx.sqlite:sqlite-ktx:2.4.0")
-//    implementation ("com.h2database:h2:2.2.224")
-//    implementation ("com.google.cloud:google-cloud-translate:2.46.0")
     implementation("org.jxmapviewer:jxmapviewer2:2.8")
 
     implementation("org.xerial:sqlite-jdbc:3.46.0.0")
     implementation("org.ktorm:ktorm-support-sqlite:${ktorm_version}")
     implementation("org.ktorm:ktorm-core:${ktorm_version}")
     implementation("org.ktorm:ktorm-jackson:${ktorm_version}")
-
 }
 
 compose.desktop {
     application {
+        buildTypes.release {
+            proguard {
+                version.set("7.4.0")
+//                isEnabled.set(true)
+//                optimize.set(false)
+//                obfuscate.set(false)
+                configurationFiles.from(project.file("compose-desktop.pro"))
+            }
+        }
         mainClass = "com.helldaisy.MainKt"
 
         nativeDistributions {
             windows{
-                includeAllModules = true
+                modules("java.instrument", "java.management", "java.sql.rowset", "jdk.unsupported")
             }
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi)
             packageName = "flat-parser"
