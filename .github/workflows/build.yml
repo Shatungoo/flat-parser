@@ -20,12 +20,13 @@ jobs:
           distribution: 'microsoft'
           cache: 'gradle'
 
-      - run: ./gradlew :packageDistributionForCurrentOS --no-daemon
+      - run: ./gradlew :createDistributable --no-daemon
+      - run: Compress-Archive build/compose/binaries/main/app/flat-parser/* flat-parser.zip
       - name: Upload Windows Build
         uses: actions/upload-artifact@v2
         with:
           name: windows-build
-          path: build/compose/binaries/main/msi/flat-parser*.msi
+          path: flat-parser.zip
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
