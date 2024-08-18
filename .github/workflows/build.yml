@@ -12,7 +12,7 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -20,25 +20,33 @@ jobs:
           distribution: 'microsoft'
           cache: 'gradle'
 
-      - run: ./gradlew :packageDistributionForCurrentOS --no-daemon
-      - name: Upload Windows Build
-        uses: actions/upload-artifact@v2
-        with:
-          name: windows-build
-          path: build/compose/binaries/main/msi/flat-parser*.msi
-
-  release:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs:
-      - "build_windows"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Builds
-        uses: actions/download-artifact@v3
-        with:
-          path: build
+      - run: ./gradlew :createDistributable --no-daemon
+      - run: Compress-Archive build/compose/binaries/main/app/flat-parser/* flat-parser.zip
       - name: Make Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files:
-            build/windows-build/flat*.msi
+           files:
+             flat-parser.zip
+#      - name: Upload Windows Build
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-build
+#          path: flat-parser.zip
+
+#  release:
+#    if: startsWith(github.ref, 'refs/tags/')
+#    needs:
+#      - "build_windows"
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Download Builds
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: build
+#      - name: Display structure of downloaded files
+#        run: ls -R
+#      - name: Make Release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          files:
+#            build/windows-build/flat-parser.zip
