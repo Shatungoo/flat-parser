@@ -21,12 +21,12 @@ jobs:
           cache: 'gradle'
 
       - run: ./gradlew :createDistributable --no-daemon
-      - run: Compress-Archive build/compose/binaries/main/app/flat-parser/* flat-parser.zip
+#      - run: Compress-Archive build/compose/binaries/main/app/flat-parser/* flat-parser.zip
       - name: Upload Windows Build
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: flat-parser.zip
+          name: flat-parser
+          path: build/compose/binaries/main/app/flat-parser/
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
