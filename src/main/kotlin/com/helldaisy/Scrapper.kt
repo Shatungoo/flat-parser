@@ -33,8 +33,8 @@ fun main() {
                 "real_estate_types" to "1",
                 "cities" to "1",
                 "currency_id" to "1",
-                "urbans" to "NaN,23,27,43,47,62,64",
-                "districts" to "3.4,3,4,6",
+                "urbans" to "NaN,10,23,27,43,47,62,64",
+                "districts" to "1,3.4,3,4,6",
                 "statuses" to "2",
                 "price_from" to "50000",
                 "price_to" to "300000",
@@ -220,7 +220,7 @@ data class Response(
         val is_super_vip: Boolean?,
         val user_statements_count: Int?,
     ) {
-        override fun toString(): String = json.encodeToString(Flat.serializer(), this)
+        override fun toString(): String = json.encodeToString(serializer(), this)
 //        fun merge(flat: Flat): Flat {
 //
 //        }

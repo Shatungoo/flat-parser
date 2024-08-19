@@ -56,7 +56,7 @@ fun MapView(
         }
         val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
         val center = MapData.getCenter(flatMap.keys.toList())
-        MapData.create(tileFactory, center, 4).Map {
+        MapData.create(tileFactory, center, 6).Map {
             ClickableWaypointLayer(
                 flatMap.map { (geo, flatList) ->
                     SelectablePoint(

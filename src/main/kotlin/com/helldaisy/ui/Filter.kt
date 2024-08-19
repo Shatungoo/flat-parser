@@ -62,9 +62,15 @@ data class Filter(
     @Serializable(with = MutableStateSerializer::class)
     val limit: MutableState<Int> = mutableStateOf(1000),
     @Serializable(with = MutableStateSerializer::class)
-    val lan: MutableState<Double?> = mutableStateOf(null),
+    val lanFrom: MutableState<Double?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
-    val lng: MutableState<Double?> = mutableStateOf(null),
+    val lanTo: MutableState<Double?> = mutableStateOf(null),
+
+    @Serializable(with = MutableStateSerializer::class)
+    val lngFrom: MutableState<Double?> = mutableStateOf(null),
+
+    @Serializable
+    val lngTo: MutableState<Double?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
     val lastUpdated: MutableState<Int> = mutableStateOf(7)
 ) {}

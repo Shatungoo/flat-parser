@@ -12,7 +12,6 @@ import org.ktorm.support.sqlite.insertOrUpdate
 import org.ktorm.support.sqlite.jsonExtract
 import java.nio.file.Paths
 import java.sql.SQLException
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 
@@ -39,8 +38,6 @@ fun main() {
         }
 
 }
-
-fun String.toFlat(): Response.Flat = json.decodeFromString(Response.Flat.serializer(), this)
 
 class Db(path: String = "./flats") {
     val connection = Database.connect("jdbc:sqlite:$path.db",
@@ -175,6 +172,10 @@ class Db(path: String = "./flats") {
                         FlatTable.lastUpdated.asExpression(),
                         ArgumentExpression(LocalDateTime.now().minusDays(it.toLong()).toString(), VarcharSqlType),
                         BooleanSqlType)}
+                filter.lanFrom.value?.let {expr += FlatTable.lan.greaterEq(it)}
+                filter.lanTo.value?.let {expr += FlatTable.lan.lt(it)}
+                filter.lngFrom.value?.let {expr += FlatTable.lng.greaterEq(it)}
+                filter.lngTo.value?.let {expr += FlatTable.lng.lt(it)}
             }
             .limit(filter.limit.value)
             .orderBy(FlatTable.lastUpdated.desc())
@@ -193,12 +194,4 @@ class Db(path: String = "./flats") {
             }
         return null
     }
-}
-
-fun FunctionExpression<Any>.dateTime(): FunctionExpression<LocalDateTime> {
-    return FunctionExpression(
-        functionName = "datetime",
-        arguments = this.arguments,
-        sqlType = LocalDateTimeSqlType
-    )
 }

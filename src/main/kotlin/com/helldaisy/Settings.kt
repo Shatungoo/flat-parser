@@ -4,7 +4,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.helldaisy.ui.Filter
 import com.helldaisy.ui.toFilterDb
-import com.helldaisy.ui.toMap
 import kotlinx.coroutines.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -92,7 +91,7 @@ private val settingsFile: () -> File
 fun loadSettings(): Settings {
     println("loadSettings: " + settingsFile().absolutePath)
     return if (settingsFile().exists()) {
-        Json.decodeFromString(settingsFile().readText())
+        Json{ ignoreUnknownKeys = true }.decodeFromString(settingsFile().readText())
     } else {
         Settings() // Return default settings if file doesn't exist
     }
