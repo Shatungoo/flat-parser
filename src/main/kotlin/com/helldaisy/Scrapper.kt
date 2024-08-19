@@ -80,12 +80,25 @@ suspend fun getFlats(
     return result.flatMap { json.decodeFromString<Response>(it).data.data }
 }
 
-suspend fun getFlatsPage(
+suspend fun search(urlParamMap: Map<String, String>, text: String): String {
+    val baseUrl = "https://api2.myhome.ge/api/ru/loc/suggestions?q=$text"
+    return get(baseUrl, urlParamMap)
+}
+
+suspend fun getUser(urlParamMap: Map<String, String>, userId: Int): String {
+    val baseUrl = "https://api-statements.tnet.ge/v1/statements?users=$userId"
+    return get(baseUrl, urlParamMap)
+}
+suspend fun getCities(urlParamMap: Map<String, String>): String {
+    val baseUrl = "https://api2.myhome.ge/api/ru/loc/cities"
+    return get(baseUrl, urlParamMap)
+}
+
+
+suspend fun get(
     baseUrl: String,
     urlParamMap: Map<String, String>,
-    page: Int = 0,
 ): String {
-    println("Getting page $page")
     val client = HttpClient(CIO) {
         install(ContentEncoding) {
             deflate(1.0F)
@@ -100,7 +113,6 @@ suspend fun getFlatsPage(
             urlParamMap.forEach { (key, value) ->
                 parameters.append(key, value)
             }
-            parameters.append("page", page.toString())
         }
         headers {
             append(
@@ -122,6 +134,20 @@ suspend fun getFlatsPage(
     }.request
     val response = req.call
     return response.body()
+}
+
+suspend fun getFlatsPage(
+    baseUrl: String,
+    urlParamMap: Map<String, String>,
+    page: Int = 0,
+): String {
+    println("Getting page $page")
+    val map = urlParamMap.toMutableMap()
+    map["page"] = page.toString()
+    return get(
+        baseUrl,
+        map.toMap(),
+    )
 }
 
 suspend fun downloadImage(url: String, file: File): File {
