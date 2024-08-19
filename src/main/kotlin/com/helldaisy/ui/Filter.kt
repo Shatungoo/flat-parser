@@ -65,6 +65,8 @@ data class Filter(
     val lan: MutableState<Double?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
     val lng: MutableState<Double?> = mutableStateOf(null),
+    @Serializable(with = MutableStateSerializer::class)
+    val lastUpdated: MutableState<Int> = mutableStateOf(7)
 ) {}
 
 
@@ -117,6 +119,7 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Floor", filter.floorFrom, filter.floorTo)
         FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
+        FilterExactInt("Updated, d", filter.lastUpdated as MutableState<Int?>)
         FilterExactInt("Limit", filter.limit as MutableState<Int?>)
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
@@ -177,6 +180,7 @@ fun FilterLstStr(name: String, value: MutableState<List<String>>) {
         )
     }
 }
+
 
 @Composable
 fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {

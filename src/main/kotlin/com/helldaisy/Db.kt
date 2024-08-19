@@ -5,29 +5,37 @@ import com.helldaisy.Db.FlatTable
 import com.helldaisy.ui.Filter
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
+import org.ktorm.expression.*
 import org.ktorm.jackson.json
 import org.ktorm.schema.*
 import org.ktorm.support.sqlite.insertOrUpdate
 import org.ktorm.support.sqlite.jsonExtract
 import java.nio.file.Paths
 import java.sql.SQLException
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 fun main() {
     val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
     val db = Db(path)
+//    println(path)
+//    val a =FlatTable.lastUpdated.gt(LocalDateTime.now().minusDays(1))
+    val a =
+        BinaryExpression(BinaryExpressionType.GREATER_THAN,
+            FlatTable.lastUpdated.asExpression(),
+            ArgumentExpression(LocalDateTime.now().minusDays(30).toString(), VarcharSqlType),
+            BooleanSqlType)
 
     val query = db.connection.from(FlatTable).select(FlatTable.flat)
-        .where(FlatTable.area.eq(3))
-            .whereWithConditions {
-                it += FlatTable.rooms.greaterEq(2)
-//                it += FlatTable.price.lt(200000)
-            }
-        .limit(2)
+        .where(a)
+        .orderBy(FlatTable.lastUpdated.asc())
+        .limit(5)
 
         println(query.sql)
+
         query.forEach {
-            println(it[FlatTable.flat]!!.room)
+            println(it[FlatTable.flat]?.last_updated)
         }
 
 }
@@ -35,14 +43,18 @@ fun main() {
 fun String.toFlat(): Response.Flat = json.decodeFromString(Response.Flat.serializer(), this)
 
 class Db(path: String = "./flats") {
-    val connection = Database.connect("jdbc:sqlite:$path.db")
+    val connection = Database.connect("jdbc:sqlite:$path.db",
+        dialect = org.ktorm.support.sqlite.SQLiteDialect())
 
     object FlatTable : Table<Nothing>("flats") {
         val id = int("id").primaryKey()
         val flat = json<Response.Flat>("flat")
-
-        val lastUpdated get() = this.flat.jsonExtract("$.last_updated", LocalDateTimeSqlType)
-
+        val lastUpdated: FunctionExpression<LocalDateTime>
+            get() = FunctionExpression(
+                functionName = "datetime",
+                arguments = listOf(this.flat.jsonExtract<String>("$.last_updated", VarcharSqlType).asExpression()),
+                sqlType = LocalDateTimeSqlType
+            )
         val price get() = this.flat.jsonExtract("$.price.2.price_total", IntSqlType)
         val priceSquare get() = this.flat.jsonExtract("$.price.2.price_square", IntSqlType)
 
@@ -57,7 +69,11 @@ class Db(path: String = "./flats") {
         val lan get() = this.flat.jsonExtract("$.lat", DoubleSqlType)
         val lng get() = this.flat.jsonExtract("$.lng", DoubleSqlType)
         val favorite get() = this.flat.jsonExtract("$.favorite", BooleanSqlType)
+
+
+
     }
+
 
     private fun createTableIfNotExistQuery(table: BaseTable<*>): String {
         val columns = table.columns.map {
@@ -154,6 +170,11 @@ class Db(path: String = "./flats") {
                 filter.district.value?.let {expr += FlatTable.district.inList(it)}
                 filter.urban.value?.let {expr += FlatTable.urban.inList(it)}
                 filter.street.value?.let {expr += FlatTable.street.inList(it)}
+                filter.lastUpdated.value.let {expr +=
+                    BinaryExpression(BinaryExpressionType.GREATER_THAN,
+                        FlatTable.lastUpdated.asExpression(),
+                        ArgumentExpression(LocalDateTime.now().minusDays(it.toLong()).toString(), VarcharSqlType),
+                        BooleanSqlType)}
             }
             .limit(filter.limit.value)
             .orderBy(FlatTable.lastUpdated.desc())
@@ -174,4 +195,10 @@ class Db(path: String = "./flats") {
     }
 }
 
-
+fun FunctionExpression<Any>.dateTime(): FunctionExpression<LocalDateTime> {
+    return FunctionExpression(
+        functionName = "datetime",
+        arguments = this.arguments,
+        sqlType = LocalDateTimeSqlType
+    )
+}

@@ -2,7 +2,6 @@ package com.helldaisy.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -20,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.helldaisy.Response
 import java.net.URI
 import java.net.URLEncoder
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterialApi::class)
 @Preview
@@ -54,20 +55,9 @@ fun FlatCard(
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             Row {
-                                Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
-                                    Text("Open")
-                                }
+                                OpenMyHome(flat)
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Button(onClick = {
-                                    val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
-                                    val text = flat.dynamic_title.toString()
-                                    val encodedUrl = URI.create(url).toASCIIString()
-                                    val encodedText = URLEncoder.encode(text, "UTF-8")
-                                    val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
-                                    openInBrowser(telegramUrl)
-                                }) {
-                                    Text("Share in Telegram")
-                                }
+                                ShareInTG(flat)
                             }
                         }
 
@@ -132,6 +122,13 @@ fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
         textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
         textField("Комнат", flat.room.toString())
         textField("Площадь ", flat.area.toString())
+        flat.last_updated?.let {
+            val ld = LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            val updated = java.time.Duration.between(LocalDateTime.now(), ld).abs()
+            if (updated.toDays() > 0) textField("Обновлено", updated.toDays().toString() + " дн назад")
+            else if (updated.toHours() > 0) textField("Обновлено", updated.toHours().toString() + " ч назад")
+            else textField("Обновлено", updated.toMinutes().toString() + " мин назад")
+        }
     }
 }
 
@@ -178,20 +175,9 @@ fun FlatCardView(
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         Row {
-                            Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
-                                Text("Open")
-                            }
+                            OpenMyHome(flat)
                             Spacer(modifier = Modifier.width(10.dp))
-                            Button(onClick = {
-                                val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
-                                val text = flat.dynamic_title.toString()
-                                val encodedUrl = URI.create(url).toASCIIString()
-                                val encodedText = URLEncoder.encode(text, "UTF-8")
-                                val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
-                                openInBrowser(telegramUrl)
-                            }) {
-                                Text("Share in Telegram")
-                            }
+                            ShareInTG(flat)
                         }
                     }
 
@@ -205,6 +191,27 @@ fun FlatCardView(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun OpenMyHome(flat: Response.Flat) {
+    Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
+        Text("Open")
+    }
+}
+
+@Composable
+private fun ShareInTG(flat: Response.Flat) {
+    Button(onClick = {
+        val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
+        val text = flat.dynamic_title.toString()
+        val encodedUrl = URI.create(url).toASCIIString()
+        val encodedText = URLEncoder.encode(text, "UTF-8")
+        val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
+        openInBrowser(telegramUrl)
+    }) {
+        Text("Share in Telegram")
     }
 }
 
