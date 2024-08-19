@@ -33,35 +33,26 @@ fun FlatCard(
 ) {
     val image = mutableStateOf(0)
 
-    Row {
-        Spacer(modifier = Modifier.weight(1f))
+    Center {
         Card(onClick = selectFlat, backgroundColor = Color.Transparent) {
-            Row {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(300.dp)) {
                     flat.images.mapNotNull { it.thumb }.let {
                         SmallImageGallery(it, flat.id.toString(), image,
                             onClick = { selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), image) })
                     }
                 }
-                Spacer(modifier = Modifier.width(50.dp))
-                Column {
+                Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Row {
+                    Row(modifier = Modifier.fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         FlatDescription(flat)
-                        Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.width(400.dp).fillMaxHeight()) {
-                            if (flat.comment != null) TextField(
-                                value = flat.comment.toString().replace("<br />", ""),
-                                onValueChange = { },
-                                readOnly = true,
-                            )
-                            Spacer(modifier = Modifier.width(50.dp))
+                            if (flat.comment != null) FlatComment(flat.comment, 8)
+                            Spacer(modifier = Modifier.fillMaxHeight(1f).weight(1f).defaultMinSize(10.dp))
                             ShareBtns(flat)
                         }
 
                         if (flat.lat != null && flat.lng != null) {
-                            Spacer(modifier = Modifier.width(10.dp))
                             Box(modifier = Modifier.size(250.dp)) {
                                 MapComposeSmall(flat.lat, flat.lng, 4)
                             }
@@ -71,8 +62,17 @@ fun FlatCard(
             }
 
         }
-        Spacer(modifier = Modifier.weight(1f))
     }
+}
+
+@Composable
+private fun FlatComment(comment: String, maxLines: Int = Int.MAX_VALUE) {
+    TextField(
+        maxLines = maxLines,
+        value = comment.replace("<br />", ""),
+        onValueChange = { },
+        readOnly = true,
+    )
 }
 
 
@@ -111,7 +111,7 @@ fun SmallFlatCard(
 
 @Composable
 fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
-    Column(modifier = Modifier.width(200.dp)) {
+    Column(modifier = Modifier.width(250.dp)) {
         if (!short) textField("Город", flat.city_name.toString())
         if (!short) textField("Район", flat.urban_name.toString())
         if (!short) textField("Район", flat.district_name.toString())
@@ -128,6 +128,7 @@ fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
             else if (updated.toHours() > 0) textField("Обновлено", updated.toHours().toString() + " ч назад")
             else textField("Обновлено", updated.toMinutes().toString() + " мин назад")
         }
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
@@ -177,11 +178,7 @@ fun FlatCardView(
                 }
 
                 ShareBtns(flat)
-                if (flat.comment != null) TextField(
-                    value = flat.comment.toString().replace("<br />", ""),
-                    onValueChange = { },
-                    readOnly = true,
-                )
+                if (flat.comment != null) FlatComment(flat.comment)
             }
 
         }
