@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +28,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun FlatCard(
     flat: Response.Flat,
-    selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = {_,_,_->},
-    selectFlat:() -> Unit = {},
+    selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
+    selectFlat: () -> Unit = {},
 ) {
     val image = mutableStateOf(0)
 
@@ -37,8 +38,10 @@ fun FlatCard(
         Card(onClick = selectFlat, backgroundColor = Color.Transparent) {
             Row {
                 Box(modifier = Modifier.size(300.dp)) {
-                    flat.images.mapNotNull { it.thumb }.let { SmallImageGallery(it, flat.id.toString(), image,
-                        onClick = {selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), image)}) }
+                    flat.images.mapNotNull { it.thumb }.let {
+                        SmallImageGallery(it, flat.id.toString(), image,
+                            onClick = { selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), image) })
+                    }
                 }
                 Spacer(modifier = Modifier.width(50.dp))
                 Column {
@@ -53,12 +56,8 @@ fun FlatCard(
                                 onValueChange = { },
                                 readOnly = true,
                             )
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row {
-                                OpenMyHome(flat)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                ShareInTG(flat)
-                            }
+                            Spacer(modifier = Modifier.width(50.dp))
+                            ShareBtns(flat)
                         }
 
                         if (flat.lat != null && flat.lng != null) {
@@ -122,7 +121,7 @@ fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
         textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
         textField("Комнат", flat.room.toString())
         textField("Площадь ", flat.area.toString())
-        flat.last_updated?.let {
+        if (!short) flat.last_updated?.let {
             val ld = LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             val updated = java.time.Duration.between(LocalDateTime.now(), ld).abs()
             if (updated.toDays() > 0) textField("Обновлено", updated.toDays().toString() + " дн назад")
@@ -146,40 +145,28 @@ fun textField(label: String, value: String) {
 fun FlatCardView(
     flat: Response.Flat,
     back: () -> Unit,
-    selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = {_,_,_->},
+    selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
 ) {
     val selectedImage = mutableStateOf(0)
     Column {
-        BackButtonAct { back() }
-        Center {
-            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h3)
-        }
-        Center {
-            Box(modifier = Modifier.size(500.dp)) {
-                SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage,
-                    onClick = {selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage)})
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Card {
+                BackButtonAct { back() }
+                Center {
+                    Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
+                }
             }
         }
-        Spacer(modifier = Modifier.width(50.dp))
-        Center {
-            Column {
-                Spacer(modifier = Modifier.width(10.dp))
-                Row {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(modifier = Modifier.weight(0.5f)) {
+                SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage,
+                    onClick = { selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage) })
+            }
+
+            Column(modifier = Modifier.fillMaxHeight().weight(0.5f).defaultMinSize(300.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                Row(modifier = Modifier) {
                     FlatDescription(flat)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(modifier = Modifier.width(400.dp).fillMaxHeight()) {
-                        if (flat.comment != null) TextField(
-                            value = flat.comment.toString().replace("<br />", ""),
-                            onValueChange = { },
-                            readOnly = true,
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Row {
-                            OpenMyHome(flat)
-                            Spacer(modifier = Modifier.width(10.dp))
-                            ShareInTG(flat)
-                        }
-                    }
 
                     if (flat.lat != null && flat.lng != null) {
                         Spacer(modifier = Modifier.width(10.dp))
@@ -188,30 +175,45 @@ fun FlatCardView(
                         }
                     }
                 }
+
+                ShareBtns(flat)
+                if (flat.comment != null) TextField(
+                    value = flat.comment.toString().replace("<br />", ""),
+                    onValueChange = { },
+                    readOnly = true,
+                )
             }
+
         }
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun OpenMyHome(flat: Response.Flat) {
-    Button(onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
-        Text("Open")
-    }
-}
-
-@Composable
-private fun ShareInTG(flat: Response.Flat) {
-    Button(onClick = {
-        val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
-        val text = flat.dynamic_title.toString()
-        val encodedUrl = URI.create(url).toASCIIString()
-        val encodedText = URLEncoder.encode(text, "UTF-8")
-        val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
-        openInBrowser(telegramUrl)
-    }) {
-        Text("Share in Telegram")
+private fun ShareBtns(flat: Response.Flat) {
+    Row(modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Button(
+            modifier = Modifier.fillMaxHeight(),
+            onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
+            Text("Open")
+//        Image(
+//            Icons.Default.,
+//            contentDescription = "Back",
+//        )
+        }
+        Button(modifier = Modifier.fillMaxHeight(), onClick = {
+            val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
+            val text = flat.dynamic_title.toString()
+            val encodedUrl = URI.create(url).toASCIIString()
+            val encodedText = URLEncoder.encode(text, "UTF-8")
+            val telegramUrl = "https://t.me/share/url?url=$encodedUrl&text=$encodedText"
+            openInBrowser(telegramUrl)
+        }) {
+            Image(
+                Icons.AutoMirrored.Default.Send,
+                contentDescription = "Back",
+            )
+        }
     }
 }
 

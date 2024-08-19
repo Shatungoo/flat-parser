@@ -42,6 +42,7 @@ fun main() = application {
                                     items(currentState.flats) { flat ->
                                         FlatCard(flat = flat,
                                             selectImage = { urls, id, selected -> state.value = ImageState(urls, id, selected, currentState) },
+                                            selectFlat = { state.value = FlatState(flat, currentState) }
                                         )
                                         Spacer(modifier = Modifier.height(10.dp))
                                     }
