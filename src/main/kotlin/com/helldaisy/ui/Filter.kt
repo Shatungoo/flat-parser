@@ -150,7 +150,6 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
             apply()
-            filterDbView.value = false
         }) {
             Text("Search")
         }
@@ -160,9 +159,9 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
 @Composable
 fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
     FilterText(name) {
-        Row(modifier = Modifier, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            FilterValueInt(from)
-            FilterValueInt(to)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            FilterValueInt(from, Modifier.weight(1f))
+            FilterValueInt(to, Modifier.weight(1f))
         }
     }
 }

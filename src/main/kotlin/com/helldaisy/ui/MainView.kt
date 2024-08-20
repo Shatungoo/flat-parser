@@ -7,29 +7,30 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldaisy.*
+import com.helldaisy.State
 
 val filterDbView = mutableStateOf(false)
 val filterParserView = mutableStateOf(false)
 
 @Composable
 fun MainView(settings: Settings, state: MutableState<State>) {
-    if (filterDbView.value) FilterView(state, settings)
-    else if (filterParserView.value)
-        FilterParser(settings.filterParser)
+
+    if (filterDbView.value) FilterDb(state, settings, close = { filterDbView.value = false })
+    else if (filterParserView.value) FilterParser1(settings.filterParser, onClose = { filterParserView.value = false })
+
 }
 
 @Composable
-fun FilterView(
+fun FilterDb(
     state: MutableState<State>,
     settings: Settings,
+    close: () -> Unit ={},
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -45,7 +46,7 @@ fun FilterView(
             }
             Box(
                 modifier = Modifier.fillMaxSize().clickable(onClick = {
-                    filterDbView.value = false
+                    close()
                 })
             )
         }
@@ -53,7 +54,9 @@ fun FilterView(
 }
 
 @Composable
-fun FilterParser(filter: Filter) {
+private fun FilterParser1(filter: Filter,
+                 onClose: () -> Unit ={},
+) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -64,12 +67,12 @@ fun FilterParser(filter: Filter) {
                 FilterParser(filter,
                     onClick = {
                         settings.saveSettings()
-                        filterParserView.value = false }
+                        onClose() }
                 )
             }
             Box(
                 modifier = Modifier.fillMaxSize().clickable(onClick = {
-                    filterParserView.value = false
+                    onClose()
                 })
             )
         }

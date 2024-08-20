@@ -34,7 +34,7 @@ fun main() = application {
             val scrollState = rememberLazyListState()
             when (val currentState = state.value){
                 is FlatsState -> {
-                        Column {
+                        Column() {
                             ControlPanel(state, settings)
                             Spacer(modifier = Modifier.height(10.dp))
                             Box(modifier = Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally)) {
