@@ -21,18 +21,23 @@ fun FilterParser(
         FilterExactInt("Real estate types", filter.realEstateTypes)
         FilterExactInt("Currency id", filter.currencyId)
         FilterWithClassifier("Cities", filter.cities, cities.cities)
-        FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
-        FilterWithClassifier(
-            "Urbans", filter.urbans,
-            cities.urbans(filter.cities.value.first(),
-                filter.districts.value.mapNotNull {
-                    try {
-                        it.toInt()
-                    } catch (e: NumberFormatException) {
-                        null
-                    }
-                }
-            ))
+        if (filter.cities.value.isNotEmpty()) {
+            FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
+
+            if (filter.districts.value.isNotEmpty()) {
+                FilterWithClassifier(
+                    "Urbans", filter.urbans,
+                    cities.urbans(filter.cities.value.first(),
+                        filter.districts.value.mapNotNull {
+                            try {
+                                it.toInt()
+                            } catch (e: NumberFormatException) {
+                                null
+                            }
+                        }
+                    ))
+            }
+        }
         FilterWithClassifier("Statuses", filter.statuses, status)
         FilterExactInt("Area types", filter.areaTypes)
         FilterExactInt("Pages", filter.limit as MutableState<Int?>)
@@ -66,8 +71,8 @@ fun Map<String, String>.toFilterDb(): Filter {
         realEstateTypes = mutableStateOf(this["real_estate_types"]!!.toInt()),
         cities = mutableStateOf(this["cities"]!!.split(",").map { it.toInt() }),
         currencyId = mutableStateOf(this["currency_id"]!!.toInt()),
-        urbans = mutableStateOf(this["urbans"]!!.split(",")),
-        districts = mutableStateOf(this["districts"]!!.split(",")),
+        urbans = mutableStateOf(this["urbans"]!!.split(",").map { it.toInt() }),
+        districts = mutableStateOf(this["districts"]!!.split(",").map { it.toInt() }),
         statuses = mutableStateOf(this["statuses"]!!.split(",").map { it.toInt() }),
         priceFrom = mutableStateOf(this["price_from"]!!.toInt()),
         priceTo = mutableStateOf(this["price_to"]!!.toInt()),

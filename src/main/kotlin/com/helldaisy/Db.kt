@@ -57,8 +57,9 @@ class Db(path: String = "./flats") {
 
         val area get() = this.flat.jsonExtract("$.area", IntSqlType)
         val city get() = this.flat.jsonExtract("$.city_name", VarcharSqlType)
-        val urban get() = this.flat.jsonExtract("$.urban_name", VarcharSqlType)
-        val district get() = this.flat.jsonExtract("$.district_name", VarcharSqlType)
+        val urbanId get() = this.flat.jsonExtract("$.urban_id", IntSqlType)
+        val districtId get() = this.flat.jsonExtract("$.district_id", IntSqlType)
+
         val street get() = this.flat.jsonExtract("$.street_id", VarcharSqlType)
         val floor get() = this.flat.jsonExtract("$.floor", IntSqlType)
         val totalFloors get() = this.flat.jsonExtract("$.total_floors", IntSqlType)
@@ -162,10 +163,22 @@ class Db(path: String = "./flats") {
                 filter.priceTo.value?.let {expr += FlatTable.price.lt(it)}
                 filter.roomsFrom.value?.let {expr += FlatTable.rooms.greaterEq(it)}
                 filter.roomsTo.value?.let {expr += FlatTable.rooms.lt(it)}
+//                filter.cities.value.let {
+//                    if (it.isNotEmpty()) {
+//                        expr += FlatTable.city.inList(it.map { it.toString() })
+//                    }
+//                }
+                filter.districts.value.let {
+                    if (it.isNotEmpty()) {
+                        expr += FlatTable.districtId.inList(it)
+                    }
+                }
+                filter.urbans.value.let {
+                    if (it.isNotEmpty()) {
+                        expr += FlatTable.urbanId.inList(it)
+                    }
+                }
 
-                filter.city.value?.let {expr += FlatTable.city.inList(it)}
-                filter.district.value?.let {expr += FlatTable.district.inList(it)}
-                filter.urban.value?.let {expr += FlatTable.urban.inList(it)}
                 filter.street.value?.let {expr += FlatTable.street.inList(it)}
                 filter.lastUpdated.value.let {expr +=
                     BinaryExpression(BinaryExpressionType.GREATER_THAN,

@@ -33,11 +33,11 @@ val cities = Json{ ignoreUnknownKeys = true }.decodeFromString<CityJson>(resourc
     @Serializable data class City(val id: Int,val display_name: String, val districts: List<District>)
     @Serializable data class District(val id: Int, val display_name: String, val urbans: List<Urban>)
     @Serializable data class Urban(val id: Int, val display_name: String)
-    val cities = data.map { it.id to it.display_name }.toMap()
-    fun districts(cityId: Int):Map<String, String> =
-        data.find { it.id == cityId }?.districts?.associate { it.id.toString() to it.display_name }
+    val cities = data.associate { it.id to it.display_name }
+    fun districts(cityId: Int):Map<Int, String> =
+        data.find { it.id == cityId }?.districts?.associate { it.id to it.display_name }
         ?: emptyMap()
-    fun urbans(cityId: Int, districtId: List<Int>):Map<String, String> =
-        data.find { it.id == cityId }?.districts?.find { it.id in districtId }?.urbans?.associate { it.id.toString() to it.display_name }
+    fun urbans(cityId: Int, districtId: List<Int>):Map<Int, String> =
+        data.find { it.id == cityId }?.districts?.find { it.id in districtId }?.urbans?.associate { it.id to it.display_name }
             ?: emptyMap()
 }

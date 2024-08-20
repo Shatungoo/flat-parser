@@ -17,6 +17,9 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helldaisy.MutableStateSerializer
+import com.helldaisy.cities
+import com.helldaisy.dealTypes
+import com.helldaisy.status
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
@@ -33,9 +36,9 @@ data class Filter(
     @Serializable(with = MutableStateSerializer::class)
     val currencyId: MutableState<Int?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
-    val urbans: MutableState<List<String>> = mutableStateOf(listOf()),
+    val urbans: MutableState<List<Int>> = mutableStateOf(listOf()),
     @Serializable(with = MutableStateSerializer::class)
-    val districts: MutableState<List<String>> = mutableStateOf(emptyList()),
+    val districts: MutableState<List<Int>> = mutableStateOf(emptyList()),
     @Serializable(with = MutableStateSerializer::class)
     val statuses: MutableState<List<Int>> = mutableStateOf(emptyList()),
     @Serializable(with = MutableStateSerializer::class)
@@ -60,12 +63,7 @@ data class Filter(
     val totalFloorsFrom: MutableState<Int?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
     val totalFloorsTo: MutableState<Int?> = mutableStateOf(null),
-    @Serializable(with = MutableStateSerializer::class)
-    val city: MutableState<String?> = mutableStateOf(null),
-    @Serializable(with = MutableStateSerializer::class)
-    val district: MutableState<String?> = mutableStateOf(null),
-    @Serializable(with = MutableStateSerializer::class)
-    val urban: MutableState<String?> = mutableStateOf(null),
+
     @Serializable(with = MutableStateSerializer::class)
     val street: MutableState<String?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
@@ -136,6 +134,19 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Floor", filter.floorFrom, filter.floorTo)
         FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
+        FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
+        FilterWithClassifier("Statuses", filter.statuses, status)
+        FilterWithClassifier("Cities", filter.cities, cities.cities)
+        if (filter.cities.value.isNotEmpty()) {
+            FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
+            if (filter.districts.value.isNotEmpty()) {
+                FilterWithClassifier(
+                    "Urbans", filter.urbans,
+                    cities.urbans(filter.cities.value.first(),
+                        filter.districts.value
+                    ))
+            }
+        }
         FilterExactInt("Updated, d", filter.lastUpdated as MutableState<Int?>)
         FilterExactInt("Limit", filter.limit as MutableState<Int?>)
         Spacer(modifier = Modifier.height(50.dp))
@@ -155,21 +166,6 @@ fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>
             FilterValueInt(from)
             FilterValueInt(to)
         }
-    }
-}
-
-
-@Composable
-fun FilterValueStr(name: String, value: MutableState<String>, modifier: Modifier = Modifier.fillMaxSize()) {
-    FilterText(name) {
-        TextField(
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
-            modifier = modifier,
-            value = value.value,
-            onValueChange = {
-                value.value = it
-            })
     }
 }
 
