@@ -1,6 +1,8 @@
 package com.helldaisy.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -14,7 +16,7 @@ fun FilterParser(
     filter: Filter,
     onClick: () -> Unit,
 ) {
-    Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+    Column(modifier = Modifier.padding(5.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(1.dp)) {
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)

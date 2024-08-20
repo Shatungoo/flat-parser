@@ -128,7 +128,7 @@ fun String.toLatin(): String {
 @Composable
 fun FilterDb(filter: Filter, apply: () -> Unit) {
 
-    Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+    Column(modifier = Modifier.padding(5.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(1.dp)) {
         FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)

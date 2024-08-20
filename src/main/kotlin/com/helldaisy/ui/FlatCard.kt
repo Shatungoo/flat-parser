@@ -3,6 +3,8 @@ package com.helldaisy.ui
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -149,7 +151,7 @@ fun FlatCardView(
     selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
 ) {
     val selectedImage = mutableStateOf(0)
-    Column {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Card {
                 BackButtonAct { back() }
