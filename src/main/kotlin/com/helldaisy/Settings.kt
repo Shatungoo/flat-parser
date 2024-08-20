@@ -37,11 +37,9 @@ val urlParamMap: Map<String, String> = mapOf(
 @Serializable
 data class Settings(
 
-//    @Serializable(with = MutableStateSerializer::class)
     val filterDb: Filter = Filter(),
 
     val filterParser: Filter = urlParamMap.toFilterDb().apply {
-        this.baseUrl.value = "https://api-statements.tnet.ge/v1/statements"
         limit.value = 2 },
 
     @Serializable(with = MutableStateSerializer::class)

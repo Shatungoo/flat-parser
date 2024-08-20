@@ -26,8 +26,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Filter(
     @Serializable(with = MutableStateSerializer::class)
-    val baseUrl: MutableState<String> = mutableStateOf(""),
-    @Serializable(with = MutableStateSerializer::class)
     val dealTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
     @Serializable(with = MutableStateSerializer::class)
     val realEstateTypes: MutableState<Int?> = mutableStateOf(null),

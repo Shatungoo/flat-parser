@@ -6,6 +6,7 @@ import com.helldaisy.ui.toFilterDb
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -33,8 +34,8 @@ fun main() {
                 "real_estate_types" to "1",
                 "cities" to "1",
                 "currency_id" to "1",
-                "urbans" to "NaN,10,23,27,43,47,62,64",
-                "districts" to "1,3.4,3,4,6",
+                "urbans" to "10,23,27,43,47,62,64",
+                "districts" to "1,3,4,6",
                 "statuses" to "2",
                 "price_from" to "50000",
                 "price_to" to "300000",
@@ -43,7 +44,6 @@ fun main() {
                 "area_types" to "1",
             ).toFilterDb().apply {
                 limit.value = 2
-                this.baseUrl.value = "https://api-statements.tnet.ge/v1/statements"
             },
         )
     }
@@ -67,13 +67,12 @@ val json = Json {
 suspend fun getFlats(
     filter: Filter,
 ): List<Response.Flat> {
-    val baseUrl = filter.baseUrl.value
     val urlParamMap = filter.toMap()
     val count = filter.limit.value
     val result = coroutineScope {
         (0..count).map { n ->
             async {
-                getFlatsPage(baseUrl, urlParamMap, n)
+                getFlatsPage(urlParamMap, n)
             }
         }
     }.awaitAll()
@@ -100,6 +99,10 @@ suspend fun get(
     urlParamMap: Map<String, String>,
 ): String {
     val client = HttpClient(CIO) {
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 3)
+            exponentialDelay()
+        }
         install(ContentEncoding) {
             deflate(1.0F)
             gzip(0.9F)
@@ -137,10 +140,10 @@ suspend fun get(
 }
 
 suspend fun getFlatsPage(
-    baseUrl: String,
     urlParamMap: Map<String, String>,
     page: Int = 0,
 ): String {
+    val baseUrl = "https://api-statements.tnet.ge/v1/statements"
     println("Getting page $page")
     val map = urlParamMap.toMutableMap()
     map["page"] = page.toString()
@@ -151,7 +154,12 @@ suspend fun getFlatsPage(
 }
 
 suspend fun downloadImage(url: String, file: File): File {
-    val client = HttpClient(CIO) {}
+    val client = HttpClient(CIO) {
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 3)
+            exponentialDelay()
+        }
+    }
     println("Downloading image from $url")
     val response = client.get(url)
     response.bodyAsChannel().copyAndClose(file.writeChannel())
