@@ -1,14 +1,16 @@
 package com.helldaisy.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.onClick
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowScope
@@ -76,36 +78,40 @@ fun optionsMenu(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BtnWithSettings(
     name: MutableState<String>,
     action: () -> Unit,
     settings: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier.clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colors.primary)
-    ) {
-        Row {
 
-            Button(
-                modifier = Modifier.fillMaxHeight(),
-                onClick = action,
-            ) {
-                Text(name.value)
-            }
-            Button(
-                modifier = Modifier.fillMaxHeight().width(50.dp),
-                onClick = settings
-            ) {
-                Icon(
-                    modifier = Modifier.size(50.dp),
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = null
-                )
+    Button(
+        modifier = Modifier,
+        onClick = action,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text(name.value)
+            Box(
+                Modifier
+                    .height(20.dp)
+                    .width(1.dp)
+                    .background(color = MaterialTheme.colors.onPrimary)
+            )
+
+            Box(modifier = Modifier.size(20.dp).align(Alignment.CenterVertically)
+                .onClick(onClick = { settings() })) {
+                CenterH {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
+
 }
 
 fun openInBrowser(url: String) {

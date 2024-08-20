@@ -1,10 +1,10 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.helldaisy.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.onClick
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
@@ -17,6 +17,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -31,80 +32,66 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-val cScale = mutableStateOf(ContentScale.Crop)
+val cScale = mutableStateOf(ContentScale.Fit)
 
 @Composable
 fun SmallImageGallery(
     urls: List<String>,
     id: String,
     selectedImage: MutableState<Int>,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     if (urls.isEmpty()) return
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-     bitmapImage.getImage(urls[selectedImage.value], id)
+    bitmapImage.getImage(urls[selectedImage.value], id)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
-        Row {
-            galleryButton(
-                onClick = {
-                    if (selectedImage.value > 0) selectedImage.value--
-                },
-                enabled = selectedImage.value > 0,
-                text = "<",
-                width = 30.dp
-            )
-            Box(modifier = Modifier.align(Alignment.CenterVertically)
-                .width(this@BoxWithConstraints.maxWidth - 60.dp)
-                .clickable(onClick= onClick)) {
-                bitmapImage.value?.let {
-                    Image(
-                        it,
-                        contentDescription = "",
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } ?: run {
-                    CircularProgressIndicator()
-                }
 
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(onClick = onClick)
+        ) {
+            bitmapImage.value?.let {
+                Image(
+                    it,
+                    contentDescription = "",
+                    modifier = Modifier.align(Alignment.Center).fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } ?: run {
+                CircularProgressIndicator()
             }
-
-            galleryButton(
-                onClick = {
-                    if (selectedImage.value < urls.size - 1) {
-                        selectedImage.value += 1
-                    }
-                },
-                enabled = selectedImage.value < urls.size - 1,
-                text = ">",
-                width = 30.dp
-            )
+            GalleryBtns(selectedImage, urls, id, bitmapImage)
         }
     }
 }
 
 @Composable
-fun CScale(){
-    Row { Spacer(modifier = Modifier.weight(1f))
+fun CScale() {
+    Row {
+        Spacer(modifier = Modifier.weight(1f))
         Column {
             Spacer(modifier = Modifier.weight(1f))
             Button(
-                modifier = Modifier,//.width(60.dp).height(30.dp),
+                modifier = Modifier,
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.Transparent,
                 ),
-                onClick ={
-                cScale.value = when (cScale.value) {
-                    ContentScale.Crop -> ContentScale.Inside
-                    else -> ContentScale.Crop
-                }
-            }){
-                Text(when (cScale.value) {
-                    ContentScale.Crop -> "Inside"
-                    else -> "Crop"
-                }, modifier = Modifier.width(60.dp))
+                onClick = {
+                    cScale.value = when (cScale.value) {
+                        ContentScale.Fit -> ContentScale.Inside
+                        else -> ContentScale.Fit
+                    }
+                }) {
+                Text(
+                    when (cScale.value) {
+                        ContentScale.Crop -> "Inside"
+                        else -> "Fit"
+                    }, modifier = Modifier.width(60.dp)
+                )
             }
-        } }
+        }
+    }
 }
 
 
@@ -114,51 +101,27 @@ fun BigImageGallery(
     urls: List<String>,
     id: String,
     selectedImage: MutableState<Int>,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     if (urls.isEmpty()) return
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
     bitmapImage.getImage(urls[selectedImage.value], id)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
-        Row {
-            galleryButton(
-                onClick = {
-                    if (selectedImage.value > 0)
-                        selectedImage.value--
-                },
-                enabled = selectedImage.value > 0,
-                text = "<",
-//                icon = Icons.AutoMirrored.Default.ArrowBack,
-                width = 60.dp
-            )
-            Box(modifier = Modifier.align(Alignment.CenterVertically).width(this@BoxWithConstraints.maxWidth - 120.dp)
-                .fillMaxHeight()
-                .onClick { onClick() }) {
-                bitmapImage.value?.let {
-                    Image(
-                        it,
-                        contentDescription = "",
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize(),
-                        contentScale = cScale.value
-                    )
-                    CScale()
-                } ?: run {
-                    CircularProgressIndicator()
-                }
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .onClick { onClick() }) {
+            bitmapImage.value?.let {
+                Image(
+                    it,
+                    contentDescription = "",
+                    modifier = Modifier.align(Alignment.Center).fillMaxSize(),
+                    contentScale = cScale.value
+                )
+                CScale()
+            } ?: run {
+                CircularProgressIndicator()
             }
-
-            galleryButton(
-                onClick = {
-                    if (selectedImage.value < urls.size - 1) {
-                        selectedImage.value += 1
-                        bitmapImage.getImage(urls[selectedImage.value], id)
-                    }
-                },
-                enabled = selectedImage.value < urls.size - 1,
-                text = ">",
-//                icon = Icons.AutoMirrored.Default.ArrowForward,
-                width = 60.dp
-            )
+            GalleryBtns(selectedImage, urls, id, bitmapImage, size = 60.dp)
         }
     }
 }
@@ -176,28 +139,59 @@ fun MutableState<BitmapPainter?>.getImage(
 
 
 @Composable
+fun GalleryBtns(
+    selectedImage: MutableState<Int>, urls: List<String>, id: String, bitmapImage: MutableState<BitmapPainter?>,
+    size: Dp = 40.dp,
+) {
+    Row {
+        galleryButton(
+            onClick = {
+                if (selectedImage.value > 0)
+                    selectedImage.value--
+            },
+            enabled = selectedImage.value > 0,
+            icon = Icons.AutoMirrored.Default.ArrowBack,
+            width = size
+        )
+        Spacer(modifier = Modifier.weight(1f))
+
+        galleryButton(
+            onClick = {
+                if (selectedImage.value < urls.size - 1) {
+                    selectedImage.value += 1
+                    bitmapImage.getImage(urls[selectedImage.value], id)
+                }
+            },
+            enabled = selectedImage.value < urls.size - 1,
+            icon = Icons.AutoMirrored.Default.ArrowForward,
+            width = size
+        )
+    }
+}
+
+@Composable
 fun galleryButton(
     onClick: () -> Unit,
     enabled: Boolean = true,
-    text: String = "",
-    icon: ImageVector? = null,
+    icon: ImageVector ,
     width: Dp = 30.dp,
 ) {
-    Button(
-        modifier = Modifier.width(width)
-            .fillMaxHeight(),
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = Color.Transparent,
-            disabledBackgroundColor = Color.Transparent
-        ),
-        enabled = enabled,
-        onClick = onClick
+    Box(
+        modifier = Modifier
+            .width(width)
+            .fillMaxHeight()
+            .clickable(enabled = enabled, onClick = onClick)
+
     ) {
-        if (text != "") Text(text)
-        if (icon!=null) Image(
-            icon,
-            contentDescription = "Back",
-        )
+        CenterH {
+            CenterV {
+                Image(
+                    icon,
+                    contentDescription = "Back",
+                    modifier = Modifier.shadow(2.dp, shape = RoundedCornerShape(10.dp)),
+                )
+            }
+        }
     }
 }
 

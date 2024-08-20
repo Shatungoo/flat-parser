@@ -35,7 +35,7 @@ fun FlatCard(
 ) {
     val image = mutableStateOf(0)
 
-    Center {
+    CenterH {
         Card(onClick = selectFlat, backgroundColor = Color.Transparent) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(300.dp)) {
@@ -151,11 +151,11 @@ fun FlatCardView(
     selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
 ) {
     val selectedImage = mutableStateOf(0)
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Card {
                 BackButtonAct { back() }
-                Center {
+                CenterH {
                     Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
                 }
             }
@@ -166,7 +166,7 @@ fun FlatCardView(
                     onClick = { selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage) })
             }
 
-            Column(modifier = Modifier.fillMaxHeight().weight(0.5f).defaultMinSize(300.dp),
+            Column(modifier = Modifier.fillMaxHeight().weight(0.5f).defaultMinSize(300.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Row(modifier = Modifier) {
                     FlatDescription(flat)
@@ -195,10 +195,6 @@ private fun ShareBtns(flat: Response.Flat) {
             modifier = Modifier.fillMaxHeight(),
             onClick = { openInBrowser("https://www.myhome.ge/ru/pr/${flat.id}/details/") }) {
             Text("Open")
-//        Image(
-//            Icons.Default.,
-//            contentDescription = "Back",
-//        )
         }
         Button(modifier = Modifier.fillMaxHeight(), onClick = {
             val url = "https://www.myhome.ge/ru/pr/${flat.id}/details/"
@@ -217,13 +213,23 @@ private fun ShareBtns(flat: Response.Flat) {
 }
 
 @Composable
-fun Center(content: @Composable () -> Unit) {
+fun CenterH(content: @Composable () -> Unit) {
     Row {
         Spacer(modifier = Modifier.weight(1f))
         content()
         Spacer(modifier = Modifier.weight(1f))
     }
 }
+
+@Composable
+fun CenterV(content: @Composable () -> Unit) {
+    Column {
+        Spacer(modifier = Modifier.weight(1f))
+        content()
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
 
 
 @Composable

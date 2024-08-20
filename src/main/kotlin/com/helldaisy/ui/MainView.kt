@@ -8,6 +8,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -30,7 +31,7 @@ fun MainView(settings: Settings, state: MutableState<State>) {
 fun FilterDb(
     state: MutableState<State>,
     settings: Settings,
-    close: () -> Unit ={},
+    close: () -> Unit = {},
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -54,8 +55,9 @@ fun FilterDb(
 }
 
 @Composable
-private fun FilterParser1(filter: Filter,
-                 onClose: () -> Unit ={},
+private fun FilterParser1(
+    filter: Filter,
+    onClose: () -> Unit = {},
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -67,7 +69,8 @@ private fun FilterParser1(filter: Filter,
                 FilterParser(filter,
                     onClick = {
                         settings.saveSettings()
-                        onClose() }
+                        onClose()
+                    }
                 )
             }
             Box(
@@ -89,9 +92,12 @@ fun ControlPanel(
     val current = state.value as FlatsState
     val flats = settings.flats.value
     val filterDb = settings.filterDb
-    Card {
+    Card(modifier = Modifier.fillMaxWidth().height(45.dp).padding(3.dp)) {
         Row(
-            modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)
+//            modifier = Modifier.height(40.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+
         ) {
             val btnName = mutableStateOf("Update DB")
             BtnWithSettings(name = btnName, action = {
@@ -102,12 +108,15 @@ fun ControlPanel(
 
                     state.value = current.copy(flats = flatsUpdate)
                 }
-            }, settings = {
-                filterParserView.value = true
-            })
-            controlPanelButton(onClick = {
-                filterDbView.value = true
-            }, text = "Filter")
+            }, settings = { filterParserView.value = true })
+            BtnWithSettings(name = mutableStateOf("Search"),
+                action = {
+                    val flatsUpdate = db.getFlats(filterDb)
+                    state.value = current.copy(flats = flatsUpdate)
+                },
+                settings = { filterDbView.value = true }
+            )
+
             controlPanelButton(onClick = {
                 state.value = MapState(flats = flats, previous = current)
             }, text = "Show on map")
@@ -123,7 +132,7 @@ fun controlPanelButton(
     text: String? = null,
 ) {
     Button(
-        modifier = Modifier.fillMaxHeight(), onClick = onClick
+        modifier = Modifier, onClick = onClick
     ) {
         if (image != null) Image(painterResource(image), "image")
         if (text != null) Text(text)
