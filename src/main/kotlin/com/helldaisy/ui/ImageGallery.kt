@@ -73,10 +73,12 @@ fun CScale() {
         Column {
             Spacer(modifier = Modifier.weight(1f))
             Button(
-                modifier = Modifier,
+                modifier = Modifier.width(80.dp).height(40.dp),
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.Transparent,
+
                 ),
+
                 onClick = {
                     cScale.value = when (cScale.value) {
                         ContentScale.Fit -> ContentScale.Inside
@@ -117,11 +119,11 @@ fun BigImageGallery(
                     modifier = Modifier.align(Alignment.Center).fillMaxSize(),
                     contentScale = cScale.value
                 )
-                CScale()
             } ?: run {
                 CircularProgressIndicator()
             }
             GalleryBtns(selectedImage, urls, id, bitmapImage, size = 60.dp)
+            CScale()
         }
     }
 }
@@ -173,7 +175,7 @@ fun GalleryBtns(
 fun galleryButton(
     onClick: () -> Unit,
     enabled: Boolean = true,
-    icon: ImageVector ,
+    icon: ImageVector,
     width: Dp = 30.dp,
 ) {
     Box(
