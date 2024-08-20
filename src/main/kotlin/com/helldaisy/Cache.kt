@@ -1,59 +1,50 @@
 package com.helldaisy
 
+import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 
 fun main() {
     val id = "123"
     val url = "https://api-statements.tnet.ge/uploads/statements/1mcs02f666c7d4f87f6e_thumb.jpg"
-//    getFile(id, url)
-//    val c = get(id) { url }
-//    println(c)
 }
 
-val cash: MutableMap<Any, ByteArray> = mutableMapOf()
+val byteCash  = LocalCache<String, ByteArray>()
 
-interface ICache {
-    fun get(key: Any, block: () -> Any): Any
+interface ICache<N, T> {
+    operator fun get(key: N, block: () -> T): T
 }
-class LocalCache:ICache {
-    private val csh = mutableMapOf<Any, Any>()
-    override fun get(key: Any, block: () -> Any): Any {
+class LocalCache<N, T>:ICache<N, T> {
+    private val csh = mutableMapOf<N, T>()
+    override fun get(key: N, block: () -> T): T {
         return csh[key] ?: block().also { csh[key] = it }
     }
 }
 
-suspend fun getFile(imageId: String, url: String): ByteArray? {
+class FileCache:ICache<String, ByteArray> {
+
+    override fun get(key: String, block: () -> ByteArray): ByteArray {
+        Paths.get("").parent
+        return block()
+    }
+}
+
+fun getFile(imageId: String, url: String): ByteArray? {
     try {
         val dir = getTemporalDirectory(imageId)
         val fileName = getFileNameFromUrl(url)
         val id = "$imageId-$fileName"
-        if (!cash.containsKey(id)) {
+
+        return byteCash.get(id){
             val file = Paths.get(dir.absolutePath, fileName).toFile()
-            putToCache(file, url, id)
+            if (file.exists()) file.readBytes()
+            else runBlocking { downloadImage(url, file).readBytes() }
         }
-        return cash[id]
     } catch (e: Exception) {
         println("Error uploading image: $url ${e.message}")
         return null
     }
-}
-
-private suspend fun putToCache(
-    file: File,
-    url: String,
-    id: String,
-): Boolean {
-    if (file.exists()) {
-        println("Load from file: $url")
-        cash[id] = file.readBytes()
-        return true
-    }
-    downloadImage(url, file).let {
-        println("Load from url: $url")
-        cash[id] = it.readBytes()
-    }
-    return false
 }
 
 fun getTemporalDirectory(flatId: String): File {
