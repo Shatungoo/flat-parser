@@ -158,18 +158,13 @@ suspend fun downloadImage(url: String, file: File): File {
     return file
 }
 
-@Serializable
-data class Response(
+@Serializable data class Response(
     val data: Data,
     val result: Boolean,
 ) {
-    @Serializable
-    data class Data(
-        val data: List<Flat>,
-    )
+    @Serializable data class Data(val data: List<Flat>)
 
-    @Serializable
-    data class Flat(
+    @Serializable data class Flat(
         val id: Int,
         val deal_type_id: Int?,
         val real_estate_type_id: Int?,
@@ -221,9 +216,6 @@ data class Response(
         val user_statements_count: Int?,
     ) {
         override fun toString(): String = json.encodeToString(serializer(), this)
-//        fun merge(flat: Flat): Flat {
-//
-//        }
     }
 
     @Serializable

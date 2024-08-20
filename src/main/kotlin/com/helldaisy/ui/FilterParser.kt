@@ -6,6 +6,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.helldaisy.*
 
 
 @Composable
@@ -17,13 +18,13 @@ fun FilterParser(
         FilterValueStr("Base url", filter.baseUrl)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
-        FilterLstInt("Deal types", filter.dealTypes)
+        FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
         FilterExactInt("Real estate types", filter.realEstateTypes)
-        FilterLstInt("Cities", filter.cities)
         FilterExactInt("Currency id", filter.currencyId)
-        FilterLstStr("Urbans", filter.urbans)
-        FilterLstStr("Districts", filter.districts)
-        FilterLstInt("Statuses", filter.statuses)
+        FilterWithClassifier("Cities", filter.cities, cities.cities)
+        FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
+        FilterWithClassifier("Urbans", filter.urbans, urbans)
+        FilterWithClassifier("Statuses", filter.statuses, status)
         FilterExactInt("Area types", filter.areaTypes)
         FilterExactInt("Pages", filter.limit as MutableState<Int?>)
         Button(onClick = { onClick() }) {

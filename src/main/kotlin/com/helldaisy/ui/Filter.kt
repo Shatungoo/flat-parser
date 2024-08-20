@@ -1,12 +1,25 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.helldaisy.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.onClick
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helldaisy.MutableStateSerializer
 import kotlinx.serialization.Serializable
@@ -176,49 +189,75 @@ fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fill
         })
 }
 
-@Composable
-fun FilterLstStr(name: String, value: MutableState<List<String>>) {
-    FilterText(name) {
-        TextField(
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
-            value = value.value.joinToString(","),
-            onValueChange = { value.value = it.split(",") },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
 
 @Composable
 fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {
     FilterText(name) {
-        TextField(
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
-            modifier = modifier,
-            value = if (value.value != null) value.value.toString() else "",
-            onValueChange = { it ->
-                value.value =
-                    it.filter { it.isDigit() }.let { if (it.isEmpty()) null else it.toInt() }
-            })
+        FilterValueInt(value, modifier)
     }
 }
 
 @Composable
-fun FilterLstInt(name: String, value: MutableState<List<Int>>) {
-    FilterText(name) {
-        TextField(
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
-            value = value.value.joinToString(","),
-            onValueChange = { value.value = it.split(",")
-                .map { it.trim().toInt() }
-            },
-            modifier = Modifier.fillMaxSize()
+fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>, close: () -> Unit = {}) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.background(MaterialTheme.colors.surface)
+        .padding(3.dp)
+        .border(1.dp, MaterialTheme.colors.primary)) {
+        for (value in classifier.keys) {
+            if (value !in values.value) {
+                TagBtn(classifier[value] ?: "Unknown($value)", onClick = {
+                    values.value += value
+                    close()
+                })
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun TagBtn(name: String, onClick: () -> Unit = {}) {
+    Row(modifier = Modifier.height(25.dp).border(
+        1.dp,
+        MaterialTheme.colors.primary,
+        shape = RoundedCornerShape(5.dp)
+    ).padding(5.dp),
+        verticalAlignment = Alignment.Top,
+
+    ) {
+        Text(name, modifier = Modifier
+            .align(Alignment.CenterVertically)
+            .fillMaxHeight(),
+            maxLines = 1,
+            style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.6f)),
+            )
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Close",
+            modifier = Modifier.padding(start = 5.dp).onClick(onClick = onClick)
         )
     }
 }
+
+@Composable
+fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classifier: Map<T,String>) {
+    val open = mutableStateOf(false)
+    FilterText(name) {
+        for (value in values.value) {
+            TagBtn(classifier[value] ?: "Unknown", onClick = {
+                values.value = values.value.filter { it != value }
+            })
+        }
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = "Add",
+            modifier = Modifier.padding(start = 5.dp).onClick(onClick = {
+                open.value = !open.value
+            })
+        )
+        if (open.value) ClassifierAdd(classifier, values, close = { open.value = false })
+    }
+}
+
 
 @Composable
 fun FilterText(name: String, content: @Composable RowScope.() -> Unit = {}) {
