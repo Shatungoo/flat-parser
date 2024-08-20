@@ -12,10 +12,9 @@ import com.helldaisy.*
 @Composable
 fun FilterParser(
     filter: Filter,
-    onClick: () -> Unit
-    ) {
+    onClick: () -> Unit,
+) {
     Column(modifier = Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-        FilterValueStr("Base url", filter.baseUrl)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
@@ -23,7 +22,17 @@ fun FilterParser(
         FilterExactInt("Currency id", filter.currencyId)
         FilterWithClassifier("Cities", filter.cities, cities.cities)
         FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
-        FilterWithClassifier("Urbans", filter.urbans, urbans)
+        FilterWithClassifier(
+            "Urbans", filter.urbans,
+            cities.urbans(filter.cities.value.first(),
+                filter.districts.value.mapNotNull {
+                    try {
+                        it.toInt()
+                    } catch (e: NumberFormatException) {
+                        null
+                    }
+                }
+            ))
         FilterWithClassifier("Statuses", filter.statuses, status)
         FilterExactInt("Area types", filter.areaTypes)
         FilterExactInt("Pages", filter.limit as MutableState<Int?>)

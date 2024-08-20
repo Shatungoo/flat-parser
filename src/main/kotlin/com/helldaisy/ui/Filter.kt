@@ -1,20 +1,15 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package com.helldaisy.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +17,7 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helldaisy.MutableStateSerializer
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -87,7 +83,7 @@ data class Filter(
     val lngTo: MutableState<Double?> = mutableStateOf(null),
 
     @Serializable(with = MutableStateSerializer::class)
-    val lastUpdated: MutableState<Int> = mutableStateOf(7)
+    val lastUpdated: MutableState<Int> = mutableStateOf(7),
 ) {}
 
 
@@ -155,8 +151,10 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
 @Composable
 fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {
     FilterText(name) {
-            FilterValueInt(from, Modifier.weight(1f))
-            FilterValueInt(to, Modifier.weight(1f))
+        Row(modifier = Modifier, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            FilterValueInt(from)
+            FilterValueInt(to)
+        }
     }
 }
 
@@ -177,7 +175,7 @@ fun FilterValueStr(name: String, value: MutableState<String>, modifier: Modifier
 
 
 @Composable
-fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {
+fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier) {
     TextField(
         singleLine = true,
         textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
@@ -191,7 +189,7 @@ fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier.fill
 
 
 @Composable
-fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier = Modifier.fillMaxSize()) {
+fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier = Modifier) {
     FilterText(name) {
         FilterValueInt(value, modifier)
     }
@@ -199,15 +197,29 @@ fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier =
 
 @Composable
 fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>, close: () -> Unit = {}) {
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.background(MaterialTheme.colors.surface)
-        .padding(3.dp)
-        .border(1.dp, MaterialTheme.colors.primary)) {
+    FlowRow(
+        verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier
+            .background(MaterialTheme.colors.surface, RoundedCornerShape(5.dp))
+            .border(1.dp, MaterialTheme.colors.primary, RoundedCornerShape(5.dp))
+    ) {
         for (value in classifier.keys) {
             if (value !in values.value) {
-                TagBtn(classifier[value] ?: "Unknown($value)", onClick = {
-                    values.value += value
-                    close()
-                })
+                Box(
+                    modifier = Modifier
+                        .padding(3.dp)
+                        .border(1.dp, MaterialTheme.colors.primary, RoundedCornerShape(5.dp))
+                ) {
+                    Text(
+                        classifier[value] ?: "Unknown($value)",
+                        modifier = Modifier
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                            .onClick(onClick = {
+                                values.value += value
+                                close()
+                            }),
+                        style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.3f))
+                    )
+                }
             }
         }
     }
@@ -216,20 +228,23 @@ fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>,
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TagBtn(name: String, onClick: () -> Unit = {}) {
-    Row(modifier = Modifier.height(25.dp).border(
-        1.dp,
-        MaterialTheme.colors.primary,
-        shape = RoundedCornerShape(5.dp)
-    ).padding(5.dp),
+    Row(
+        modifier = Modifier.height(25.dp).border(
+            1.dp,
+            MaterialTheme.colors.primary,
+            shape = RoundedCornerShape(5.dp)
+        ).padding(5.dp),
         verticalAlignment = Alignment.Top,
 
-    ) {
-        Text(name, modifier = Modifier
-            .align(Alignment.CenterVertically)
-            .fillMaxHeight(),
+        ) {
+        Text(
+            name,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .fillMaxHeight(),
             maxLines = 1,
             style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.6f)),
-            )
+        )
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = "Close",
@@ -238,34 +253,47 @@ fun TagBtn(name: String, onClick: () -> Unit = {}) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classifier: Map<T,String>) {
-    val open = mutableStateOf(false)
+fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classifier: Map<T, String>) {
+    var open by remember { mutableStateOf(false) }
     FilterText(name) {
-        for (value in values.value) {
-            TagBtn(classifier[value] ?: "Unknown", onClick = {
-                values.value = values.value.filter { it != value }
-            })
+        FlowRow(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            for (value in values.value) {
+                TagBtn(classifier[value] ?: "Unknown($value)", onClick = {
+                    values.value = values.value.filter { it != value }
+                })
+            }
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add",
+                modifier = Modifier.padding(start = 5.dp)
+                    .onClick(onClick = {
+                        open = !open
+                    })
+            )
         }
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = "Add",
-            modifier = Modifier.padding(start = 5.dp).onClick(onClick = {
-                open.value = !open.value
-            })
-        )
-        if (open.value) ClassifierAdd(classifier, values, close = { open.value = false })
+
     }
+    if (open) ClassifierAdd(classifier, values, close = { open = false })
 }
 
 
 @Composable
-fun FilterText(name: String, content: @Composable RowScope.() -> Unit = {}) {
+fun FilterText(
+    name: String,
+    modifier: Modifier = Modifier.padding(5.dp).fillMaxWidth(),
+    content: @Composable RowScope.() -> Unit = {},
+) {
     Row(
-        modifier = Modifier.padding(5.dp).fillMaxWidth().height(50.dp),
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Text(name, style = MaterialTheme.typography.h3, modifier = Modifier.width(100.dp))
+        Text(name, style = MaterialTheme.typography.h3, modifier = Modifier.height(50.dp).width(100.dp))
         content(this)
     }
 }
