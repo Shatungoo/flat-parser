@@ -67,14 +67,22 @@ fun FlatCard(
     }
 }
 
+
 @Composable
-private fun FlatComment(comment: String, maxLines: Int = Int.MAX_VALUE) {
+private fun FlatComment(comment: String, maxLines: Int = Int.MAX_VALUE, modifier: Modifier = Modifier) {
+//    val clipboardManager = LocalClipboardManager.current
     TextField(
+        modifier = modifier,
         maxLines = maxLines,
         value = comment.replace("<br />", ""),
         onValueChange = { },
         readOnly = true,
     )
+//    IconButton(onClick = {
+//        clipboardManager.setText(AnnotatedString(comment))
+//    }) {
+//        Icon(Icons.Default.Share, contentDescription = "Copy")
+//    }
 }
 
 
@@ -88,7 +96,7 @@ fun SmallFlatCard(
     flat.images.firstOrNull()?.thumb?.let {
         bitmapImage.getImage(it, flat.id.toString())
     }
-    Card(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
+    Card(modifier = Modifier, onClick = onClick) {
         Column() {
             Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
             Row {
@@ -150,6 +158,8 @@ fun FlatCardView(
     back: () -> Unit,
     selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
 ) {
+//    val user = mutableStateOf("")
+//scrapper
     val selectedImage = mutableStateOf(0)
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -160,17 +170,25 @@ fun FlatCardView(
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Box(modifier = Modifier.weight(0.5f)) {
                 SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage,
                     onClick = { selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage) })
             }
 
-            Column(modifier = Modifier.fillMaxHeight().weight(0.5f).defaultMinSize(300.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(
+                modifier = Modifier.fillMaxHeight().weight(0.5f)
+                    .defaultMinSize(300.dp)
+                    .width(IntrinsicSize.Min)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
                 Row(modifier = Modifier) {
                     FlatDescription(flat)
-
+                    Spacer(modifier = Modifier.weight(1f))
                     if (flat.lat != null && flat.lng != null) {
                         Spacer(modifier = Modifier.width(10.dp))
                         Box(modifier = Modifier.size(250.dp).padding(5.dp), contentAlignment = Alignment.Center) {
@@ -180,7 +198,7 @@ fun FlatCardView(
                 }
 
                 ShareBtns(flat)
-                if (flat.comment != null) FlatComment(flat.comment)
+                if (flat.comment != null) FlatComment(flat.comment, modifier = Modifier.fillMaxWidth())
             }
 
         }
@@ -189,7 +207,7 @@ fun FlatCardView(
 }
 
 @Composable
-private fun ShareBtns(flat: Response.Flat) {
+private fun ShareBtns(flat: Response.Flat, content: @Composable () -> Unit = {}) {
     Row(modifier = Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         Button(
             modifier = Modifier.fillMaxHeight(),
@@ -209,6 +227,7 @@ private fun ShareBtns(flat: Response.Flat) {
                 contentDescription = "Back",
             )
         }
+        content()
     }
 }
 
@@ -229,7 +248,6 @@ fun CenterV(content: @Composable () -> Unit) {
         Spacer(modifier = Modifier.weight(1f))
     }
 }
-
 
 
 @Composable

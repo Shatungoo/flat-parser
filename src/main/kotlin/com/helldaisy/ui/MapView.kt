@@ -30,8 +30,6 @@ fun main() = singleWindowApplication {
 
     val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
     val db = Db(path)
-    val flats = db.getFlats()
-    val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
 }
 
 
@@ -68,15 +66,14 @@ fun MapView(
         }
         Column {
             BackButtonAct { back() }
-            LazyColumn(modifier = Modifier.width(400.dp).padding(5.dp).background(MaterialTheme.colors.surface)) {
+            LazyColumn(modifier = Modifier//.width(400.dp)
+                .padding(5.dp).background(MaterialTheme.colors.surface),
+                verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 item {
 
                 }
                 selectedFlats.value.map { flat ->
-                    item {
-                        SmallFlatCard(flat, onClick = { selectFlat(flat) })
-                        Spacer(modifier = Modifier.height(2.dp))
-                    }
+                    item { SmallFlatCard(flat, onClick = { selectFlat(flat) }) }
                 }
             }
         }

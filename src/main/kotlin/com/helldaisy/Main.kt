@@ -19,7 +19,7 @@ import com.helldaisy.ui.*
 
 val settings = loadSettings()
 val state: MutableState<State> = mutableStateOf(FlatsState(
-    flats = settings.flats.value,
+    flats = settings.db.getFlats(settings.filterDb),
 ))
 
 
@@ -37,13 +37,12 @@ fun main() = application {
                         Column() {
                             ControlPanel(state, settings)
                             Box(modifier = Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally)) {
-                                LazyColumn(userScrollEnabled = true, state = scrollState) {
+                                LazyColumn(userScrollEnabled = true, state = scrollState, verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                     items(currentState.flats) { flat ->
                                         FlatCard(flat = flat,
                                             selectImage = { urls, id, selected -> state.value = ImageState(urls, id, selected, currentState) },
                                             selectFlat = { state.value = FlatState(flat, currentState) }
                                         )
-                                        Spacer(modifier = Modifier.height(10.dp))
                                     }
                                 }
                             }

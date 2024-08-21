@@ -98,22 +98,27 @@ fun MapData.ClickableWaypointLayer(selectablePoints: List<SelectablePoint>, onCl
             .clipToBounds()
             .onPointerEvent(PointerEventType.Press) {event ->
                 val click = event.changes.first().position
+                val deslectionList: MutableList<SelectablePoint> = mutableListOf()
                 val list = selectablePoints.mapNotNull { data ->
                     val pointLocal = tileFactory.geoToPixel(data.geoPoistion, zoomLevel).toPoint() - Point(
                         cent.x - size.width / 2,
                         cent.y - size.height / 2
                     )
+
                     val waypointIcon =
                         fromBottomCenter(pointLocal, waypointImage.width.toDouble(), waypointImage.height.toDouble())
                     if (waypointIcon.contains(click)) {
                         data.select()
                         data.data!!
                     } else if (data.selected.value) {
-                        data.deselect()
+                        deslectionList.add(data)
                         null
                     } else null
                 }
-                if (list.isNotEmpty()) onClick(list)
+                if (list.isNotEmpty()) {
+                    deslectionList.forEach { it.deselect() }
+                    onClick(list)
+                }
             }
             .pointerInput(Unit) {
                 detectTransformGestures { c, pan, _, _ -> moveCenter(pan) }

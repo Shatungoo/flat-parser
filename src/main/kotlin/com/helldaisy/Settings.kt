@@ -19,7 +19,7 @@ import java.nio.file.Paths
 import kotlin.time.Duration
 
 
-val urlParamMap: Map<String, String> = mapOf(
+val SearchParams: Map<String, String> = mapOf(
     "deal_types" to "1",
     "real_estate_types" to "1",
     "cities" to "1",
@@ -39,7 +39,7 @@ data class Settings(
 
     val filterDb: Filter = Filter(),
 
-    val filterParser: Filter = urlParamMap.toFilterDb().apply {
+    val filterParser: Filter = SearchParams.toFilterDb().apply {
         limit.value = 2 },
 
     @Serializable(with = MutableStateSerializer::class)
@@ -53,8 +53,6 @@ data class Settings(
 
     @Transient val db: Db = Db(dbPath),
 
-    @Transient
-    val flats: MutableState<List<Response.Flat>> = mutableStateOf(db.getFlats(filterDb)),
 ) {
     init {
         CoroutineScope(Dispatchers.Default).launch {

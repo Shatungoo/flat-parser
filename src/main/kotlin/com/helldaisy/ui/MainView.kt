@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,7 +32,7 @@ fun MainView(settings: Settings, state: MutableState<State>) {
 fun FilterDb(
     state: MutableState<State>,
     settings: Settings,
-    close: () -> Unit = {},
+    close: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -43,6 +44,7 @@ fun FilterDb(
                 FilterDb(settings.filterDb) {
                     settings.saveSettings()
                     state.value = FlatsState(flats = settings.db.getFlats(settings.filterDb))
+                    close()
                 }
             }
             Box(
@@ -57,7 +59,7 @@ fun FilterDb(
 @Composable
 private fun FilterParser1(
     filter: Filter,
-    onClose: () -> Unit = {},
+    onClose: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -90,7 +92,7 @@ fun ControlPanel(
 ) {
     val db = settings.db
     val current = state.value as FlatsState
-    val flats = settings.flats.value
+    val flats = current.flats
     val filterDb = settings.filterDb
     Card(modifier = Modifier.fillMaxWidth().height(45.dp).padding(3.dp)) {
         Row(
@@ -100,6 +102,7 @@ fun ControlPanel(
 
         ) {
             val btnName = mutableStateOf("Update DB")
+            //Get flats from site
             BtnWithSettings(name = btnName, action = {
                 btnName.value = "In progress..."
                 updateDb(db) {
@@ -107,12 +110,16 @@ fun ControlPanel(
                     btnName.value = "Update DB"
 
                     state.value = current.copy(flats = flatsUpdate)
+                    filterParserView.value = false
                 }
             }, settings = { filterParserView.value = true })
+            // Get flats from db
             BtnWithSettings(name = mutableStateOf("Search"),
                 action = {
                     val flatsUpdate = db.getFlats(filterDb)
                     state.value = current.copy(flats = flatsUpdate)
+                    filterDbView.value = false
+
                 },
                 settings = { filterDbView.value = true }
             )
@@ -120,6 +127,11 @@ fun ControlPanel(
             controlPanelButton(onClick = {
                 state.value = MapState(flats = flats, previous = current)
             }, text = "Show on map")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("Flats: ${flats.size}", modifier = Modifier.padding(5.dp),
+//                fontStyle = MaterialTheme.typography.subtitle1.fontStyle,
+                color = MaterialTheme.colors.onPrimary)
+
 
         }
     }

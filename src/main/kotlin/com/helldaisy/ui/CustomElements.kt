@@ -101,7 +101,7 @@ fun BtnWithSettings(
             )
 
             Box(modifier = Modifier.size(20.dp).align(Alignment.CenterVertically)
-                .onClick(onClick = { settings() })) {
+                .onClick(onClick = settings)) {
                 CenterH {
                     Icon(
                         imageVector = Icons.Filled.Settings,
