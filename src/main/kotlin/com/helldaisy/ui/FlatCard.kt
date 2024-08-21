@@ -130,7 +130,7 @@ fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
         textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")
         textField("Этаж", "${flat.floor.toString()}/${flat.total_floors.toString()}")
         textField("Комнат", flat.room.toString())
-        textField("Площадь ", flat.area.toString())
+        textField("Площадь ", flat.area.toString() + " м²")
         if (!short) flat.last_updated?.let {
             val ld = LocalDateTime.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             val updated = java.time.Duration.between(LocalDateTime.now(), ld).abs()

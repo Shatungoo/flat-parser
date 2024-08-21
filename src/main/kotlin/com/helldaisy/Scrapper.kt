@@ -33,7 +33,8 @@ import kotlin.collections.toMutableMap
 fun main() {
 //        val a = runBlocking { getUser(1887702) }
 //        println(a)
-    val a = runBlocking { getPhones("e77acb65-f185-4d2f-810d-692f41b39e19") }
+    val a = runBlocking { getReports(18909004) }
+    println(a)
 //    val path = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
 //    val db = Db(path)
 //
@@ -296,4 +297,11 @@ suspend fun getUser(userId: Int): String {
 suspend fun getCities(urlParamMap: Map<String, String>): String {
     val baseUrl = "https://api2.myhome.ge/api/ru/loc/cities"
     return get(baseUrl, urlParamMap)
+}
+
+//https://api2.myhome.ge/api/ru/collection/reports/?product_id=18909004&token=undefined
+//https://api2.myhome.ge/api/ru/collection/reports/?product_id=1890902204&token=undefined
+suspend fun getReports(productId: Int): String {
+    val baseUrl = "https://api2.myhome.ge/api/ru/collection/reports/?product_id=$productId&token=undefined"
+    return get(baseUrl)
 }

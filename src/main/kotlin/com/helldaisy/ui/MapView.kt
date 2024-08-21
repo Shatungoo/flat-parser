@@ -54,24 +54,24 @@ fun MapView(
         }
         val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
         val center = MapData.getCenter(flatMap.keys.toList())
+        val selectableWaypoints = flatMap.map { (geo, flatList) ->
+            SelectablePoint(
+                geoPoistion = geo,
+                data = flatList,
+            )
+        }
         MapData.create(tileFactory, center, 6).Map {
             ClickableWaypointLayer(
-                flatMap.map { (geo, flatList) ->
-                    SelectablePoint(
-                        geoPoistion = geo,
-                        data = flatList,
-                    )
-                },
+                selectablePoints = selectableWaypoints,
                 onClick = { selectedFlats.value = it.map { data -> data as List<Response.Flat> }.flatten() })
         }
         Column {
             BackButtonAct { back() }
-            LazyColumn(modifier = Modifier//.width(400.dp)
-                .padding(5.dp).background(MaterialTheme.colors.surface),
-                verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                item {
-
-                }
+            LazyColumn(
+                modifier = Modifier//.width(400.dp)
+                    .padding(5.dp).background(MaterialTheme.colors.surface),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 selectedFlats.value.map { flat ->
                     item { SmallFlatCard(flat, onClick = { selectFlat(flat) }) }
                 }
@@ -80,7 +80,6 @@ fun MapView(
 
     }
 }
-
 
 
 @Composable

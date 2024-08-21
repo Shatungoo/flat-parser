@@ -10,6 +10,8 @@ import org.ktorm.jackson.json
 import org.ktorm.schema.*
 import org.ktorm.support.sqlite.insertOrUpdate
 import org.ktorm.support.sqlite.jsonExtract
+import org.ktorm.support.sqlite.jsonPatch
+import org.ktorm.support.sqlite.jsonRemove
 import java.nio.file.Paths
 import java.sql.SQLException
 import java.time.LocalDateTime
@@ -54,7 +56,7 @@ class Db(path: String = "./flats") {
             )
         val price get() = this.flat.jsonExtract("$.price.2.price_total", IntSqlType)
         val priceSquare get() = this.flat.jsonExtract("$.price.2.price_square", IntSqlType)
-
+        val removeFavorite = this.flat.jsonRemove("$.favorite")
         val area get() = this.flat.jsonExtract("$.area", IntSqlType)
         val city get() = this.flat.jsonExtract("$.city_name", VarcharSqlType)
         val urbanId get() = this.flat.jsonExtract("$.urban_id", IntSqlType)
@@ -68,10 +70,16 @@ class Db(path: String = "./flats") {
         val lng get() = this.flat.jsonExtract("$.lng", DoubleSqlType)
         val favorite get() = this.flat.jsonExtract("$.favorite", BooleanSqlType)
 
-
-
     }
 
+    fun ColumnDeclaring<*>.jsonSet(right: ColumnDeclaring<*>): FunctionExpression<String> {
+        // json_patch(left, right)
+        return FunctionExpression(
+            functionName = "json_set",
+            arguments = listOf(this, right).map { it.asExpression() },
+            sqlType = VarcharSqlType
+        )
+    }
 
     private fun createTableIfNotExistQuery(table: BaseTable<*>): String {
         val columns = table.columns.map {
@@ -111,8 +119,7 @@ class Db(path: String = "./flats") {
                 set(it.id, flat.id)
                 set(it.flat, flat)
                 onConflict{
-//                    set(it.flat, flat)
-                    doNothing()
+                    set(it.flat, flat)
                 }
             }
         } catch (e: SQLException) {
@@ -149,9 +156,11 @@ class Db(path: String = "./flats") {
             }.toList()
     }
 
-    fun getFlats(filter: Filter): List<Response.Flat> {
+    fun getFlats(filter: Filter ): List<Response.Flat> {
         val flats:MutableList<Response.Flat> = mutableListOf()
-        val query =connection.from(FlatTable).select(FlatTable.flat)
+        val query =connection.from(FlatTable).select(
+            FlatTable.flat
+        )
             .whereWithConditions {expr ->
                 filter.areaFrom.value?.let {expr += FlatTable.area.greaterEq(it)}
                 filter.areaTo.value?.let {expr += FlatTable.area.lt(it)}
@@ -159,10 +168,6 @@ class Db(path: String = "./flats") {
                 filter.floorTo.value?.let {expr += FlatTable.floor.lt(it)}
                 filter.totalFloorsFrom.value?.let {expr += FlatTable.totalFloors.greaterEq(it)}
                 filter.totalFloorsTo.value?.let {expr += FlatTable.totalFloors.gt(it)}
-                filter.priceFrom.value?.let {expr += FlatTable.price.greaterEq(it)}
-                filter.priceTo.value?.let {expr += FlatTable.price.lt(it)}
-                filter.roomsFrom.value?.let {expr += FlatTable.rooms.greaterEq(it)}
-                filter.roomsTo.value?.let {expr += FlatTable.rooms.lt(it)}
 //                filter.cities.value.let {
 //                    if (it.isNotEmpty()) {
 //                        expr += FlatTable.city.inList(it.map { it.toString() })
