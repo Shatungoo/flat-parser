@@ -47,7 +47,7 @@ fun FlatCard(
                 Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
                     Row(modifier = Modifier.fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        FlatDescription(flat)
+                        FlatDescription(flat, modifier = Modifier.width(250.dp))
                         Column(modifier = Modifier.width(400.dp).fillMaxHeight()) {
                             if (flat.comment != null) FlatComment(flat.comment, 8)
                             Spacer(modifier = Modifier.fillMaxHeight(1f).weight(1f).defaultMinSize(10.dp))
