@@ -172,7 +172,6 @@ fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>
 fun FilterValueInt(value: MutableState<Int?>, modifier: Modifier = Modifier) {
     TextField(
         singleLine = true,
-        textStyle = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.5f)),
         modifier = modifier,
         value = if (value.value != null) value.value.toString() else "",
         onValueChange = { it ->
@@ -235,7 +234,7 @@ fun TagBtn(name: String, onClick: () -> Unit = {}) {
         Text(
             name,
             modifier = Modifier
-                .align(Alignment.CenterVertically)
+                .align(Alignment.Bottom)
                 .fillMaxHeight(),
             maxLines = 1,
             style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.6f)),
