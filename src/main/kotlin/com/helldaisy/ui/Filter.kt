@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -253,8 +254,9 @@ fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classi
     var open by remember { mutableStateOf(false) }
     FilterText(name) {
         FlowRow(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier
+                .heightIn(min = 50.dp).fillMaxWidth() ,
+            verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Bottom),
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             for (value in values.value) {
