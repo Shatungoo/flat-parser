@@ -96,10 +96,11 @@ fun SmallFlatCard(
     flat.images.firstOrNull()?.thumb?.let {
         bitmapImage.getImage(it, flat.id.toString())
     }
-    Card(modifier = Modifier, onClick = onClick) {
+    Card(modifier = Modifier
+        .padding(horizontal = 10.dp), onClick = onClick) {
         Column() {
-            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
-            Row {
+            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h5, modifier = Modifier.offset(x = 3.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(100.dp)) {
                     SmallImageGallery(flat.images.mapNotNull { it.thumb }, flat.id.toString(), mutableStateOf(0),
                         onClick = {})
@@ -112,16 +113,15 @@ fun SmallFlatCard(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(50.dp))
-                FlatDescription(flat, short = true)
+                FlatDescription(flat, short = true, modifier = Modifier.defaultMinSize(minWidth = 200.dp))
             }
         }
     }
 }
 
 @Composable
-fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
-    Column(modifier = Modifier.width(250.dp)) {
+fun FlatDescription(flat: Response.Flat, short: Boolean = false, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         if (!short) textField("Город", flat.city_name.toString())
         if (!short) textField("Район", flat.urban_name.toString())
         if (!short) textField("Район", flat.district_name.toString())
