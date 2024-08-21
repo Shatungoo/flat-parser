@@ -20,7 +20,7 @@ fun FilterParser(
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
-        FilterExactInt("Real estate types", filter.realEstateTypes)
+        FilterWithClassifier("Real estate types", filter.realEstateTypes, realEstateType)
         FilterExactInt("Currency id", filter.currencyId)
         FilterWithClassifier("Cities", filter.cities, cities.cities)
         if (filter.cities.value.isNotEmpty()) {
@@ -53,7 +53,7 @@ fun FilterParser(
 fun Filter.toMap(): Map<String, String> {
     return mapOf(
         "deal_types" to dealTypes.value.joinToString(","),
-        "real_estate_types" to realEstateTypes.value.toString(),
+        "real_estate_types" to realEstateTypes.value.joinToString(","),
         "cities" to cities.value.joinToString(","),
         "currency_id" to currencyId.value.toString(),
         "urbans" to urbans.value.joinToString(","),
@@ -70,7 +70,8 @@ fun Filter.toMap(): Map<String, String> {
 fun Map<String, String>.toFilterDb(): Filter {
     return Filter(
         dealTypes = mutableStateOf(this["deal_types"]!!.split(",").map { it.toInt() }),
-        realEstateTypes = mutableStateOf(this["real_estate_types"]!!.toInt()),
+        realEstateTypes = mutableStateOf(this["real_estate_types"]!!.split(",").map { it.toInt() }),
+
         cities = mutableStateOf(this["cities"]!!.split(",").map { it.toInt() }),
         currencyId = mutableStateOf(this["currency_id"]!!.toInt()),
         urbans = mutableStateOf(this["urbans"]!!.split(",").map { it.toInt() }),

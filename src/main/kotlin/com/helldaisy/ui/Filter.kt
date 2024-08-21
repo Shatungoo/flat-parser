@@ -28,7 +28,7 @@ data class Filter(
     @Serializable(with = MutableStateSerializer::class)
     val dealTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
     @Serializable(with = MutableStateSerializer::class)
-    val realEstateTypes: MutableState<Int?> = mutableStateOf(null),
+    val realEstateTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
     @Serializable(with = MutableStateSerializer::class)
     val cities: MutableState<List<Int>> = mutableStateOf(emptyList()),
     @Serializable(with = MutableStateSerializer::class)
@@ -192,6 +192,7 @@ fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier =
 fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>, close: () -> Unit = {}) {
     FlowRow(
         verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier
+            .fillMaxWidth()
             .background(MaterialTheme.colors.surface, RoundedCornerShape(5.dp))
             .border(1.dp, MaterialTheme.colors.primary, RoundedCornerShape(5.dp))
     ) {
