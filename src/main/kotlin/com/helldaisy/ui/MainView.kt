@@ -108,7 +108,7 @@ fun ControlPanel(
             //Get flats from site
             BtnWithSettings(name = btnName, action = {
                 btnName.value = "In progress..."
-                updateDb(db, settings.filterDb) {
+                updateDb(db, settings.filterParser) {
                     val flatsUpdate = db.getFlats(filterDb)
                     btnName.value = "Update DB"
 
@@ -132,10 +132,7 @@ fun ControlPanel(
             }, text = "Show on map")
             Spacer(modifier = Modifier.weight(1f))
             Text("Flats: ${flats.size}", modifier = Modifier.padding(5.dp),
-//                fontStyle = MaterialTheme.typography.subtitle1.fontStyle,
                 color = MaterialTheme.colors.onPrimary)
-
-
         }
     }
 }

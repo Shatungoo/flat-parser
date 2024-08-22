@@ -30,10 +30,10 @@ fun FilterParser(
                 }.map {it.entries }.flatten().associate { it.key to it.value }
             )
             if (filter.districts.value.isNotEmpty()) {
-                FilterWithClassifier("Districts", filter.districts,
-                    filter.cities.value.mapNotNull {
-                        locationsCl.districts[it]
-                    }.map {it.entries }.flatten().associate { it.key to it.value })
+                FilterWithClassifier(
+                    "Urbans", filter.urbans,
+                    locationsCl.urbans(filter.cities.value, filter.districts.value)
+                )
             }
         }
         FilterWithClassifier("Statuses", filter.statuses, status)
