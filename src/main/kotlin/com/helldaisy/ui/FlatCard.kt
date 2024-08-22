@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 import com.helldaisy.Response
+import com.helldaisy.cacheImages
 import java.net.URI
 import java.net.URLEncoder
 import java.time.LocalDateTime
@@ -175,6 +176,7 @@ fun FlatCardView(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(modifier = Modifier.weight(0.5f)) {
+                cacheImages(flat.id.toString(), flat.images.mapNotNull { it.large })
                 SmallImageGallery(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage,
                     onClick = { selectImage(flat.images.mapNotNull { it.large }, flat.id.toString(), selectedImage) })
             }

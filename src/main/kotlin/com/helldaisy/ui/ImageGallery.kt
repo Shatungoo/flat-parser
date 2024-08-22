@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.helldaisy.cacheImages
 import com.helldaisy.getFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -107,6 +108,7 @@ fun BigImageGallery(
 ) {
     if (urls.isEmpty()) return
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
+    cacheImages(id, urls)
     bitmapImage.getImage(urls[selectedImage.value], id)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
         Box(modifier = Modifier
