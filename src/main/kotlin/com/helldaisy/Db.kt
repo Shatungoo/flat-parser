@@ -40,7 +40,7 @@ fun main() {
 
 class Db(path: String = "./flats") {
     val connection = Database.connect("jdbc:sqlite:$path.db",
-        dialect = org.ktorm.support.sqlite.SQLiteDialect())
+        dialect = SQLiteDialect())
 
     object FlatTable : Table<Nothing>("flats") {
         val id = int("id").primaryKey()

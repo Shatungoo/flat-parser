@@ -48,14 +48,15 @@ data class Settings(
     @Serializable(with = MutableStateSerializer::class)
     val theme: MutableState<String> = mutableStateOf("Default"),
 
-    @Transient
-    private val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString(),
-
-    @Transient val db: Db = Db(dbPath),
 
     @Transient
     val favorites: SnapshotStateList<Int> = mutableStateListOf(),
-)
+){
+    @Transient
+    private val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
+
+    val db by lazy { Db(dbPath) }
+}
 
 
 val settingsPath = run {

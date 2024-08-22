@@ -22,8 +22,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-val settings = loadSettings()
-val state: MutableState<State> = mutableStateOf(FlatsState())
+val settings by lazy {  loadSettings() }
+val state: MutableState<State> by lazy {
+    CoroutineScope(Dispatchers.Default).launch {
+        state.value = FlatsState(
+            flats = settings.db.getFlats(settings.filterDb)
+        )
+        update(settings.filterParser, settings.db)
+    }
+    mutableStateOf(FlatsState())
+}
 
 fun main() = application {
     Window(
@@ -34,13 +42,7 @@ fun main() = application {
     ) {
         Theme {
             val scrollState = rememberLazyListState()
-            CoroutineScope(Dispatchers.Default).launch {
-                update(settings.filterParser, settings.db)
-                state.value = FlatsState(
-                    flats = settings.db.getFlats(settings.filterDb)
-                )
 
-            }
             when (val currentState = state.value){
                 is FlatsState -> {
                         Column() {

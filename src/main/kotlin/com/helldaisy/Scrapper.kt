@@ -73,10 +73,10 @@ fun updateDb(db: Db,
 
 fun Response.Flat.toFlatString(): String = json.encodeToString(Response.Flat.serializer(), this)
 
-val json = Json {
+val json by lazy { Json {
     ignoreUnknownKeys = true
     coerceInputValues = true
-}
+}}
 
 suspend fun getFlats(
     filter: Filter,

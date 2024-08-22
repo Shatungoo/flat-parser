@@ -1,6 +1,7 @@
 package com.helldaisy
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -34,33 +35,37 @@ class FileCache : ICache<String, ByteArray> {
     }
 }
 
-fun getFile(imageId: String, url: String): ByteArray? {
+fun getFile(imageId: String, url: String, priority: Int=10): ByteArray? {
+    val dir = getTemporalDirectory(imageId)
+    val fileName = getFileNameFromUrl(url)
     try {
-        val dir = getTemporalDirectory(imageId)
-        val fileName = getFileNameFromUrl(url)
         val id = "$imageId-$fileName"
 
         return byteCash.get(id) {
-            downloader.download(url, Paths.get(dir.absolutePath, fileName), 10).readBytes()
+            val file = Paths.get(dir.absolutePath, fileName).toFile()
+            (if (file.exists()) file
+//            else runBlocking { downloadImage(url, file) }).readBytes()
+            else runBlocking { downloader.download(url, Paths.get(dir.absolutePath, fileName), priority) }
+                    ).readBytes()
 
         }
     } catch (e: Exception) {
-        println("Error uploading image: $url ${e.message}")
+        println("Error get file image: $url ${e.message}")
+        Paths.get(dir.absolutePath, fileName).toFile().delete()
         return null
     }
 }
+
 fun cacheImage(imageId: String, url: String, priority: Int) {
     cacheImages(imageId, listOf(url), priority)
 }
 
-fun cacheImages(imageId: String, urls: List<String>, priority: Int=5) {
-    CoroutineScope(Dispatchers.IO).launch {
+fun cacheImages(imageId: String, urls: List<String>, priority: Int = 5) {
+    val dir = getTemporalDirectory(imageId)
+    urls.forEach {
         try {
-            val dir = getTemporalDirectory(imageId)
-            urls.forEach {
-                val fileName = getFileNameFromUrl(it)
-                downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
-            }
+            val fileName = getFileNameFromUrl(it)
+            downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
         } catch (e: Exception) {
             println("Error caching images: ${e.message}")
         }
@@ -81,8 +86,7 @@ fun getFileNameFromUrl(url: String): String {
 
 class ImageDownloader {
     private val downloadQueue = PriorityBlockingQueue<(DownloadTask)>()
-    private val semaphore = Semaphore(10)
-    private val semaphore2 = Semaphore(1)
+    private val inProgress: MutableMap<String, CompletableDeferred<File>> = mutableMapOf()
 
     data class DownloadTask(
         var priority: Int,
@@ -93,17 +97,21 @@ class ImageDownloader {
         override fun compareTo(other: DownloadTask): Int = this.priority.compareTo(other.priority)
     }
 
-    fun downloadCache(url: String, filePath: Path, priority: Int=5) {
+    fun downloadCache(url: String, filePath: Path, priority: Int = 5) {
         val file = filePath.toFile()
-        if (file.exists()) return
+        if (file.exists() || inProgress.contains(url)) return
         addTask(url, file, priority)
     }
 
-    private fun addTask(url: String,
-                        file: File,
-                        priority: Int=5,
-                        result: CompletableDeferred<File> = CompletableDeferred()): CompletableDeferred<File> {
-        semaphore2.acquire()
+    private fun addTask(
+        url: String,
+        file: File,
+        priority: Int = 5,
+        result: CompletableDeferred<File> = CompletableDeferred()
+    ): CompletableDeferred<File> {
+        if (inProgress[url] != null) {
+            return inProgress[url]!!
+        }
         downloadQueue.filter { it.url == url }.let {
             if (it.isNotEmpty()) {
                 if (it.first().priority < priority)
@@ -113,36 +121,44 @@ class ImageDownloader {
         }
 
         downloadQueue.add(DownloadTask(priority, url, file, result))
-        semaphore2.release()
-        processQueue()
+        if (!lock) processQueue()
         return result
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun download(url: String, filePath: Path, priority: Int=10): File {
+    suspend fun download(url: String, filePath: Path, priority: Int = 10): File {
         val file = filePath.toFile()
-        if (file.exists() && downloadQueue.none { it.url != url }) return file
-        return addTask(url, file, priority).getCompleted()
+        inProgress[url]?.let { return it.await() }
+        downloadQueue.find { it.url == url }?.let {
+            if (it.priority < priority) it.priority = priority
+            return it.result.await()
+        }
+        return addTask(url, file, priority).await()
     }
 
+    private var lock = false
+    val scope = CoroutineScope(Dispatchers.IO.limitedParallelism(5))
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun processQueue() {
+        if (lock) return
+        lock = true
         while (downloadQueue.isNotEmpty()) {
-            semaphore.acquire()
-            val task = downloadQueue.poll()
-            if (task != null) {
-                runBlocking {
-                    println(downloadQueue.size)
-                    try {
-                        val file = downloadImage(task.url, task.file)
-                        task.result.complete(file)
-                    } catch (e: Exception) {
-                        task.result.completeExceptionally(e)
-                    } finally {
-                        semaphore.release()
+                val task = downloadQueue.poll()
+                if (task != null) {
+                    runBlocking { scope.launch {
+                        try {
+                            inProgress[task.url] = task.result
+                            val file = downloadImage(task.url, task.file)
+                            task.result.complete(file)
+                        } catch (e: Exception) {
+                            task.result.completeExceptionally(e)
+                        } finally {
+                            inProgress.remove(task.url)
+                        }
                     }
                 }
             }
         }
+        lock = false
     }
 }
 

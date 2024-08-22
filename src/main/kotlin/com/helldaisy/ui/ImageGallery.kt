@@ -109,7 +109,7 @@ fun BigImageGallery(
     if (urls.isEmpty()) return
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
     cacheImages(id, urls)
-    bitmapImage.getImage(urls[selectedImage.value], id)
+    bitmapImage.getImage(urls[selectedImage.value], id, 20)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(5.dp)) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -133,10 +133,11 @@ fun BigImageGallery(
 fun MutableState<BitmapPainter?>.getImage(
     url: String,
     id: String,
+    priority: Int = 10
 ) {
     val bitmapImage = this
     CoroutineScope(Dispatchers.Default).launch {
-        getFile(url = url, imageId = id)
+        getFile(url = url, imageId = id, priority = priority)
             ?.let { bitmapImage.value = BitmapPainter(it.toImageBitmap()) }
     }
 }
@@ -163,7 +164,7 @@ fun GalleryBtns(
             onClick = {
                 if (selectedImage.value < urls.size - 1) {
                     selectedImage.value += 1
-                    bitmapImage.getImage(urls[selectedImage.value], id)
+                    bitmapImage.getImage(urls[selectedImage.value], id,20)
                 }
             },
             enabled = selectedImage.value < urls.size - 1,

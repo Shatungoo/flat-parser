@@ -168,8 +168,6 @@ fun FlatCardView(
     back: () -> Unit,
     selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
 ) {
-//    val user = mutableStateOf("")
-//scrapper
     val selectedImage = mutableStateOf(0)
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth()) {
