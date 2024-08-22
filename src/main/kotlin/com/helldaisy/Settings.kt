@@ -55,17 +55,7 @@ data class Settings(
 
     @Transient
     val favorites: SnapshotStateList<Int> = mutableStateListOf(),
-) {
-    init {
-        CoroutineScope(Dispatchers.Default).launch {
-            while (true) {
-                val response = runBlocking { getFlats(filterParser) }
-                db.insertFlats(response)
-                delay(Duration.parse("1h"))
-            }
-        }
-    }
-}
+)
 
 
 val settingsPath = run {

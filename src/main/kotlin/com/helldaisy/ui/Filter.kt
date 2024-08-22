@@ -14,11 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.dp
-import com.helldaisy.MutableStateSerializer
-import com.helldaisy.dealTypes
-import com.helldaisy.locationsCl
-import com.helldaisy.status
+import com.helldaisy.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 @Serializable
 data class Filter(
@@ -79,6 +78,15 @@ data class Filter(
     val lastUpdated: MutableState<Int> = mutableStateOf(7),
 ) {}
 
+fun update(filter: Filter, db: Db) {
+    CoroutineScope(Dispatchers.Default).launch {
+        while (true) {
+            val response = runBlocking { getFlats(filter) }
+            db.insertFlats(response)
+            delay(Duration.parse("1h"))
+        }
+    }
+}
 
 @Composable
 fun FilterDb(filter: Filter, apply: () -> Unit) {

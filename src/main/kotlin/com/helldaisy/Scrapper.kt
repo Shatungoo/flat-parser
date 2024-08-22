@@ -61,9 +61,11 @@ fun main() {
 //    }
 }
 
-fun updateDb(db: Db, cb: () -> Unit = {}) {
+fun updateDb(db: Db,
+             filter: Filter,
+             cb: () -> Unit = {}) {
     CoroutineScope(Dispatchers.Default).launch {
-        val response = runBlocking { getFlats(settings.filterParser) }
+        val response = runBlocking { getFlats(filter) }
         db.insertFlats(response)
         cb()
     }

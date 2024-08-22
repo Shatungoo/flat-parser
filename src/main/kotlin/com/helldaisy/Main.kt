@@ -1,6 +1,9 @@
 package com.helldaisy
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -14,14 +17,13 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.helldaisy.ui.Theme
 import com.helldaisy.ui.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 val settings = loadSettings()
-val state: MutableState<State> = mutableStateOf(FlatsState(
-    flats = settings.db.getFlats(settings.filterDb),
-))
-
+val state: MutableState<State> = mutableStateOf(FlatsState())
 
 fun main() = application {
     Window(
@@ -32,6 +34,13 @@ fun main() = application {
     ) {
         Theme {
             val scrollState = rememberLazyListState()
+            CoroutineScope(Dispatchers.Default).launch {
+                update(settings.filterParser, settings.db)
+                state.value = FlatsState(
+                    flats = settings.db.getFlats(settings.filterDb)
+                )
+
+            }
             when (val currentState = state.value){
                 is FlatsState -> {
                         Column() {

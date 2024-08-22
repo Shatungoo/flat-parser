@@ -24,7 +24,9 @@ val filterParserView = mutableStateOf(false)
 fun MainView(settings: Settings, state: MutableState<State>) {
 
     if (filterDbView.value) FilterDb(state, settings, close = { filterDbView.value = false })
-    else if (filterParserView.value) FilterParser1(settings.filterParser, onClose = { filterParserView.value = false })
+    else if (filterParserView.value) FilterParser1(settings.filterParser,
+        settings = settings,
+        onClose = { filterParserView.value = false })
 
 }
 
@@ -59,6 +61,7 @@ fun FilterDb(
 @Composable
 private fun FilterParser1(
     filter: Filter,
+    settings: Settings,
     onClose: () -> Unit,
 ) {
     Box(
@@ -105,7 +108,7 @@ fun ControlPanel(
             //Get flats from site
             BtnWithSettings(name = btnName, action = {
                 btnName.value = "In progress..."
-                updateDb(db) {
+                updateDb(db, settings.filterDb) {
                     val flatsUpdate = db.getFlats(filterDb)
                     btnName.value = "Update DB"
 
