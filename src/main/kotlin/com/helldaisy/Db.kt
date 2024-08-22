@@ -8,10 +8,7 @@ import org.ktorm.dsl.*
 import org.ktorm.expression.*
 import org.ktorm.jackson.json
 import org.ktorm.schema.*
-import org.ktorm.support.sqlite.insertOrUpdate
-import org.ktorm.support.sqlite.jsonExtract
-import org.ktorm.support.sqlite.jsonPatch
-import org.ktorm.support.sqlite.jsonRemove
+import org.ktorm.support.sqlite.*
 import java.nio.file.Paths
 import java.sql.SQLException
 import java.time.LocalDateTime
@@ -58,7 +55,7 @@ class Db(path: String = "./flats") {
         val priceSquare get() = this.flat.jsonExtract("$.price.2.price_square", IntSqlType)
         val removeFavorite = this.flat.jsonRemove("$.favorite")
         val area get() = this.flat.jsonExtract("$.area", IntSqlType)
-        val city get() = this.flat.jsonExtract("$.city_name", VarcharSqlType)
+        val city get() = this.flat.jsonExtract("$.city_name", VarcharSqlType).toLowerCase()
         val urbanId get() = this.flat.jsonExtract("$.urban_id", IntSqlType)
         val districtId get() = this.flat.jsonExtract("$.district_id", IntSqlType)
 
@@ -168,22 +165,25 @@ class Db(path: String = "./flats") {
                 filter.floorTo.value?.let {expr += FlatTable.floor.lt(it)}
                 filter.totalFloorsFrom.value?.let {expr += FlatTable.totalFloors.greaterEq(it)}
                 filter.totalFloorsTo.value?.let {expr += FlatTable.totalFloors.gt(it)}
-//                filter.cities.value.let {
-//                    if (it.isNotEmpty()) {
-//                        expr += FlatTable.city.inList(it.map { it.toString() })
-//                    }
-//                }
-                filter.districts.value.let {
-                    if (it.isNotEmpty()) {
-                        expr += FlatTable.districtId.inList(it)
-                    }
-                }
-                filter.urbans.value.let {
-                    if (it.isNotEmpty()) {
-                        expr += FlatTable.urbanId.inList(it)
-                    }
-                }
 
+
+                filter.cities.value.let {cityIds ->
+                    if (cityIds.isNotEmpty()) {
+                        val cityNames =cityIds.mapNotNull { cityId -> cities.cities[cityId] }
+                        expr += FlatTable.city.inList(cityNames)
+                        filter.districts.value.let { districts ->
+                            if (districts.isNotEmpty()) {
+                                expr += FlatTable.districtId.inList(districts)
+                                filter.urbans.value.let { urbans ->
+                                    if (urbans.isNotEmpty()) {
+                                        expr += FlatTable.urbanId.inList(urbans)
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
                 filter.street.value?.let {expr += FlatTable.street.inList(it)}
                 filter.lastUpdated.value.let {expr +=
                     BinaryExpression(BinaryExpressionType.GREATER_THAN,

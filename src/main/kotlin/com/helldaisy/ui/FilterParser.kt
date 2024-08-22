@@ -25,18 +25,11 @@ fun FilterParser(
         FilterWithClassifier("Cities", filter.cities, cities.cities)
         if (filter.cities.value.isNotEmpty()) {
             FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
-
             if (filter.districts.value.isNotEmpty()) {
                 FilterWithClassifier(
                     "Urbans", filter.urbans,
                     cities.urbans(filter.cities.value.first(),
-                        filter.districts.value.mapNotNull {
-                            try {
-                                it.toInt()
-                            } catch (e: NumberFormatException) {
-                                null
-                            }
-                        }
+                        filter.districts.value.map { it }
                     ))
             }
         }
