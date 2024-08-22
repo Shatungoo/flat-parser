@@ -61,9 +61,11 @@ fun main() {
 //    }
 }
 
-fun updateDb(db: Db,
-             filter: Filter,
-             cb: () -> Unit = {}) {
+fun updateDb(
+    db: Db,
+    filter: Filter,
+    cb: () -> Unit = {}
+) {
     CoroutineScope(Dispatchers.Default).launch {
         val response = runBlocking { getFlats(filter) }
         db.insertFlats(response)
@@ -73,10 +75,12 @@ fun updateDb(db: Db,
 
 fun Response.Flat.toFlatString(): String = json.encodeToString(Response.Flat.serializer(), this)
 
-val json by lazy { Json {
-    ignoreUnknownKeys = true
-    coerceInputValues = true
-}}
+val json by lazy {
+    Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+}
 
 suspend fun getFlats(
     filter: Filter,
@@ -161,18 +165,26 @@ suspend fun downloadImage(url: String, file: File): File {
         }
     }
     println("Downloading image from $url")
-    val response = client.get(url)
-    response.bodyAsChannel().copyAndClose(file.writeChannel())
+    try {
+        val response = client.get(url)
+        response.bodyAsChannel().copyAndClose(file.writeChannel())
+    } catch (e: Exception) {
+        println("Error downloading image from $url File deleted")
+        file.delete()
+    }
     return file
 }
 
-@Serializable data class Response(
+@Serializable
+data class Response(
     val data: Data,
     val result: Boolean,
 ) {
-    @Serializable data class Data(val data: List<Flat>)
+    @Serializable
+    data class Data(val data: List<Flat>)
 
-    @Serializable data class Flat(
+    @Serializable
+    data class Flat(
         val id: Int,
         val deal_type_id: Int?,
         val real_estate_type_id: Int?,
@@ -247,7 +259,6 @@ fun String.toDate(): LocalDateTime {
 }
 
 
-
 suspend fun search(text: String): String {
     val baseUrl = "https://api2.myhome.ge/api/ru/loc/suggestions?q=$text"
     return get(baseUrl)
@@ -272,18 +283,18 @@ suspend fun getPhones(statementId: String): String {
         baseUrl
     ) {
         headers {
-            append("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:130.0) Gecko/20100101 Firefox/130.0")
-            append("Accept","application/json, text/plain, */*")
-            append("Accept-Language","en,en-US;q=0.7,ru;q=0.3")
-            append("Accept-Encoding","gzip, deflate, zstd")
-            append("Content-Type","application/json")
-            append("X-Website-Key","myhome")
-            append("Origin","https://www.myhome.ge")
-            append("Connection","keep-alive")
-            append("Referer"," https://www.myhome.ge/")
-            append("Sec-Fetch-Dest","empty")
-            append("Sec-Fetch-Mode","cors")
-            append("Sec-Fetch-Site","cross-site")
+            append("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:130.0) Gecko/20100101 Firefox/130.0")
+            append("Accept", "application/json, text/plain, */*")
+            append("Accept-Language", "en,en-US;q=0.7,ru;q=0.3")
+            append("Accept-Encoding", "gzip, deflate, zstd")
+            append("Content-Type", "application/json")
+            append("X-Website-Key", "myhome")
+            append("Origin", "https://www.myhome.ge")
+            append("Connection", "keep-alive")
+            append("Referer", " https://www.myhome.ge/")
+            append("Sec-Fetch-Dest", "empty")
+            append("Sec-Fetch-Mode", "cors")
+            append("Sec-Fetch-Site", "cross-site")
         }
     }.request
     val response = req.call
@@ -295,6 +306,7 @@ suspend fun getUser(userId: Int): String {
     val baseUrl = "https://api-statements.tnet.ge/v1/statements?users=$userId"
     return get(baseUrl)
 }
+
 //currently used built-in classifier
 suspend fun getCities(urlParamMap: Map<String, String>): String {
     val baseUrl = "https://api2.myhome.ge/api/ru/loc/cities"
