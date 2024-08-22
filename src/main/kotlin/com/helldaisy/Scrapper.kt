@@ -17,17 +17,9 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.collections.List
-import kotlin.collections.Map
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.emptyMap
-import kotlin.collections.flatMap
-import kotlin.collections.forEach
-import kotlin.collections.map
 import kotlin.collections.set
-import kotlin.collections.toMap
-import kotlin.collections.toMutableMap
 
 
 fun main() {
@@ -167,6 +159,9 @@ suspend fun downloadImage(url: String, file: File): File {
     println("Downloading image from $url")
     try {
         val response = client.get(url)
+        if (!file.exists()) withContext(Dispatchers.IO) {
+            file.createNewFile()
+        }
         response.bodyAsChannel().copyAndClose(file.writeChannel())
     } catch (e: Exception) {
         println("Error downloading image from $url File deleted")
