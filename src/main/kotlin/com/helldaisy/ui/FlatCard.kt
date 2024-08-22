@@ -21,6 +21,8 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 import com.helldaisy.Response
 import com.helldaisy.cacheImages
+import com.helldaisy.locationsCl
+import com.helldaisy.toLatin
 import java.net.URI
 import java.net.URLEncoder
 import java.time.LocalDateTime
@@ -124,8 +126,15 @@ fun SmallFlatCard(
 fun FlatDescription(flat: Response.Flat, short: Boolean = false) {
     Column(modifier = Modifier.width(250.dp)) {
         if (!short) textField("Город", flat.city_name.toString())
-        if (!short) textField("Район", flat.urban_name.toString())
-        if (!short) textField("Район", flat.district_name.toString())
+        if (!short) textField("Район", flat.urban_name.let {
+            if (it.isNullOrEmpty() && flat.urban_id !=null) locationsCl.flatUrbans[flat.urban_id].toString()
+            else it.toString()
+        })
+        if (!short) textField("Район", flat.district_name.let {
+            if (it.isNullOrEmpty()) locationsCl.flatDistricts[flat.district_id].toString()
+            else it.toString()
+        })
+
         if (!short) textField("Адрес ", flat.address.toString().toLatin())
         textField("Цена", flat.price["2"]?.price_total.toString() + " $")
         textField("Цена за кв.м", flat.price["2"]?.price_square.toString() + " $")

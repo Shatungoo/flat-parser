@@ -169,7 +169,7 @@ class Db(path: String = "./flats") {
 
                 filter.cities.value.let {cityIds ->
                     if (cityIds.isNotEmpty()) {
-                        val cityNames =cityIds.mapNotNull { cityId -> cities.cities[cityId] }
+                        val cityNames =cityIds.mapNotNull { cityId -> locationsCl.cities[cityId] }
                         expr += FlatTable.city.inList(cityNames)
                         filter.districts.value.let { districts ->
                             if (districts.isNotEmpty()) {
