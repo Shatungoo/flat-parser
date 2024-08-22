@@ -22,22 +22,18 @@ fun FilterParser(
         FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
         FilterWithClassifier("Real estate types", filter.realEstateTypes, realEstateType)
         FilterExactInt("Currency id", filter.currencyId)
-        FilterWithClassifier("Cities", filter.cities, cities.cities)
+        FilterWithClassifier("Cities", filter.cities, locationsCl.cities)
         if (filter.cities.value.isNotEmpty()) {
-            FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
-
+            FilterWithClassifier("Districts", filter.districts,
+                filter.cities.value.mapNotNull {
+                    locationsCl.districts[it]
+                }.map {it.entries }.flatten().associate { it.key to it.value }
+            )
             if (filter.districts.value.isNotEmpty()) {
-                FilterWithClassifier(
-                    "Urbans", filter.urbans,
-                    cities.urbans(filter.cities.value.first(),
-                        filter.districts.value.mapNotNull {
-                            try {
-                                it.toInt()
-                            } catch (e: NumberFormatException) {
-                                null
-                            }
-                        }
-                    ))
+                FilterWithClassifier("Districts", filter.districts,
+                    filter.cities.value.mapNotNull {
+                        locationsCl.districts[it]
+                    }.map {it.entries }.flatten().associate { it.key to it.value })
             }
         }
         FilterWithClassifier("Statuses", filter.statuses, status)

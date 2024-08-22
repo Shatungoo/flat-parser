@@ -12,16 +12,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.text.style.BaselineShift
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helldaisy.MutableStateSerializer
-import com.helldaisy.cities
 import com.helldaisy.dealTypes
+import com.helldaisy.locationsCl
 import com.helldaisy.status
-import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -84,50 +80,13 @@ data class Filter(
 ) {}
 
 
-fun String.toLatin(): String {
-    val georgian = mapOf(
-        "ი" to "i",
-        "ე" to "e",
-        "ა" to "a",
-        "ბ" to "b",
-        "გ" to "g",
-        "დ" to "d",
-        "ვ" to "v",
-        "ზ" to "z",
-        "თ" to "t",
-        "კ" to "k",
-        "ლ" to "l",
-        "მ" to "m",
-        "ნ" to "n",
-        "ო" to "o",
-        "პ" to "p",
-        "ჟ" to "zh",
-        "რ" to "r",
-        "ს" to "s",
-        "ტ" to "t",
-        "უ" to "u",
-        "ფ" to "ph",
-        "ქ" to "q",
-        "ღ" to "gh",
-        "ყ" to "k",
-        "შ" to "sh",
-        "ჩ" to "ch",
-        "ც" to "ts",
-        "ძ" to "dz",
-        "წ" to "ts",
-        "ჭ" to "ch",
-        "ხ" to "kh",
-        "ჯ" to "j",
-        "ჰ" to "h"
-    )
-    val result = this.map { georgian[it.toString()] ?: it }.joinToString("")
-    return result
-}
-
 @Composable
 fun FilterDb(filter: Filter, apply: () -> Unit) {
 
-    Column(modifier = Modifier.padding(5.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+    Column(
+        modifier = Modifier.padding(5.dp).verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(1.dp)
+    ) {
         FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
         FilterBetween("Price", filter.priceFrom, filter.priceTo)
         FilterBetween("Area", filter.areaFrom, filter.areaTo)
@@ -135,15 +94,14 @@ fun FilterDb(filter: Filter, apply: () -> Unit) {
         FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
         FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
         FilterWithClassifier("Statuses", filter.statuses, status)
-        FilterWithClassifier("Cities", filter.cities, cities.cities)
+        FilterWithClassifier("Cities", filter.cities, locationsCl.cities)
         if (filter.cities.value.isNotEmpty()) {
-            FilterWithClassifier("Districts", filter.districts, cities.districts(filter.cities.value.first()))
+            FilterWithClassifier("Districts", filter.districts, locationsCl.districts(filter.cities.value))
             if (filter.districts.value.isNotEmpty()) {
                 FilterWithClassifier(
                     "Urbans", filter.urbans,
-                    cities.urbans(filter.cities.value.first(),
-                        filter.districts.value
-                    ))
+                    locationsCl.urbans(filter.cities.value, filter.districts.value)
+                )
             }
         }
         FilterExactInt("Updated, d", filter.lastUpdated as MutableState<Int?>)

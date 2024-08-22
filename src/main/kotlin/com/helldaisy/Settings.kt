@@ -53,6 +53,8 @@ data class Settings(
 
     @Transient val db: Db = Db(dbPath),
 
+    @Transient
+    val favorites: SnapshotStateList<Int> = mutableStateListOf(),
 ) {
     init {
         CoroutineScope(Dispatchers.Default).launch {
