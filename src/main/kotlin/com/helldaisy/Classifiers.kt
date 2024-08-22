@@ -66,7 +66,7 @@ fun String.toLatin(): String {
 }
 
 val resource = object {}.javaClass.getResource("/cities.json")?.readText()
-val locationsCl = Json { ignoreUnknownKeys = true }.decodeFromString<CityJson>(resource!!)
+val locationsCl by lazy {  Json { ignoreUnknownKeys = true }.decodeFromString<CityJson>(resource!!) }
 
 
 @Serializable
@@ -78,8 +78,8 @@ data class CityJson(val data: List<City>) {
     @Serializable
     data class Urban(val id: Int, val display_name: String)
 
-    val cities = data.associate { it.id to it.display_name }
-    val districts = data.associate { it.id to it.districts.associate { it.id to it.display_name.toLatin() } }
+    val cities by lazy { data.associate { it.id to it.display_name } }
+    val districts by lazy {  data.associate { it.id to it.districts.associate { it.id to it.display_name.toLatin() } } }
     val urbans: Map<Int, Map<Int, Map<Int, String>>> =
         data.associate { it.id to it.districts.associate { it.id to it.urbans.associate { it.id to it.display_name.toLatin() } } }
 
