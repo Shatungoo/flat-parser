@@ -1,5 +1,6 @@
 package com.helldaisy
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.helldaisy.ui.Filter
 import com.helldaisy.ui.toMap
 import io.ktor.client.*
@@ -231,6 +232,13 @@ data class Response(
         val user_statements_count: Int?,
     ) {
         override fun toString(): String = json.encodeToString(serializer(), this)
+        @get:JsonIgnore
+        val imagesUrl: List<String> get() = images.mapNotNull { it.large_webp }.ifEmpty {
+            images.mapNotNull { it.large } }
+        @get:JsonIgnore
+        val thumbsUrl: List<String> get() = images.mapNotNull { it.thumb_webp }.ifEmpty {
+            images.mapNotNull { it.thumb }
+        }
     }
 
     @Serializable

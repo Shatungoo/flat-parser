@@ -60,7 +60,7 @@ fun SmallImageGallery(
                     contentScale = ContentScale.Crop
                 )
             } ?: run {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
             GalleryBtns(selectedImage, urls, id, bitmapImage)
         }
@@ -122,7 +122,7 @@ fun BigImageGallery(
                     contentScale = cScale.value
                 )
             } ?: run {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
             GalleryBtns(selectedImage, urls, id, bitmapImage, size = 60.dp)
             CScale()

@@ -42,10 +42,9 @@ fun FlatCard(
         Card(onClick = selectFlat, backgroundColor = Color.Transparent) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(300.dp)) {
-                    flat.images.mapNotNull { it.thumb_webp }.let {
-                        SmallImageGallery(it, flat.id.toString(), image,
-                            onClick = { selectImage(flat.images.mapNotNull { it.large_webp }, flat.id.toString(), image) })
-                    }
+                    SmallImageGallery(
+                        flat.thumbsUrl, flat.id.toString(), image,
+                        onClick = { selectImage(flat.imagesUrl, flat.id.toString(), image) })
                 }
                 Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h4)
@@ -96,7 +95,7 @@ fun SmallFlatCard(
     onClick: () -> Unit = {},
 ) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    flat.images.firstOrNull()?.thumb_webp?.let {
+    flat.thumbsUrl.firstOrNull()?.let {
         bitmapImage.getImage(it, flat.id.toString())
     }
     Card(modifier = Modifier
@@ -105,7 +104,7 @@ fun SmallFlatCard(
             Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h5, modifier = Modifier.offset(x = 3.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(100.dp)) {
-                    SmallImageGallery(flat.images.mapNotNull { it.thumb_webp }, flat.id.toString(), mutableStateOf(0),
+                    SmallImageGallery(flat.thumbsUrl, flat.id.toString(), mutableStateOf(0),
                         onClick = {})
                     bitmapImage.value?.let {
                         Image(
