@@ -154,6 +154,7 @@ fun FilterExactInt(name: String, value: MutableState<Int?>, modifier: Modifier =
     }
 }
 
+
 @Composable
 fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>, close: () -> Unit = {}) {
     FlowRow(
@@ -164,56 +165,62 @@ fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>,
     ) {
         for (value in classifier.keys) {
             if (value !in values.value) {
-                Box(
-                    modifier = Modifier
-                        .padding(3.dp)
-                        .border(1.dp, MaterialTheme.colors.primary, RoundedCornerShape(5.dp))
-                ) {
-                    Text(
-                        classifier[value] ?: "Unknown($value)",
-                        modifier = Modifier
-                            .padding(horizontal = 5.dp, vertical = 2.dp)
-                            .onClick(onClick = {
-                                values.value += value
-                                close()
-                            }),
-                        style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.3f))
-                    )
+                Btn(classifier[value] ?: "Unknown($value)") {
+                    values.value += value
+                    close()
                 }
             }
         }
+        Btn("Add all") {
+            values.value = classifier.keys.toList()
+            close()
+        }
     }
 }
+
+@Composable
+fun Btn(text:String, onClick:()->Unit){
+    Box(
+        modifier = Modifier
+            .padding(3.dp)
+            .border(1.dp, MaterialTheme.colors.primary, RoundedCornerShape(5.dp))
+    ) {
+        Text(
+            text,
+            modifier = Modifier
+                .padding(horizontal = 5.dp, vertical = 1.dp)
+                .onClick(onClick = onClick),
+            style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.3f))
+        )
+    }
+}
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TagBtn(name: String, onClick: () -> Unit = {}) {
     Row(
-        modifier = Modifier.height(25.dp).border(
-            1.dp,
-            MaterialTheme.colors.primary,
-            shape = RoundedCornerShape(5.dp)
-        ).padding(5.dp),
-        verticalAlignment = Alignment.Top,
+        modifier = Modifier.padding(3.dp)
+            .border(1.dp, MaterialTheme.colors.primary, RoundedCornerShape(5.dp)),
+        verticalAlignment = Alignment.CenterVertically,
 
         ) {
         Text(
             name,
             modifier = Modifier
-                .align(Alignment.Bottom)
-                .fillMaxHeight(),
-            maxLines = 1,
-            style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.6f)),
+                .padding(horizontal = 5.dp, vertical = 1.dp)
+                .onClick(onClick = onClick),
+            style = LocalTextStyle.current.copy(baselineShift = BaselineShift(-0.3f)),
         )
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = "Close",
-            modifier = Modifier.padding(start = 5.dp).onClick(onClick = onClick)
+            modifier = Modifier.padding(start = 3.dp).onClick(onClick = onClick)
         )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classifier: Map<T, String>) {
     var open by remember { mutableStateOf(false) }
@@ -228,6 +235,9 @@ fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classi
                 TagBtn(classifier[value] ?: "Unknown($value)", onClick = {
                     values.value = values.value.filter { it != value }
                 })
+            }
+            if (values.value.isNotEmpty()) Btn("Clear") {
+                values.value = emptyList()
             }
             Icon(
                 imageVector = Icons.Default.Add,
