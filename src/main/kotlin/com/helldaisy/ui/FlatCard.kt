@@ -95,9 +95,6 @@ fun SmallFlatCard(
     onClick: () -> Unit = {},
 ) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    flat.thumbsUrl.firstOrNull()?.let {
-        bitmapImage.getImage(it, flat.id.toString())
-    }
     Card(modifier = Modifier
         .padding(horizontal = 10.dp), onClick = onClick) {
         Column() {
@@ -168,6 +165,7 @@ fun FlatCardView(
     selectImage: (url: List<String>, id: String, selected: MutableState<Int>) -> Unit = { _, _, _ -> },
 ) {
     val selectedImage = mutableStateOf(0)
+    cacheImages(flat.id.toString(), flat.imagesUrl)
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Card {
@@ -182,9 +180,8 @@ fun FlatCardView(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(modifier = Modifier.weight(0.5f)) {
-                cacheImages(flat.id.toString(), flat.images.mapNotNull { it.large_webp })
-                SmallImageGallery(flat.images.mapNotNull { it.large_webp }, flat.id.toString(), selectedImage,
-                    onClick = { selectImage(flat.images.mapNotNull { it.large_webp }, flat.id.toString(), selectedImage) })
+                SmallImageGallery(flat.imagesUrl, flat.id.toString(), selectedImage,
+                    onClick = { selectImage(flat.imagesUrl, flat.id.toString(), selectedImage) })
             }
 
             Column(

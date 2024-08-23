@@ -61,13 +61,16 @@ fun cacheImage(imageId: String, url: String, priority: Int) {
 }
 
 fun cacheImages(imageId: String, urls: List<String>, priority: Int = 5) {
-    val dir = getTemporalDirectory(imageId)
-    urls.forEach {
-        try {
-            val fileName = getFileNameFromUrl(it)
-            downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
-        } catch (e: Exception) {
-            println("Error caching images: ${e.message}")
+    CoroutineScope(Dispatchers.IO).launch {
+
+        val dir = getTemporalDirectory(imageId)
+        urls.forEach {
+            try {
+                val fileName = getFileNameFromUrl(it)
+                downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
+            } catch (e: Exception) {
+                println("Error caching images: ${e.message}")
+            }
         }
     }
 }
