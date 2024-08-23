@@ -171,6 +171,7 @@ fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>,
                 }
             }
         }
+        Spacer(modifier = Modifier.weight(1f))
         Btn("Add all") {
             values.value = classifier.keys.toList()
             close()
@@ -236,13 +237,18 @@ fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classi
                     values.value = values.value.filter { it != value }
                 })
             }
-            if (values.value.isNotEmpty()) Btn("Clear") {
-                values.value = emptyList()
+
+                Spacer(modifier = Modifier.weight(1f))
+            if (values.value.isNotEmpty()) {
+                Btn("Clear") {
+                    values.value = emptyList()
+                }
             }
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add",
                 modifier = Modifier.padding(start = 5.dp)
+                    .align(Alignment.CenterVertically)
                     .onClick(onClick = {
                         open = !open
                     })
