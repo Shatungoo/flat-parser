@@ -43,17 +43,23 @@ suspend fun downloadLatest(
     onEnd: () -> Unit ={}) {
     val latest = getLatestVersion()
     val url = "https://github.com/Shatungoo/flat-parser/releases/download/v$latest/flat-parser.zip"
-    val client = HttpClient(CIO)
+    val client = HttpClient(CIO){
+        install(HttpTimeout)
+    }
     val file = File("flat-parser.zip")
     try {
-        val response = client.get(url)
+        val response = client.get(url){
+            timeout {
+                requestTimeoutMillis = 300000
+            }
+        }
         if (!file.exists()) withContext(Dispatchers.IO) {
             file.createNewFile()
         }
         response.bodyAsChannel().copyAndClose(file.writeChannel())
         onEnd()
     } catch (e: Exception) {
-        println("Error downloading image from $url File deleted")
+        println("Error update $url File deleted"+e.message)
         file.delete()
     }
 }
