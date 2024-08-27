@@ -4,10 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +13,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldaisy.*
 import com.helldaisy.State
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 val filterDbView = mutableStateOf(false)
 val filterParserView = mutableStateOf(false)
@@ -131,6 +131,18 @@ fun ControlPanel(
                 state.value = MapState(flats = flats, previous = current)
             }, text = "Show on map")
             Spacer(modifier = Modifier.weight(1f))
+            var btnText by remember { mutableStateOf("Latest version") }
+            if (needUpdate()) btnText = "Update to ${getLatestVersion()}"
+            OutlinedButton(onClick = {
+                btnText = "Downloading..."
+                CoroutineScope(Dispatchers.Default).launch {
+                    downloadLatest(){
+                        btnText = "Downloaded"
+                    }
+                }
+            }) {
+                Text(btnText)
+            }
             Text("Flats: ${flats.size}", modifier = Modifier.padding(5.dp),
                 color = MaterialTheme.colors.onPrimary)
         }

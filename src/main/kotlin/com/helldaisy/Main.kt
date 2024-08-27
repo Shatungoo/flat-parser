@@ -36,7 +36,7 @@ val state: MutableState<State> by lazy {
 
 
 fun main() = application {
-    println(System.getProperty("jpackage.app-version"))
+
     Window(
         onCloseRequest = ::exitApplication,
         title = appName,

@@ -4,11 +4,13 @@ plugins {
     kotlin("jvm") version "2.0.0"
     id("org.jetbrains.compose") version "1.7.0-alpha03"
     kotlin("plugin.serialization") version "2.0.0"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.20-RC"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.20"
+    id("pl.allegro.tech.build.axion-release") version "1.18.6"
 }
 
 group = "com.helldaisy"
-version = "1.0-SNAPSHOT"
+// scmVersion.version "1.0.0-snapshot" convert to semver with numbers
+version = scmVersion.version.replace(Regex("[^0-9.]"),"")
 
 repositories {
     mavenCentral()
@@ -40,9 +42,6 @@ compose.desktop {
         buildTypes.release {
             proguard {
                 version.set("7.4.0")
-//                isEnabled.set(true)
-//                optimize.set(false)
-//                obfuscate.set(false)
                 configurationFiles.from(project.file("compose-desktop.pro"))
             }
         }
@@ -51,10 +50,19 @@ compose.desktop {
         nativeDistributions {
             windows{
                 modules("java.instrument", "java.management", "java.sql.rowset", "jdk.unsupported")
+                version = version.toString()
+            }
+            macOS {
+                modules("java.instrument", "java.management", "java.sql.rowset", "jdk.unsupported")
+                version = if (version.toString().startsWith("0.")) {
+                    version.toString().replace("0.", "1.")
+                } else {
+                    version.toString()
+                }
             }
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi)
             packageName = "flat-parser"
-            packageVersion = "1.0.0"
+            packageVersion = version.toString()
         }
     }
 }
