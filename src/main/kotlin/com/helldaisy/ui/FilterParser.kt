@@ -47,20 +47,20 @@ fun FilterParser(
 
 
 fun Filter.toMap(): Map<String, String> {
-    return mapOf(
-        "deal_types" to dealTypes.value.joinToString(","),
-        "real_estate_types" to realEstateTypes.value.joinToString(","),
-        "cities" to cities.value.joinToString(","),
-        "currency_id" to currencyId.value.toString(),
-        "urbans" to urbans.value.joinToString(","),
-        "districts" to districts.value.joinToString(","),
-        "statuses" to statuses.value.joinToString(","),
-        "price_from" to priceFrom.value.toString(),
-        "price_to" to priceTo.value.toString(),
-        "area_from" to areaFrom.value.toString(),
-        "area_to" to areaTo.value.toString(),
-        "area_types" to areaTypes.value.toString(),
-    )
+    val map = mutableMapOf<String, String>()
+        if (dealTypes.value.isNotEmpty()) map["deal_types"] = dealTypes.value.joinToString(",")
+        if (realEstateTypes.value.isNotEmpty()) map["real_estate_types"]= realEstateTypes.value.joinToString(",")
+        if (cities.value.isNotEmpty()) map["cities"]= cities.value.joinToString(",")
+        if (currencyId.value!= null) map["currency_id"]= currencyId.value.toString()
+        if (urbans.value.isNotEmpty()) map["urbans"]= urbans.value.joinToString(",")
+        if (districts.value.isNotEmpty()) map["districts"]= districts.value.joinToString(",")
+        if (statuses.value.isNotEmpty()) map["statuses"]= statuses.value.joinToString(",")
+        if (priceFrom.value != null) map["price_from"]= priceFrom.value.toString()
+        if (priceTo.value   != null) map["price_to"]= priceTo.value.toString()
+        if (areaFrom.value  != null) map["area_from"]= areaFrom.value.toString()
+        if (areaTo.value    != null) map["area_to"]= areaTo.value.toString()
+        if (areaTypes.value != null) map["area_types"]= areaTypes.value.toString()
+    return map
 }
 
 fun Map<String, String>.toFilterDb(): Filter {

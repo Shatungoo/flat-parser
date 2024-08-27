@@ -104,6 +104,7 @@ class Db(path: String = "./flats") {
     }
 
     fun insertFlats(flats: List<Response.Flat>) {
+        println("Insert flats ${flats.size}")
         connection.useTransaction { flats.forEach {
                 insertFlat(it)
             }
