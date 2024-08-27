@@ -3,6 +3,7 @@ package com.helldaisy.ui
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.cio.*
@@ -11,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.system.exitProcess
 
 val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
 
@@ -32,6 +34,13 @@ enum class UpdateStatus {
 fun needUpdate(): Boolean {
     val latestVersion = getLatestVersion()
     return latestVersion > currentVersion
+}
+
+fun updateApp() {
+    val commandList = arrayOf("powershell.exe", "-Command",
+        "Expand-Archive -Path flat-parser.zip -DestinationPath . -force", "&&Remove-Item flat-parser.zip", "&&Start-Process flat-parser.exe")
+    ProcessBuilder(*commandList).start()
+    exitProcess(0);
 }
 
 
