@@ -1,12 +1,12 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package com.helldaisy
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.Semaphore
 
 fun main() {
     val id = "123"
@@ -61,13 +61,14 @@ fun cacheImage(imageId: String, url: String, priority: Int) {
 }
 
 fun cacheImages(imageId: String, urls: List<String>, priority: Int = 5) {
-    CoroutineScope(Dispatchers.IO).launch {
-
+    CoroutineScope(Dispatchers.IO.limitedParallelism(3)).launch {
         val dir = getTemporalDirectory(imageId)
         urls.forEach {
             try {
                 val fileName = getFileNameFromUrl(it)
-                downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
+                downloadImage(it, Paths.get(dir.absolutePath, fileName).toFile())
+
+//                downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
             } catch (e: Exception) {
                 println("Error caching images: ${e.message}")
             }
@@ -140,7 +141,6 @@ class ImageDownloader {
 
     private var lock = false
     val scope = CoroutineScope(Dispatchers.IO.limitedParallelism(5))
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun processQueue() {
         if (lock) return
         lock = true

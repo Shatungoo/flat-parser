@@ -198,10 +198,11 @@ class Db(path: String = "./flats") {
             }
             .limit(filter.limit.value)
             .orderBy(FlatTable.lastUpdated.desc())
-
+            val time = System.currentTimeMillis()
             query.forEach {
                 flats +=it[FlatTable.flat]!!
             }
+            println("Query time: ${System.currentTimeMillis() - time}")
         return flats
     }
 

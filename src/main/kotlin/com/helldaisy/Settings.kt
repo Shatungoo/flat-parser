@@ -1,10 +1,12 @@
 package com.helldaisy
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.helldaisy.ui.Filter
 import com.helldaisy.ui.toFilterDb
-import kotlinx.coroutines.*
+import com.helldaisy.ui.update
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -16,7 +18,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
-import kotlin.time.Duration
 
 
 val SearchParams: Map<String, String> = mapOf(
@@ -55,11 +56,15 @@ data class Settings(
     @Transient
     private val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
 
-    val db by lazy { Db(dbPath) }
+    val db by lazy {
+        val db=Db(dbPath)
+        update(filterParser, db)
+        db
+    }
 }
 
 
-val settingsPath = run {
+val settingsPath by lazy {
     val userHome = System.getProperty("user.home")
     val osName = System.getProperty("os.name").lowercase()
     val settingsPath1 = when {

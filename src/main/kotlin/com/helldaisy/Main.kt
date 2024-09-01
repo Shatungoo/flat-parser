@@ -20,22 +20,18 @@ import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 val settings by lazy {  loadSettings() }
-val state: MutableState<State> by lazy {
-    CoroutineScope(Dispatchers.Default).launch {
+val state: MutableState<State> = mutableStateOf(FlatsState())
+
+fun main() = application {
+    CoroutineScope(Dispatchers.IO).launch {
         state.value = FlatsState(
             flats = settings.db.getFlats(settings.filterDb)
         )
-        update(settings.filterParser, settings.db)
     }
-    mutableStateOf(FlatsState())
-}
-
-
-
-fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
@@ -45,30 +41,40 @@ fun main() = application {
     ) {
         Theme {
             val scrollState = rememberLazyListState()
-
-            when (val currentState = state.value){
+            when (val currentState = state.value) {
                 is FlatsState -> {
-                        Column() {
-                            ControlPanel(state, settings)
-                            Box(modifier = Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally)) {
-                                LazyColumn(userScrollEnabled = true, state = scrollState, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                    items(currentState.flats) { flat ->
-                                        FlatCard(flat = flat,
-                                            selectImage = { urls, id, selected -> state.value = ImageState(urls, id, selected, currentState) },
-                                            selectFlat = { state.value = FlatState(flat, currentState) }
-                                        )
-                                    }
+                    Column() {
+                        ControlPanel(state, settings)
+                        Box(modifier = Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally)) {
+                            LazyColumn(
+                                userScrollEnabled = true,
+                                state = scrollState,
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                items(currentState.flats) { flat ->
+                                    FlatCard(flat = flat,
+                                        selectImage = { urls, id, selected ->
+                                            state.value = ImageState(urls, id, selected, currentState)
+                                        },
+                                        selectFlat = { state.value = FlatState(flat, currentState) }
+                                    )
                                 }
                             }
                         }
+                    }
                     MainView(settings = settings, state)
                 }
+
                 is FlatState -> {
-                    FlatCardView(flat = currentState.flat,
+                    FlatCardView(
+                        flat = currentState.flat,
                         back = { state.value = currentState.previous!! },
-                        selectImage = { urls, id, selected -> state.value = ImageState(urls, id, selected, currentState) },
+                        selectImage = { urls, id, selected ->
+                            state.value = ImageState(urls, id, selected, currentState)
+                        },
                     )
                 }
+
                 is ImageState -> {
                     BigImageGallery(
                         urls = currentState.urls,
@@ -77,6 +83,7 @@ fun main() = application {
                         onClick = { state.value = currentState.previous }
                     )
                 }
+
                 is MapState -> {
                     MapView(currentState.flats,
                         back = { state.value = currentState.previous!! },
@@ -84,7 +91,6 @@ fun main() = application {
                     )
                 }
             }
-
         }
     }
 }
@@ -92,6 +98,7 @@ fun main() = application {
 interface State {
     val previous: State?
 }
+
 data class FlatsState(
     val flats: List<Response.Flat> = emptyList(),
     override val previous: State? = null,

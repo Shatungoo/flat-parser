@@ -132,16 +132,18 @@ fun ControlPanel(
             }, text = "Show on map")
             Spacer(modifier = Modifier.weight(1f))
             var btnText by remember { mutableStateOf("Latest version") }
-            if (needUpdate()) btnText = "Update to ${getLatestVersion()}"
-            OutlinedButton(onClick = {
-                btnText = "Downloading..."
-                CoroutineScope(Dispatchers.Default).launch {
-                    downloadLatest(){
-                        btnText = "Downloaded"
+            if (needUpdate) {
+                btnText = "Update to $LatestVersion"
+                OutlinedButton(onClick = {
+                    btnText = "Downloading..."
+                    CoroutineScope(Dispatchers.Default).launch {
+                        downloadLatest() {
+                            btnText = "Downloaded"
+                        }
                     }
+                }) {
+                    Text(btnText)
                 }
-            }) {
-                Text(btnText)
             }
             Text("Flats: ${flats.size}", modifier = Modifier.padding(5.dp),
                 color = MaterialTheme.colors.onPrimary)

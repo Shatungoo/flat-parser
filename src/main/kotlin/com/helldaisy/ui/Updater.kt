@@ -17,7 +17,7 @@ import kotlin.system.exitProcess
 val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
 
 fun main() {
-    if (needUpdate()) {
+    if (needUpdate) {
         println("Need update")
     } else {
         println("No need update")
@@ -31,10 +31,7 @@ enum class UpdateStatus {
     REQUIRE_RESTART,
 }
 
-fun needUpdate(): Boolean {
-    val latestVersion = getLatestVersion()
-    return latestVersion > currentVersion
-}
+
 
 fun updateApp() {
     val commandList = arrayOf("powershell.exe", "-Command",
@@ -50,8 +47,7 @@ val currentVersion = Version.fromString(System.getProperty("jpackage.app-version
 //https://github.com/Shatungoo/flat-parser/releases/tag/v0.1.30/flat-parser.zip
 suspend fun downloadLatest(
     onEnd: () -> Unit ={}) {
-    val latest = getLatestVersion()
-    val url = "https://github.com/Shatungoo/flat-parser/releases/download/v$latest/flat-parser.zip"
+    val url = "https://github.com/Shatungoo/flat-parser/releases/download/v$LatestVersion/flat-parser.zip"
     val client = HttpClient(CIO){
         install(HttpTimeout)
     }
@@ -110,13 +106,13 @@ data class Version(
 }
 
 
-fun getLatestVersion(): Version {
+val LatestVersion:Version by lazy {
     val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
     val client = HttpClient(CIO) {
         followRedirects = true
     }
 
-    return runBlocking {
+    runBlocking {
         try {
             val response: HttpResponse = client.get(url)
             val finalUrl = response.request.url.toString()
@@ -130,3 +126,5 @@ fun getLatestVersion(): Version {
         }
     }
 }
+
+val needUpdate: Boolean by lazy { LatestVersion > currentVersion }

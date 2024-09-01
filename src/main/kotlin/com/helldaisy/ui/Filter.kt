@@ -76,12 +76,12 @@ data class Filter(
 
     @Serializable(with = MutableStateSerializer::class)
     val lastUpdated: MutableState<Int> = mutableStateOf(7),
-) {}
+)
 
 fun update(filter: Filter, db: Db) {
-    CoroutineScope(Dispatchers.Default).launch {
+    CoroutineScope(Dispatchers.IO).launch {
         while (true) {
-            val response = runBlocking { getFlats(filter) }
+            val response = getFlats(filter)
             db.insertFlats(response)
             delay(Duration.parse("1h"))
         }
