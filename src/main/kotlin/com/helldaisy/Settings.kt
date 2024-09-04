@@ -41,7 +41,8 @@ data class Settings(
     val filterDb: Filter = Filter(),
 
     val filterParser: Filter = SearchParams.toFilterDb().apply {
-        limit.value = 2 },
+        limit.value = 2
+    },
 
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),
@@ -52,15 +53,12 @@ data class Settings(
 
     @Transient
     val favorites: SnapshotStateList<Int> = mutableStateListOf(),
-){
+) {
     @Transient
     private val dbPath: String = Paths.get(settingsPath, "flats").toAbsolutePath().toString()
 
-    val db by lazy {
-        val db=Db(dbPath)
-        update(filterParser, db)
-        db
-    }
+    val db by lazy { Db(dbPath) }
+
 }
 
 
@@ -85,7 +83,7 @@ private val settingsFile: () -> File
 fun loadSettings(): Settings {
     println("loadSettings: " + settingsFile().absolutePath)
     return if (settingsFile().exists()) {
-        Json{ ignoreUnknownKeys = true }.decodeFromString(settingsFile().readText())
+        Json { ignoreUnknownKeys = true }.decodeFromString(settingsFile().readText())
     } else {
         Settings() // Return default settings if file doesn't exist
     }

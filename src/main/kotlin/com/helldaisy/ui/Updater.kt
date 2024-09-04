@@ -1,15 +1,14 @@
 package com.helldaisy.ui
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.system.exitProcess
@@ -17,11 +16,11 @@ import kotlin.system.exitProcess
 val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
 
 fun main() {
-    if (needUpdate) {
-        println("Need update")
-    } else {
-        println("No need update")
-    }
+//    if (needUpdate) {
+//        println("Need update")
+//    } else {
+//        println("No need update")
+//    }
 }
 
 enum class UpdateStatus {
@@ -32,28 +31,33 @@ enum class UpdateStatus {
 }
 
 
-
 fun updateApp() {
-    val commandList = arrayOf("powershell.exe", "-Command",
-        "Expand-Archive -Path flat-parser.zip -DestinationPath . -force", "&&Remove-Item flat-parser.zip", "&&Start-Process flat-parser.exe")
+    val commandList = arrayOf(
+        "powershell.exe",
+        "-Command",
+        "Expand-Archive -Path flat-parser.zip -DestinationPath . -force",
+        "&&Remove-Item flat-parser.zip",
+        "&&Start-Process flat-parser.exe"
+    )
     ProcessBuilder(*commandList).start()
     exitProcess(0);
 }
 
 
-
-val currentVersion = Version.fromString(System.getProperty("jpackage.app-version"))
+val currentVersion by lazy { Version.fromString(System.getProperty("jpackage.app-version")) }
 
 //https://github.com/Shatungoo/flat-parser/releases/tag/v0.1.30/flat-parser.zip
 suspend fun downloadLatest(
-    onEnd: () -> Unit ={}) {
-    val url = "https://github.com/Shatungoo/flat-parser/releases/download/v$LatestVersion/flat-parser.zip"
-    val client = HttpClient(CIO){
+    onEnd: () -> Unit = {},
+) {
+    val latestVersion = latestVersion()
+    val url = "https://github.com/Shatungoo/flat-parser/releases/download/v$latestVersion/flat-parser.zip"
+    val client = HttpClient(CIO) {
         install(HttpTimeout)
     }
     val file = File("flat-parser.zip")
     try {
-        val response = client.get(url){
+        val response = client.get(url) {
             timeout {
                 requestTimeoutMillis = 300000
             }
@@ -61,10 +65,11 @@ suspend fun downloadLatest(
         if (!file.exists()) withContext(Dispatchers.IO) {
             file.createNewFile()
         }
+        println("Downloading latest version")
         response.bodyAsChannel().copyAndClose(file.writeChannel())
         onEnd()
     } catch (e: Exception) {
-        println("Error update $url File deleted"+e.message)
+        println("Error update $url File deleted" + e.message)
         file.delete()
     }
 }
@@ -105,26 +110,32 @@ data class Version(
     }
 }
 
+private lateinit var _latestVersion: Version
 
-val LatestVersion:Version by lazy {
-    val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
-    val client = HttpClient(CIO) {
-        followRedirects = true
-    }
+suspend fun latestVersion(): Version {
+    if (!::_latestVersion.isInitialized) {
+        val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
+        val client = HttpClient(CIO) {
+            followRedirects = true
+        }
 
-    runBlocking {
         try {
             val response: HttpResponse = client.get(url)
             val finalUrl = response.request.url.toString()
             val version = finalUrl.substringAfterLast("/tag/").removePrefix("v")
-            Version.fromString(version)
+            println("Check latest version: $version")
+            _latestVersion = Version.fromString(version)
         } catch (e: Exception) {
             e.printStackTrace()
-            Version(0, 0, 0, null)
+            return Version(0, 0, 0, null)
         } finally {
             client.close()
         }
     }
+    return _latestVersion
 }
 
-val needUpdate: Boolean by lazy { LatestVersion > currentVersion }
+suspend fun checkUpdate(): Boolean {
+    val latest = latestVersion()
+    return latest > currentVersion
+}

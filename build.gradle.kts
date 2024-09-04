@@ -9,7 +9,6 @@ plugins {
 }
 
 group = "com.helldaisy"
-// scmVersion.version "1.0.0-snapshot" convert to semver with numbers
 version = scmVersion.version.replace(Regex("[^0-9.]"),"")
 
 repositories {
@@ -55,7 +54,7 @@ compose.desktop {
             macOS {
                 modules("java.instrument", "java.management", "java.sql.rowset", "jdk.unsupported")
                 version = if (version.toString().startsWith("0.")) {
-                    version.toString().replace("0.", "1.")
+                    version.toString().replaceFirst("0.", "1.")
                 } else {
                     version.toString()
                 }

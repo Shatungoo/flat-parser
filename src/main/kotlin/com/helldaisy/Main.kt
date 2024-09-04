@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -27,12 +29,13 @@ val settings by lazy {  loadSettings() }
 val state: MutableState<State> = mutableStateOf(FlatsState())
 
 fun main() = application {
-    CoroutineScope(Dispatchers.IO).launch {
+    val scope = rememberCoroutineScope()
+    scope.launch {
         state.value = FlatsState(
             flats = settings.db.getFlats(settings.filterDb)
         )
+        update(settings.filterParser, settings.db)
     }
-
     Window(
         onCloseRequest = ::exitApplication,
         title = appName,

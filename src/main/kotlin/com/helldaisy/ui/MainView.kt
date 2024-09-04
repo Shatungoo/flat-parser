@@ -13,9 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.helldaisy.*
 import com.helldaisy.State
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 val filterDbView = mutableStateOf(false)
 val filterParserView = mutableStateOf(false)
@@ -87,12 +85,17 @@ private fun FilterParser1(
     }
 }
 
+val needUpdate = mutableStateOf(false)
 
 @Composable
 fun ControlPanel(
     state: MutableState<State>,
     settings: Settings,
 ) {
+    rememberCoroutineScope().launch {
+        delay(1000)
+        needUpdate.value = checkUpdate()
+    }
     val db = settings.db
     val current = state.value as FlatsState
     val flats = current.flats
@@ -132,8 +135,8 @@ fun ControlPanel(
             }, text = "Show on map")
             Spacer(modifier = Modifier.weight(1f))
             var btnText by remember { mutableStateOf("Latest version") }
-            if (needUpdate) {
-                btnText = "Update to $LatestVersion"
+            if (needUpdate.value) {
+                btnText = "Update to ${runBlocking { latestVersion() }}"
                 OutlinedButton(onClick = {
                     btnText = "Downloading..."
                     CoroutineScope(Dispatchers.Default).launch {
