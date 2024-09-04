@@ -9,8 +9,11 @@ import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.locks.Lock
 import kotlin.system.exitProcess
 
 val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
@@ -111,28 +114,31 @@ data class Version(
 }
 
 private lateinit var _latestVersion: Version
+val lock = Mutex()
 
 suspend fun latestVersion(): Version {
-    if (!::_latestVersion.isInitialized) {
-        val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
-        val client = HttpClient(CIO) {
-            followRedirects = true
-        }
+    lock.withLock {
+        if (!::_latestVersion.isInitialized) {
+            val url = "https://github.com/Shatungoo/flat-parser/releases/latest"
+            val client = HttpClient(CIO) {
+                followRedirects = true
+            }
 
-        try {
-            val response: HttpResponse = client.get(url)
-            val finalUrl = response.request.url.toString()
-            val version = finalUrl.substringAfterLast("/tag/").removePrefix("v")
-            println("Check latest version: $version")
-            _latestVersion = Version.fromString(version)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return Version(0, 0, 0, null)
-        } finally {
-            client.close()
+            try {
+                val response: HttpResponse = client.get(url)
+                val finalUrl = response.request.url.toString()
+                val version = finalUrl.substringAfterLast("/tag/").removePrefix("v")
+                println("Check latest version: $version")
+                _latestVersion = Version.fromString(version)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return Version(0, 0, 0, null)
+            } finally {
+                client.close()
+            }
         }
+        return _latestVersion
     }
-    return _latestVersion
 }
 
 suspend fun checkUpdate(): Boolean {

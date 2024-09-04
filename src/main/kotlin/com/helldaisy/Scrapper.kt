@@ -12,6 +12,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -150,7 +151,7 @@ suspend fun getFlatsPage(
     )
 }
 
-suspend fun downloadImage(url: String, file: File): File {
+suspend fun downloadImage(url: String): ByteArray? {
     val client = HttpClient(CIO) {
         install(HttpRequestRetry) {
             retryOnServerErrors(maxRetries = 3)
@@ -160,15 +161,15 @@ suspend fun downloadImage(url: String, file: File): File {
     println("Downloading image from $url")
     try {
         val response = client.get(url)
-        if (!file.exists()) withContext(Dispatchers.IO) {
-            file.createNewFile()
-        }
-        response.bodyAsChannel().copyAndClose(file.writeChannel())
+//        response.bodyAsChannel().copyAndClose(file.writeChannel())
+        val responseBody: ByteArray = response.body()
+        return responseBody
+    }catch (e: CancellationException){
+        println("Cancel downloading image $url")
     } catch (e: Exception) {
-        println("Error downloading image from $url File deleted")
-        file.delete()
+        println("Error downloading image $url")
     }
-    return file
+    return null
 }
 
 @Serializable

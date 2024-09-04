@@ -92,8 +92,8 @@ fun ControlPanel(
     state: MutableState<State>,
     settings: Settings,
 ) {
-    rememberCoroutineScope().launch {
-        delay(1000)
+    CoroutineScope(Dispatchers.IO).launch {
+        delay(500)
         needUpdate.value = checkUpdate()
     }
     val db = settings.db
@@ -102,7 +102,6 @@ fun ControlPanel(
     val filterDb = settings.filterDb
     Card(modifier = Modifier.fillMaxWidth().height(45.dp).padding(3.dp)) {
         Row(
-//            modifier = Modifier.height(40.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
 

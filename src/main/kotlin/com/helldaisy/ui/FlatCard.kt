@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,10 +20,8 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
-import com.helldaisy.Response
-import com.helldaisy.cacheImages
-import com.helldaisy.locationsCl
-import com.helldaisy.toLatin
+import com.helldaisy.*
+import kotlinx.coroutines.launch
 import java.net.URI
 import java.net.URLEncoder
 import java.time.LocalDateTime
@@ -95,14 +94,19 @@ fun SmallFlatCard(
     onClick: () -> Unit = {},
 ) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    Card(modifier = Modifier
-        .padding(horizontal = 10.dp), onClick = onClick) {
+    bitmapImage.getImage(flat.thumbsUrl.first(), flat.id.toString())
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 10.dp), onClick = onClick
+    ) {
         Column() {
-            Text(flat.dynamic_title.toString(), style = MaterialTheme.typography.h5, modifier = Modifier.offset(x = 3.dp))
+            Text(
+                flat.dynamic_title.toString(),
+                style = MaterialTheme.typography.h5,
+                modifier = Modifier.offset(x = 3.dp)
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(modifier = Modifier.size(100.dp)) {
-                    SmallImageGallery(flat.thumbsUrl, flat.id.toString(), mutableStateOf(0),
-                        onClick = {})
                     bitmapImage.value?.let {
                         Image(
                             it,
@@ -123,7 +127,7 @@ fun FlatDescription(flat: Response.Flat, short: Boolean = false, modifier: Modif
     Column(modifier = modifier) {
         if (!short) textField("Город", flat.city_name.toString())
         if (!short) textField("Район", flat.urban_name.let {
-            if (it.isNullOrEmpty() && flat.urban_id !=null) locationsCl.flatUrbans[flat.urban_id].toString()
+            if (it.isNullOrEmpty() && flat.urban_id != null) locationsCl.flatUrbans[flat.urban_id].toString()
             else it.toString()
         })
         if (!short) textField("Район", flat.district_name.let {

@@ -2,11 +2,16 @@
 
 package com.helldaisy
 
+import com.helldaisy.ui.cache
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.PriorityBlockingQueue
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 fun main() {
     val id = "123"
@@ -17,13 +22,17 @@ val byteCash = LocalCache<String, ByteArray>()
 val downloader = ImageDownloader()
 
 interface ICache<N, T> {
-    operator fun get(key: N, block: () -> T): T
+    fun get(key: N, block: () -> T): T
 }
 
 class LocalCache<N, T> : ICache<N, T> {
     private val csh = mutableMapOf<N, T>()
     override fun get(key: N, block: () -> T): T {
         return csh[key] ?: block().also { csh[key] = it }
+    }
+
+    fun exists(key: N): Boolean {
+        return csh.containsKey(key)
     }
 }
 
@@ -35,7 +44,7 @@ class FileCache : ICache<String, ByteArray> {
     }
 }
 
-fun getFile(imageId: String, url: String, priority: Int=10): ByteArray? {
+fun getFile(imageId: String, url: String, priority: Int = 10): ByteArray? {
     val dir = getTemporalDirectory(imageId)
     val fileName = getFileNameFromUrl(url)
     try {
@@ -43,10 +52,14 @@ fun getFile(imageId: String, url: String, priority: Int=10): ByteArray? {
 
         return byteCash.get(id) {
             val file = Paths.get(dir.absolutePath, fileName).toFile()
-            (if (file.exists()) file
-//            else runBlocking { downloadImage(url, file) }).readBytes()
-            else runBlocking { downloader.download(url, Paths.get(dir.absolutePath, fileName), priority) }
-                    ).readBytes()
+            (if (file.exists()) file.readBytes()
+            else runBlocking {
+                downloader.download(
+                    url,
+                    Paths.get(dir.absolutePath, fileName),
+                    priority
+                )
+            })
 
         }
     } catch (e: Exception) {
@@ -56,19 +69,16 @@ fun getFile(imageId: String, url: String, priority: Int=10): ByteArray? {
     }
 }
 
-fun cacheImage(imageId: String, url: String, priority: Int) {
-    cacheImages(imageId, listOf(url), priority)
-}
-
 fun cacheImages(imageId: String, urls: List<String>, priority: Int = 5) {
-    CoroutineScope(Dispatchers.IO.limitedParallelism(3)).launch {
-        val dir = getTemporalDirectory(imageId)
+    val dir = getTemporalDirectory(imageId)
+    CoroutineScope(Dispatchers.IO.limitedParallelism(1)).launch {
         urls.forEach {
             try {
                 val fileName = getFileNameFromUrl(it)
-                downloadImage(it, Paths.get(dir.absolutePath, fileName).toFile())
-
-//                downloader.downloadCache(it, Paths.get(dir.absolutePath, fileName), priority)
+                if (byteCash.exists("$imageId-$fileName")) return@forEach
+                val file = Paths.get(dir.absolutePath, fileName).toFile()
+                if (file.exists()) return@forEach
+                downloader.cache(it, Paths.get(dir.absolutePath, fileName), priority)
             } catch (e: Exception) {
                 println("Error caching images: ${e.message}")
             }
@@ -90,68 +100,71 @@ fun getFileNameFromUrl(url: String): String {
 
 class ImageDownloader {
     private val downloadQueue = PriorityBlockingQueue<(DownloadTask)>()
-    private val inProgress: MutableMap<String, CompletableDeferred<File>> = mutableMapOf()
+    private val inProgress: MutableMap<String, CompletableDeferred<ByteArray>> = mutableMapOf()
 
     data class DownloadTask(
         var priority: Int,
         val url: String,
-        val file: File,
-        val result: CompletableDeferred<File>,
+        val filepath: Path,
+        val result: CompletableDeferred<ByteArray>,
     ) : Comparable<DownloadTask> {
         override fun compareTo(other: DownloadTask): Int = this.priority.compareTo(other.priority)
     }
 
-    fun downloadCache(url: String, filePath: Path, priority: Int = 5) {
-        val file = filePath.toFile()
-        if (file.exists() || inProgress.contains(url)) return
-        addTask(url, file, priority)
-    }
-
+    val addTaskLock = ReentrantLock()
     private fun addTask(
         url: String,
-        file: File,
+        filePath: Path,
         priority: Int = 5,
-        result: CompletableDeferred<File> = CompletableDeferred()
-    ): CompletableDeferred<File> {
-        if (inProgress[url] != null) {
-            return inProgress[url]!!
-        }
-        downloadQueue.filter { it.url == url }.let {
-            if (it.isNotEmpty()) {
-                if (it.first().priority < priority)
-                    it.first().priority = priority
-                return it.first().result
+        result: CompletableDeferred<ByteArray> = CompletableDeferred(),
+    ): CompletableDeferred<ByteArray> {
+        addTaskLock.withLock {
+            if (inProgress[url] != null) {
+                return inProgress[url]!!
             }
-        }
+            downloadQueue.filter { it.url == url }.let {
+                if (it.isNotEmpty()) {
+                    if (it.first().priority < priority)
+                        it.first().priority = priority
+                    return it.first().result
+                }
+            }
 
-        downloadQueue.add(DownloadTask(priority, url, file, result))
-        if (!lock) processQueue()
-        return result
+            downloadQueue.add(DownloadTask(priority, url, filePath, result))
+            CoroutineScope(Dispatchers.IO).launch { processQueue() }
+            return result
+        }
     }
 
-    suspend fun download(url: String, filePath: Path, priority: Int = 10): File {
-        val file = filePath.toFile()
+    fun cache(url: String, filePath: Path, priority: Int = 5) {
+        addTask(url, filePath, priority)
+    }
+
+    suspend fun download(url: String, filePath: Path, priority: Int = 10): ByteArray {
         inProgress[url]?.let { return it.await() }
         downloadQueue.find { it.url == url }?.let {
             if (it.priority < priority) it.priority = priority
             return it.result.await()
         }
-        return addTask(url, file, priority).await()
+        return addTask(url, filePath, priority).await()
     }
 
-    private var lock = false
-    val scope = CoroutineScope(Dispatchers.IO.limitedParallelism(5))
-    private fun processQueue() {
-        if (lock) return
-        lock = true
-        while (downloadQueue.isNotEmpty()) {
-                val task = downloadQueue.poll()
-                if (task != null) {
-                    runBlocking { scope.launch {
+    private var lock = Mutex()
+    private val scope = CoroutineScope(Dispatchers.IO.limitedParallelism(5))
+
+    private suspend fun processQueue() {
+        lock.withLock {
+            while (downloadQueue.isNotEmpty()) {
+                scope.launch {
+                    val task = downloadQueue.poll()
+                    if (task != null) {
                         try {
                             inProgress[task.url] = task.result
-                            val file = downloadImage(task.url, task.file)
-                            task.result.complete(file)
+                            val file = task.filepath.toFile()
+                            if (file.exists()) return@launch
+                            val image = downloadImage(task.url) ?: return@launch
+                            file.writeBytes(image)
+                            task.result.complete(image)
                         } catch (e: Exception) {
                             task.result.completeExceptionally(e)
                         } finally {
@@ -161,7 +174,6 @@ class ImageDownloader {
                 }
             }
         }
-        lock = false
     }
 }
 
