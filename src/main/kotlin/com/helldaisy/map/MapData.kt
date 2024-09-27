@@ -81,6 +81,11 @@ data class MapData(
             return MapData(tileFactory, mutableStateOf(cent), mutableStateOf(zoom))
         }
 
+        fun create(tileFactory: TileFactory, geoPositions: List<GeoPosition>, zoom: Int): MapData {
+            val center = getCenter(geoPositions)
+            return MapData(tileFactory, mutableStateOf(tileFactory.geoToPixel(center, zoom).toPoint()), mutableStateOf(zoom))
+        }
+
         fun getCenter(geoPositions: List<GeoPosition>): GeoPosition {
             val x = geoPositions.map { it.latitude }.average()
             val y = geoPositions.map { it.longitude }.average()
@@ -93,6 +98,10 @@ data class MapData(
     val centerPoint: Point
         get() = center.value
 
+    fun setCenter(geo: GeoPosition): MapData {
+        center.value = tileFactory.geoToPixel(geo, zoomLevel).toPoint()
+        return this
+    }
     val tileSize: Int
         get() = tileFactory.getTileSize(zoomLevel)
 

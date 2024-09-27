@@ -130,7 +130,8 @@ fun ControlPanel(
             )
 
             controlPanelButton(onClick = {
-                state.value = MapState(flats = flats, previous = current)
+                state.value = MapState(map = MapViewState(flats),
+                    previous = current)
             }, text = "Show on map")
             Spacer(modifier = Modifier.weight(1f))
             var btnText by remember { mutableStateOf("Latest version") }

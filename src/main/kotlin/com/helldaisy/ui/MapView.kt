@@ -18,12 +18,14 @@ import org.jxmapviewer.viewer.GeoPosition
 import java.nio.file.Paths
 
 
-val cacheDir = getTemporalDirectory(".osm")
-val cache = FileBasedLocalCache(cacheDir, false)
-val tileFactory = DefaultTileFactory(OSMTileFactoryInfo())
-    .apply {
-        setLocalCache(cache)
-    }
+val cacheDir by lazy { getTemporalDirectory(".osm") }
+val cache by lazy { FileBasedLocalCache(cacheDir, false) }
+val tileFactory by lazy {
+    DefaultTileFactory(OSMTileFactoryInfo())
+        .apply {
+            setLocalCache(cache)
+        }
+}
 
 
 fun main() = singleWindowApplication {
@@ -32,39 +34,47 @@ fun main() = singleWindowApplication {
     val db = Db(path)
 }
 
+data class MapViewState(val flats: List<Response.Flat>) {
+    private val flatMap: Map<GeoPosition, List<Response.Flat>> = run {
+            val map = mutableMapOf<GeoPosition, List<Response.Flat>>()
+            flats.mapNotNull {
+                if (it.lat != null && it.lng != null) Pair(GeoPosition(it.lat, it.lng), it)
+                else null
+            }.forEach { (geo, flat) ->
+                val flatList = map[geo]
+                if (flatList == null) {
+                    map[geo] = listOf(flat)
+                } else if (map[geo] != null) {
+                    map[geo] = flatList + flat
+                }
+            }
+            map
+        }
+    private val center = MapData.getCenter(flatMap.keys.toList())
+    val selectableWaypoints = flatMap.map { (geo, flatList) ->
+        SelectablePoint(
+            geoPoistion = geo,
+            data = flatList,
+        )
+    }
+    val mapData = MapData.create(tileFactory, center, 5)
+    val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
+}
 
 @Composable
 fun MapView(
-    flats: List<Response.Flat>,
+    map: MapViewState,
     back: () -> Unit = {},
     selectFlat: (Response.Flat) -> Unit = {},
 ) {
+    val selectedFlats = map.selectedFlats
     Box {
-        val flatMap = mutableMapOf<GeoPosition, List<Response.Flat>>()
-        flats.mapNotNull {
-            if (it.lat != null && it.lng != null) Pair(GeoPosition(it.lat, it.lng), it)
-            else null
-        }.forEach { (geo, flat) ->
-            val flatList = flatMap[geo]
-            if (flatList == null) {
-                flatMap[geo] = listOf(flat)
-            } else if (flatMap[geo] != null) {
-                flatMap[geo] = flatList + flat
+        map.mapData
+            .Map {
+                ClickableWaypointLayer(
+                    selectablePoints = map.selectableWaypoints,
+                    onClick = { selectedFlats.value = it.map { data -> data }.flatten() })
             }
-        }
-        val selectedFlats = mutableStateOf(emptyList<Response.Flat>())
-        val center = MapData.getCenter(flatMap.keys.toList())
-        val selectableWaypoints = flatMap.map { (geo, flatList) ->
-            SelectablePoint(
-                geoPoistion = geo,
-                data = flatList,
-            )
-        }
-        MapData.create(tileFactory, center, 6).Map {
-            ClickableWaypointLayer(
-                selectablePoints = selectableWaypoints,
-                onClick = { selectedFlats.value = it.map { data -> data as List<Response.Flat> }.flatten() })
-        }
         Column {
             BackButtonAct { back() }
             LazyColumn(

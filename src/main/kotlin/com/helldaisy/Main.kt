@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -20,9 +17,6 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.helldaisy.ui.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 val settings by lazy {  loadSettings() }
@@ -88,7 +82,7 @@ fun main() = application {
                 }
 
                 is MapState -> {
-                    MapView(currentState.flats,
+                    MapView(currentState.map,
                         back = { state.value = currentState.previous!! },
                         selectFlat = { state.value = FlatState(it, currentState) }
                     )
@@ -120,6 +114,6 @@ data class ImageState(
 ) : State
 
 data class MapState(
-    val flats: List<Response.Flat>,
+    val map: MapViewState,
     override val previous: State? = null,
 ) : State

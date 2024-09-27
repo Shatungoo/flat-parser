@@ -94,7 +94,8 @@ fun SmallFlatCard(
     onClick: () -> Unit = {},
 ) {
     val bitmapImage = mutableStateOf<BitmapPainter?>(null)
-    bitmapImage.getImage(flat.thumbsUrl.first(), flat.id.toString())
+    if (flat.thumbsUrl.isNotEmpty())
+        bitmapImage.getImage(flat.thumbsUrl.first(), flat.id.toString())
     Card(
         modifier = Modifier
             .padding(horizontal = 10.dp), onClick = onClick
