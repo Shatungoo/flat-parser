@@ -68,9 +68,9 @@ data class Rectangle(val x: Double, val y: Double, val width: Double, val height
 }
 
 
-data class SelectablePoint(
+data class SelectablePoint<T>(
     val geoPoistion: GeoPosition,
-    val data: Any?,
+    val data: T?,
     val image: MutableState<ImageBitmap> = mutableStateOf(waypointImage),
     val selected: MutableState<Boolean> = mutableStateOf(false),
 ) {
@@ -90,15 +90,15 @@ data class SelectablePoint(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MapData.ClickableWaypointLayer(selectablePoints: List<SelectablePoint>, onClick: (data: List<*>) -> Unit = {}) {
+fun <T> MapData.ClickableWaypointLayer(selectablePoints: List<SelectablePoint<T>>, onClick: (data: List<T>) -> Unit = {}) {
     val cent = center.value
     Canvas(
         modifier = Modifier
             .fillMaxSize()
             .clipToBounds()
-            .onPointerEvent(PointerEventType.Press) {event ->
+            .onPointerEvent(PointerEventType.Press) { event ->
                 val click = event.changes.first().position
-                val deslectionList: MutableList<SelectablePoint> = mutableListOf()
+                val deselectionList: MutableList<SelectablePoint<T>> = mutableListOf()
                 val list = selectablePoints.mapNotNull { data ->
                     val pointLocal = tileFactory.geoToPixel(data.geoPoistion, zoomLevel).toPoint() - Point(
                         cent.x - size.width / 2,
@@ -111,25 +111,24 @@ fun MapData.ClickableWaypointLayer(selectablePoints: List<SelectablePoint>, onCl
                         data.select()
                         data.data!!
                     } else if (data.selected.value) {
-                        deslectionList.add(data)
+                        deselectionList.add(data)
                         null
                     } else null
                 }
                 if (list.isNotEmpty()) {
-                    deslectionList.forEach { it.deselect() }
+                    deselectionList.forEach { it.deselect() }
                     onClick(list)
                 }
             }
             .pointerInput(Unit) {
-                detectTransformGestures { c, pan, _, _ -> moveCenter(pan) }
+                detectTransformGestures { _, pan, _, _ -> moveCenter(pan) }
             }
             .onPointerEvent(PointerEventType.Scroll) {
                 zoomIn(it.changes.first().scrollDelta.y)
             }
-
     ) {
         val topLeft = cent - Point(size.width, size.height) / 2
-        drawIntoCanvas {canvas ->
+        drawIntoCanvas { canvas ->
             selectablePoints.forEach { waypoint ->
                 val point = geoToPixel(waypoint.geoPoistion)
                 val offset = (point - topLeft - waypoint.imageBox.bottomCenter).toOffset()

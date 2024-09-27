@@ -162,7 +162,7 @@ data class MapData(
         }
         tileFactory.getTile(itpx, itpy, zoomLevel)?.let {
             var tile = it
-            if (tile.isLoaded) {
+            if (tile.isLoaded && !tile.loadingFailed() && tile.image != null) {
                 return mutableStateOf(tile.image.toComposeImageBitmap())
             }
             val image = mutableStateOf(loadingImage)
