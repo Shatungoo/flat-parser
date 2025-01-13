@@ -34,7 +34,9 @@ fun main() = application {
         state.value = FlatsState(
             flats = settings.db.getFlats(settings.filterDb)
         )
+        settings.db.cleanUpOldRecords()
         update(settings.filterParser, settings.db)
+
     }
     Window(
         onCloseRequest = ::exitApplication,

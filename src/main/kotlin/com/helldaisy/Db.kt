@@ -111,6 +111,14 @@ class Db(path: String = "./flats") {
         }
     }
 
+    fun cleanUpOldRecords() {
+        println("Delete old records")
+        val i = connection.delete(FlatTable) {
+            it.lastUpdated lt (LocalDateTime.now().minusDays(30))
+        }
+        println("Deleted $i records")
+    }
+
     fun insertFlat(flat: Response.Flat) {
         try {
             connection.insertOrUpdate(FlatTable) {

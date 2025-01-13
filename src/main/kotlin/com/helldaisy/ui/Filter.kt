@@ -79,13 +79,11 @@ data class Filter(
     val lastUpdated: MutableState<Int> = mutableStateOf(7),
 )
 
-fun update(filter: Filter, db: Db) {
-    CoroutineScope(Dispatchers.IO).launch {
-        while (true) {
-            val response = getFlats(filter)
-            db.insertFlats(response)
-            delay(Duration.parse("1h"))
-        }
+suspend fun update(filter: Filter, db: Db) {
+    while (true) {
+        val response = getFlats(filter)
+        db.insertFlats(response)
+        delay(Duration.parse("1h"))
     }
 }
 
@@ -181,7 +179,7 @@ fun <T> ClassifierAdd(classifier: Map<T, String>, values: MutableState<List<T>>,
 }
 
 @Composable
-fun Btn(text:String, onClick:()->Unit){
+fun Btn(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(3.dp)
@@ -229,7 +227,7 @@ fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classi
     FilterText(name) {
         FlowRow(
             modifier = Modifier
-                .heightIn(min = 50.dp).fillMaxWidth() ,
+                .heightIn(min = 50.dp).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.Bottom),
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
@@ -239,7 +237,7 @@ fun <T> FilterWithClassifier(name: String, values: MutableState<List<T>>, classi
                 })
             }
 
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
             if (values.value.isNotEmpty()) {
                 Btn("Clear") {
                     values.value = emptyList()
