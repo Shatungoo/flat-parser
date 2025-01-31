@@ -21,7 +21,7 @@ jobs:
           cache: 'gradle'
 
       - run: ./gradlew :createDistributable --no-daemon
-      - run: Compress-Archive build/compose/binaries/main/app/flat-parser/*, src/main/resources/update.ps1 -DestinationPath flat-parser.zipflat-parser.zip
+      - run: Compress-Archive build/compose/binaries/main/app/flat-parser/* flat-parser.zip
       - name: Make Release
         uses: softprops/action-gh-release@v2
         with:
