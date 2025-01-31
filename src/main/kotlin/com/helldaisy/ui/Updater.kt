@@ -140,7 +140,14 @@ suspend fun latestVersion(): Version {
     }
 }
 
-suspend fun checkUpdate(): Boolean {
+enum class UpdateState {
+    Idle, Available, Downloading, Downloaded, NotAvailable
+}
+
+suspend fun checkUpdate(): UpdateState {
     val latest = latestVersion()
-    return latest > currentVersion
+    return when {
+        currentVersion < latest -> UpdateState.Available
+        else -> UpdateState.NotAvailable
+    }
 }

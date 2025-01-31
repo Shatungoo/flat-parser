@@ -20,7 +20,6 @@ val filterParserView = mutableStateOf(false)
 
 @Composable
 fun MainView(settings: Settings, state: MutableState<State>) {
-
     if (filterDbView.value) FilterDb(state, settings, close = { filterDbView.value = false })
     else if (filterParserView.value) FilterParser1(
         settings.filterParser,
@@ -87,17 +86,13 @@ private fun FilterParser1(
     }
 }
 
-val needUpdate = mutableStateOf(false)
+
 
 @Composable
 fun ControlPanel(
     state: MutableState<State>,
     settings: Settings,
 ) {
-    CoroutineScope(Dispatchers.IO).launch {
-        delay(500)
-        needUpdate.value = checkUpdate()
-    }
     val db = settings.db
     val current = state.value as FlatsState
     val flats = current.flats
@@ -148,29 +143,37 @@ fun ControlPanel(
     }
 }
 
+
+
+val updateState = mutableStateOf(UpdateState.Idle)
+
 @Composable
 fun UpdateButton() {
-    var updateButtonText by remember { mutableStateOf("Latest version") }
-    var showUpdateButton by remember { mutableStateOf(false) }
-
-    LaunchedEffect(needUpdate.value) {
-        showUpdateButton = needUpdate.value
-        if (needUpdate.value) {
-            updateButtonText = "Update to ${latestVersion()}"
-        }
+    LaunchedEffect(Unit) {
+        updateState.value = checkUpdate()
     }
 
-    if (showUpdateButton) {
-        OutlinedButton(onClick = {
-            updateButtonText = "Downloading..."
-            CoroutineScope(Dispatchers.Default).launch {
-                downloadLatest {
-                    updateButtonText = "Downloaded"
-                    updateApp()
+    when (updateState.value) {
+        UpdateState.Idle, UpdateState.NotAvailable -> {}
+        UpdateState.Available -> {
+            controlPanelButton(onClick = {
+                CoroutineScope(Dispatchers.Default).launch {
+                    downloadLatest {
+                        updateState.value = UpdateState.Downloaded
+                    }
                 }
+                updateState.value = UpdateState.Downloading
+            }, text = "Download update")
+        }
+        UpdateState.Downloading -> {
+            OutlinedButton(onClick = {}) {
+                Text("Downloading...")
             }
-        }) {
-            Text(updateButtonText)
+        }
+        UpdateState.Downloaded -> {
+            controlPanelButton(onClick = {
+                updateApp()
+            }, text = "Update")
         }
     }
 }
