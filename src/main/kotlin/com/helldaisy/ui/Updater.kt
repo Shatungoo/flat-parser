@@ -34,16 +34,15 @@ enum class UpdateStatus {
 }
 
 
+
+
 fun updateApp() {
-    val commandList = arrayOf(
-        "powershell.exe",
-        "-Command",
-        "Expand-Archive -Path flat-parser.zip -DestinationPath . -force",
-        "&&Remove-Item flat-parser.zip",
-        "&&Start-Process flat-parser.exe"
-    )
-    ProcessBuilder(*commandList).start()
-    exitProcess(0);
+    val processBuilder = ProcessBuilder("powershell.exe", "-File", "src/main/resources/update.ps1")
+    processBuilder.redirectErrorStream(true)
+    val process = processBuilder.start()
+    val reader = process.inputStream.bufferedReader()
+    reader.forEachLine { println(it) }
+    process.waitFor()
 }
 
 

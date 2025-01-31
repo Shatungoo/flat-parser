@@ -22,7 +22,8 @@ val filterParserView = mutableStateOf(false)
 fun MainView(settings: Settings, state: MutableState<State>) {
 
     if (filterDbView.value) FilterDb(state, settings, close = { filterDbView.value = false })
-    else if (filterParserView.value) FilterParser1(settings.filterParser,
+    else if (filterParserView.value) FilterParser1(
+        settings.filterParser,
         settings = settings,
         onClose = { filterParserView.value = false })
 
@@ -69,7 +70,8 @@ private fun FilterParser1(
             Box(
                 modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
             ) {
-                FilterParser(filter,
+                FilterParser(
+                    filter,
                     onClick = {
                         settings.saveSettings()
                         onClose()
@@ -119,7 +121,8 @@ fun ControlPanel(
                 }
             }, settings = { filterParserView.value = true })
             // Get flats from db
-            BtnWithSettings(name = mutableStateOf("Search"),
+            BtnWithSettings(
+                name = mutableStateOf("Search"),
                 action = {
                     val flatsUpdate = db.getFlats(filterDb)
                     state.value = current.copy(flats = flatsUpdate)
@@ -130,26 +133,44 @@ fun ControlPanel(
             )
 
             controlPanelButton(onClick = {
-                state.value = MapState(map = MapViewState(flats),
-                    previous = current)
+                state.value = MapState(
+                    map = MapViewState(flats),
+                    previous = current
+                )
             }, text = "Show on map")
             Spacer(modifier = Modifier.weight(1f))
-            var btnText by remember { mutableStateOf("Latest version") }
-            if (needUpdate.value) {
-                btnText = "Update to ${runBlocking { latestVersion() }}"
-                OutlinedButton(onClick = {
-                    btnText = "Downloading..."
-                    CoroutineScope(Dispatchers.Default).launch {
-                        downloadLatest() {
-                            btnText = "Downloaded"
-                        }
-                    }
-                }) {
-                    Text(btnText)
+            UpdateButton()
+            Text(
+                "Flats: ${flats.size}", modifier = Modifier.padding(5.dp),
+                color = MaterialTheme.colors.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun UpdateButton() {
+    var updateButtonText by remember { mutableStateOf("Latest version") }
+    var showUpdateButton by remember { mutableStateOf(false) }
+
+    LaunchedEffect(needUpdate.value) {
+        showUpdateButton = needUpdate.value
+        if (needUpdate.value) {
+            updateButtonText = "Update to ${latestVersion()}"
+        }
+    }
+
+    if (showUpdateButton) {
+        OutlinedButton(onClick = {
+            updateButtonText = "Downloading..."
+            CoroutineScope(Dispatchers.Default).launch {
+                downloadLatest {
+                    updateButtonText = "Downloaded"
+                    updateApp()
                 }
             }
-            Text("Flats: ${flats.size}", modifier = Modifier.padding(5.dp),
-                color = MaterialTheme.colors.onPrimary)
+        }) {
+            Text(updateButtonText)
         }
     }
 }
