@@ -38,11 +38,7 @@ val SearchParams: Map<String, String> = mapOf(
 @Serializable
 data class Settings(
 
-    val filterDb: Filter = Filter(),
-
-    val filterParser: Filter = SearchParams.toFilterDb().apply {
-        limit.value = 2
-    },
+    val filterCombined: Filter = Filter(),
 
     @Serializable(with = MutableStateSerializer::class)
     val darkTheme: MutableState<Boolean> = mutableStateOf(false),

@@ -23,35 +23,35 @@ import kotlin.time.Duration
 @Serializable
 data class Filter(
     @Serializable(with = MutableStateSerializer::class)
-    val dealTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    val dealTypes: MutableState<List<Int>> = mutableStateOf(listOf(1)),
     @Serializable(with = MutableStateSerializer::class)
-    val realEstateTypes: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    val realEstateTypes: MutableState<List<Int>> = mutableStateOf(listOf(1)),
     @Serializable(with = MutableStateSerializer::class)
-    val cities: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    val cities: MutableState<List<Int>> = mutableStateOf(listOf(1)),
     @Serializable(with = MutableStateSerializer::class)
-    val currencyId: MutableState<Int?> = mutableStateOf(null),
+    val currencyId: MutableState<Int?> = mutableStateOf(1),
     @Serializable(with = MutableStateSerializer::class)
-    val urbans: MutableState<List<Int>> = mutableStateOf(listOf()),
+    val urbans: MutableState<List<Int>> = mutableStateOf(listOf(27,25,23,57,53,78)),
     @Serializable(with = MutableStateSerializer::class)
-    val districts: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    val districts: MutableState<List<Int>> = mutableStateOf(listOf(3,6,5)),
     @Serializable(with = MutableStateSerializer::class)
-    val statuses: MutableState<List<Int>> = mutableStateOf(emptyList()),
+    val statuses: MutableState<List<Int>> = mutableStateOf(listOf(2,3)),
     @Serializable(with = MutableStateSerializer::class)
-    val areaTypes: MutableState<Int?> = mutableStateOf(null),
+    val areaTypes: MutableState<Int?> = mutableStateOf(1),
     @Serializable(with = MutableStateSerializer::class)
-    val priceFrom: MutableState<Int?> = mutableStateOf(null),
+    val priceFrom: MutableState<Int?> = mutableStateOf(20000),
     @Serializable(with = MutableStateSerializer::class)
-    val priceTo: MutableState<Int?> = mutableStateOf(null),
+    val priceTo: MutableState<Int?> = mutableStateOf(110000),
     @Serializable(with = MutableStateSerializer::class)
-    val roomsFrom: MutableState<Int?> = mutableStateOf(null),
+    val roomsFrom: MutableState<Int?> = mutableStateOf(3),
     @Serializable(with = MutableStateSerializer::class)
     val roomsTo: MutableState<Int?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
-    val areaFrom: MutableState<Int?> = mutableStateOf(null),
+    val areaFrom: MutableState<Int?> = mutableStateOf(50),
     @Serializable(with = MutableStateSerializer::class)
-    val areaTo: MutableState<Int?> = mutableStateOf(null),
+    val areaTo: MutableState<Int?> = mutableStateOf(100),
     @Serializable(with = MutableStateSerializer::class)
-    val floorFrom: MutableState<Int?> = mutableStateOf(null),
+    val floorFrom: MutableState<Int?> = mutableStateOf(2),
     @Serializable(with = MutableStateSerializer::class)
     val floorTo: MutableState<Int?> = mutableStateOf(null),
     @Serializable(with = MutableStateSerializer::class)
@@ -61,8 +61,12 @@ data class Filter(
 
     @Serializable(with = MutableStateSerializer::class)
     val street: MutableState<String?> = mutableStateOf(null),
+
     @Serializable(with = MutableStateSerializer::class)
-    val limit: MutableState<Int> = mutableStateOf(1000),
+    val limitParser: MutableState<Int> = mutableStateOf(5),
+
+    @Serializable(with = MutableStateSerializer::class)
+    val limitDb: MutableState<Int> = mutableStateOf(1000),
 
     @Serializable(with = MutableStateSerializer::class)
     val lanFrom: MutableState<Double?> = mutableStateOf(null),
@@ -89,40 +93,6 @@ fun update(filter: Filter, db: Db) {
     }
 }
 
-@Composable
-fun FilterDb(filter: Filter, apply: () -> Unit) {
-
-    Column(
-        modifier = Modifier.padding(5.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(1.dp)
-    ) {
-        FilterBetween("Rooms", filter.roomsFrom, filter.roomsTo)
-        FilterBetween("Price", filter.priceFrom, filter.priceTo)
-        FilterBetween("Area", filter.areaFrom, filter.areaTo)
-        FilterBetween("Floor", filter.floorFrom, filter.floorTo)
-        FilterBetween("Total floors", filter.totalFloorsFrom, filter.totalFloorsTo)
-        FilterWithClassifier("Deal types", filter.dealTypes, dealTypes)
-        FilterWithClassifier("Statuses", filter.statuses, status)
-        FilterWithClassifier("Cities", filter.cities, locationsCl.cities)
-        if (filter.cities.value.isNotEmpty()) {
-            FilterWithClassifier("Districts", filter.districts, locationsCl.districts(filter.cities.value))
-            if (filter.districts.value.isNotEmpty()) {
-                FilterWithClassifier(
-                    "Urbans", filter.urbans,
-                    locationsCl.urbans(filter.cities.value, filter.districts.value)
-                )
-            }
-        }
-        FilterExactInt("Updated, d", filter.lastUpdated as MutableState<Int?>)
-        FilterExactInt("Limit", filter.limit as MutableState<Int?>)
-        Spacer(modifier = Modifier.height(50.dp))
-        Button(onClick = {
-            apply()
-        }) {
-            Text("Search")
-        }
-    }
-}
 
 @Composable
 fun FilterBetween(name: String, from: MutableState<Int?>, to: MutableState<Int?>) {

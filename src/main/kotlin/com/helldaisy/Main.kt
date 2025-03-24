@@ -26,15 +26,15 @@ fun main() = application {
     val scope = rememberCoroutineScope()
     scope.launch {
         state.value = FlatsState(
-            flats = settings.db.getFlats(settings.filterDb)
+            flats = settings.db.getFlats(settings.filterCombined)
         )
-        update(settings.filterParser, settings.db)
+        update(settings.filterCombined, settings.db)
     }
     Window(
         onCloseRequest = ::exitApplication,
         title = appName,
         state = rememberWindowState(placement = WindowPlacement.Maximized),
-        icon = painterResource("app.png"),
+//        icon = painterResource("app.png"),
     ) {
         Theme {
             val scrollState = rememberLazyListState()

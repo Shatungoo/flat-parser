@@ -15,65 +15,47 @@ import com.helldaisy.*
 import com.helldaisy.State
 import kotlinx.coroutines.*
 
-val filterDbView = mutableStateOf(false)
-val filterParserView = mutableStateOf(false)
+enum class FilterState {
+    none, combined
+}
+val filterView = mutableStateOf(FilterState.none)
 
 @Composable
 fun MainView(settings: Settings, state: MutableState<State>) {
-    if (filterDbView.value) FilterDb(state, settings, close = { filterDbView.value = false })
-    else if (filterParserView.value) FilterParser1(
-        settings.filterParser,
-        settings = settings,
-        onClose = { filterParserView.value = false })
-
-}
-
-@Composable
-fun FilterDb(
-    state: MutableState<State>,
-    settings: Settings,
-    close: () -> Unit,
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Row {
-            Box(
-                modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
-            ) {
-                FilterDb(settings.filterDb) {
-                    settings.saveSettings()
-                    state.value = FlatsState(flats = settings.db.getFlats(settings.filterDb))
-                    close()
+    when (filterView.value) {
+        FilterState.combined -> FilterCombined(settings.filterCombined,
+            onSearch = {
+                settings.saveSettings()
+                updateDb(settings.db, settings.filterCombined) {
+                    val flatsUpdate = settings.db.getFlats(settings.filterCombined)
+                    state.value = (state.value as FlatsState).copy(flats = flatsUpdate)
+                    filterView.value = FilterState.none
                 }
-            }
-            Box(
-                modifier = Modifier.fillMaxSize().clickable(onClick = {
-                    close()
-                })
-            )
-        }
+            },
+            onClose = { filterView.value = FilterState.none })
+        else -> {}
     }
 }
 
 @Composable
-private fun FilterParser1(
+private fun FilterCombined(
     filter: Filter,
-    settings: Settings,
+    onSearch: () -> Unit,
     onClose: () -> Unit,
 ) {
+
     Box(
         modifier = Modifier.fillMaxSize()
+
     ) {
         Row {
             Box(
                 modifier = Modifier.fillMaxHeight().background(Color.Black).width(400.dp)
             ) {
-                FilterParser(
+                FilterCombined(
                     filter,
-                    onClick = {
-                        settings.saveSettings()
-                        onClose()
+                    apply = {
+                        onSearch()
                     }
                 )
             }
@@ -87,7 +69,6 @@ private fun FilterParser1(
 }
 
 
-
 @Composable
 fun ControlPanel(
     state: MutableState<State>,
@@ -96,37 +77,29 @@ fun ControlPanel(
     val db = settings.db
     val current = state.value as FlatsState
     val flats = current.flats
-    val filterDb = settings.filterDb
     Card(modifier = Modifier.fillMaxWidth().height(45.dp).padding(3.dp)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
 
         ) {
-            val btnName = mutableStateOf("Update DB")
-            //Get flats from site
-            BtnWithSettings(name = btnName, action = {
-                btnName.value = "In progress..."
-                updateDb(db, settings.filterParser) {
-                    val flatsUpdate = db.getFlats(filterDb)
-                    btnName.value = "Update DB"
 
-                    state.value = current.copy(flats = flatsUpdate)
-                    filterParserView.value = false
-                }
-            }, settings = { filterParserView.value = true })
-            // Get flats from db
+            //Get flats from site
             BtnWithSettings(
                 name = mutableStateOf("Search"),
                 action = {
-                    val flatsUpdate = db.getFlats(filterDb)
-                    state.value = current.copy(flats = flatsUpdate)
-                    filterDbView.value = false
+//                    btnName.value = "In progress..."
+                    updateDb(db, settings.filterCombined) {
+                        val flatsUpdate = db.getFlats(settings.filterCombined)
+//                        btnName.value = "Update DB"
+
+                        state.value = current.copy(flats = flatsUpdate)
+//                        filterView.value = FilterState.none
+                    }
 
                 },
-                settings = { filterDbView.value = true }
+                settings = { filterView.value = FilterState.combined }
             )
-
             controlPanelButton(onClick = {
                 state.value = MapState(
                     map = MapViewState(flats),

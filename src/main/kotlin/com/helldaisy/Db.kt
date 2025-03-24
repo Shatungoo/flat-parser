@@ -204,7 +204,7 @@ class Db(path: String = "./flats") {
                 filter.lngFrom.value?.let {expr += FlatTable.lng.greaterEq(it)}
                 filter.lngTo.value?.let {expr += FlatTable.lng.lt(it)}
             }
-            .limit(filter.limit.value)
+            .limit(filter.limitDb.value)
             .orderBy(FlatTable.lastUpdated.desc())
             val time = System.currentTimeMillis()
             query.forEach {

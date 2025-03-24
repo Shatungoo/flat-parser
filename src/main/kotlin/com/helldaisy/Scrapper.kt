@@ -80,7 +80,7 @@ suspend fun getFlats(
     filter: Filter,
 ): List<Response.Flat> {
     val urlParamMap = filter.toMap()
-    val count = filter.limit.value
+    val count = filter.limitParser.value
     val result = coroutineScope {
         (0..count).map { n ->
             async {
@@ -248,6 +248,8 @@ data class Response(
     @Serializable
     data class Image(
         val large: String?,
+        val large_webp: String?, //outdated
+        val thumb_webp: String?, //outdated
         val thumb: String?,
         val blur: String?,
         val is_main: Boolean?,
