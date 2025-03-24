@@ -38,7 +38,7 @@ data class MapViewState(val flats: List<Response.Flat>) {
     private val flatMap: Map<GeoPosition, List<Response.Flat>> = run {
             val map = mutableMapOf<GeoPosition, List<Response.Flat>>()
             flats.mapNotNull {
-                if (it.lat != null && it.lng != null) Pair(GeoPosition(it.lat, it.lng), it)
+                if (it.lat != null && it.lng != null) Pair(GeoPosition(it.lng, it.lat), it)
                 else null
             }.forEach { (geo, flat) ->
                 val flatList = map[geo]
@@ -94,8 +94,8 @@ fun MapView(
 
 @Composable
 fun MapComposeSmall(
-    lat: Double = 50.11,
     lng: Double = 8.68,
+    lat: Double = 50.11,
     zoom: Int = 5,
 ) {
     MapData.create(tileFactory, GeoPosition(lat, lng), zoom).Map {
