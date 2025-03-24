@@ -234,12 +234,9 @@ data class Response(
     ) {
         override fun toString(): String = json.encodeToString(serializer(), this)
         @get:JsonIgnore
-        val imagesUrl: List<String> get() = images.mapNotNull { it.large_webp }.ifEmpty {
-            images.mapNotNull { it.large } }
+        val imagesUrl: List<String> get() = images.mapNotNull { it.large }
         @get:JsonIgnore
-        val thumbsUrl: List<String> get() = images.mapNotNull { it.thumb_webp }.ifEmpty {
-            images.mapNotNull { it.thumb }
-        }
+        val thumbsUrl: List<String> get() = images.mapNotNull { it.thumb }
     }
 
     @Serializable
@@ -252,8 +249,8 @@ data class Response(
     data class Image(
         val large: String?,
         val thumb: String?,
-        val large_webp: String?,
-        val thumb_webp: String?,
+        val blur: String?,
+        val is_main: Boolean?,
     )
 }
 
