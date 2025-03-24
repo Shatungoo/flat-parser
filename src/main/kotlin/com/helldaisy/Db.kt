@@ -91,6 +91,13 @@ class Db(path: String = "./flats") {
         conn.prepareStatement(sql).use { it.executeUpdate() }
     }
 
+    private fun cleanUpOldRecords() {
+        println("Clean up old records")
+        connection.delete(FlatTable) {
+            FlatTable.lastUpdated.less(LocalDateTime.now().minusDays(30))
+        }
+    }
+
 
     fun migrateData() {
         val flats = getFlats()
@@ -101,6 +108,7 @@ class Db(path: String = "./flats") {
 
     init {
         this.createTableIfNotExist(FlatTable)
+        this.cleanUpOldRecords()
     }
 
     fun insertFlats(flats: List<Response.Flat>) {
