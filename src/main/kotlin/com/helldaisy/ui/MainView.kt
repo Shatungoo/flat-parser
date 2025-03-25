@@ -29,7 +29,6 @@ fun MainView(settings: Settings, state: MutableState<State>) {
                 updateDb(settings.db, settings.filterCombined) {
                     val flatsUpdate = settings.db.getFlats(settings.filterCombined)
                     state.value = (state.value as FlatsState).copy(flats = flatsUpdate)
-                    filterView.value = FilterState.none
                 }
             },
             onClose = { filterView.value = FilterState.none })

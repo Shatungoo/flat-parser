@@ -1,6 +1,7 @@
 package com.helldaisy
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.helldaisy.ui.Filter
 import com.helldaisy.ui.toMap
 import io.ktor.client.*
@@ -62,6 +63,7 @@ fun updateDb(
 ) {
     CoroutineScope(Dispatchers.Default).launch {
         val response = runBlocking { getFlats(filter) }
+        println("Insert: "+response.size)
         db.insertFlats(response)
         cb()
     }
@@ -83,9 +85,7 @@ suspend fun getFlats(
     val count = filter.limitParser.value
     val result = coroutineScope {
         (0..count).map { n ->
-            async {
-                getFlatsPage(urlParamMap, n)
-            }
+            async { getFlatsPage(urlParamMap, n) }
         }
     }.awaitAll()
     return result.flatMap { json.decodeFromString<Response>(it).data.data }
@@ -246,10 +246,9 @@ data class Response(
     )
 
     @Serializable
+    @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val large: String?,
-        val large_webp: String?, //outdated
-        val thumb_webp: String?, //outdated
         val thumb: String?,
         val blur: String?,
         val is_main: Boolean?,

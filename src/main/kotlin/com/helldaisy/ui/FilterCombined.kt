@@ -49,6 +49,7 @@ fun FilterCombined(filter: Filter, apply: (filter: Filter) -> Unit) {
         FilterExactInt("Limit, p", filter.limitParser as MutableState<Int?>)
         Spacer(modifier = Modifier.height(50.dp))
         Button(onClick = {
+            println("apply filter")
             apply(filter)
         }) {
             Text("Search")
