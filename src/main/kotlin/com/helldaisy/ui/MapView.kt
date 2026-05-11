@@ -23,6 +23,7 @@ val cache = FileBasedLocalCache(cacheDir, false)
 val tileFactory = DefaultTileFactory(OSMTileFactoryInfo())
     .apply {
         setLocalCache(cache)
+        setUserAgent("flat-parser/1.0 (+https://github.com/Shatungoo/flat-parser)")
     }
 
 

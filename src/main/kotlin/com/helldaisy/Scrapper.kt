@@ -88,7 +88,18 @@ suspend fun getFlats(
             }
         }
     }.awaitAll()
-    return result.flatMap { json.decodeFromString<Response>(it).data.data }
+    val flats = result.flatMap { json.decodeFromString<Response>(it).data.data }
+    return coroutineScope {
+        flats.map { flat ->
+            async {
+                if (flat.lat == null && flat.uuid != null) {
+                    val coords = getFlatCoordinates(flat.uuid)
+                    if (coords != null) flat.copy(lat = coords.first, lng = coords.second)
+                    else flat
+                } else flat
+            }
+        }
+    }.awaitAll()
 }
 
 
@@ -234,12 +245,9 @@ data class Response(
     ) {
         override fun toString(): String = json.encodeToString(serializer(), this)
         @get:JsonIgnore
-        val imagesUrl: List<String> get() = images.mapNotNull { it.large_webp }.ifEmpty {
-            images.mapNotNull { it.large } }
+        val imagesUrl: List<String> get() = images.mapNotNull { it.large }
         @get:JsonIgnore
-        val thumbsUrl: List<String> get() = images.mapNotNull { it.thumb_webp }.ifEmpty {
-            images.mapNotNull { it.thumb }
-        }
+        val thumbsUrl: List<String> get() = images.mapNotNull { it.thumb }
     }
 
     @Serializable
@@ -250,11 +258,40 @@ data class Response(
 
     @Serializable
     data class Image(
-        val large: String?,
-        val thumb: String?,
-        val large_webp: String?,
-        val thumb_webp: String?,
+        val large: String? = null,
+        val thumb: String? = null,
+        val blur: String? = null,
+        val is_main: Boolean? = null,
     )
+}
+
+@Serializable
+data class FlatDetailResponse(
+    val result: Boolean,
+    val data: FlatDetailData,
+) {
+    @Serializable
+    data class FlatDetailData(val statement: FlatDetailStatement)
+
+    @Serializable
+    data class FlatDetailStatement(
+        // API returns labels swapped: api "lat" is geographic longitude, api "lng" is geographic latitude
+        val lat: Double? = null,
+        val lng: Double? = null,
+    )
+}
+
+// Returns (geographic_lat, geographic_lng) with the API swap corrected
+suspend fun getFlatCoordinates(uuid: String): Pair<Double, Double>? {
+    return try {
+        val response = get("https://api-statements.tnet.ge/v1/statements/$uuid")
+        val detail = json.decodeFromString<FlatDetailResponse>(response)
+        val apiLat = detail.data.statement.lat
+        val apiLng = detail.data.statement.lng
+        if (apiLat != null && apiLng != null) Pair(apiLng, apiLat) else null
+    } catch (e: Exception) {
+        null
+    }
 }
 
 fun String.toDate(): LocalDateTime {

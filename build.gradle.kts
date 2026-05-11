@@ -28,7 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-encoding:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("org.jxmapviewer:jxmapviewer2:2.8")
+    implementation("org.jxmapviewer:jxmapviewer2:2.8.1")
 
     implementation("org.xerial:sqlite-jdbc:3.46.0.0")
     implementation("org.ktorm:ktorm-support-sqlite:${ktorm_version}")
@@ -45,6 +45,8 @@ compose.desktop {
             }
         }
         mainClass = "com.helldaisy.MainKt"
+
+        jvmArgs("-Dhttps.protocols=TLSv1.2,TLSv1.3")
 
         nativeDistributions {
             windows{

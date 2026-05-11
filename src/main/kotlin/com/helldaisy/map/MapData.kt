@@ -82,6 +82,7 @@ data class MapData(
         }
 
         fun getCenter(geoPositions: List<GeoPosition>): GeoPosition {
+            if (geoPositions.isEmpty()) return GeoPosition(41.7, 44.8) // default: Tbilisi
             val x = geoPositions.map { it.latitude }.average()
             val y = geoPositions.map { it.longitude }.average()
             return GeoPosition(x, y)
